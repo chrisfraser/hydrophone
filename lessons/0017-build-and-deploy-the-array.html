@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B5 · Build &amp; Deploy the Array</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-17-specific: the array-geometry-planner canvas toy */
+  .toy { background:linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; touch-action:none; cursor:grab; }
+  canvas:active { cursor:grabbing; }
+  .row { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .row .btn { cursor:pointer; border:1.5px solid var(--ocean); background:var(--ocean); color:#fff; font-weight:700; padding:.5rem .9rem; border-radius:8px; font-size:.85rem; }
+  .row .btn:hover { background:var(--ocean-deep); border-color:var(--ocean-deep); }
+  .row .btn.ghost { background:#fff; color:var(--ocean-deep); }
+  .chip { cursor:pointer; border:1.5px solid var(--rule); background:#fff; border-radius:999px; padding:.32rem .7rem; font-weight:600; color:var(--ink-soft); }
+  .chip.on { border-color:var(--ocean); background:#e7f5f7; color:var(--ocean-deep); }
+  .row input[type=range] { accent-color:var(--ocean); flex:1; min-width:140px; }
+  .row output { font-variant-numeric:tabular-nums; color:var(--ocean-deep); font-weight:700; }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.95rem; padding:.6rem .8rem; border-radius:8px; margin-top:.8rem; background:#06202e; color:#d8f1f5; line-height:1.5; }
+  .toy .verdict b { color:#ffd479; }
+  .legend { font-family:var(--sans); font-size:.8rem; color:var(--ink-faint); display:grid; grid-template-columns:1fr 1fr; gap:.2rem 1rem; margin-top:.7rem; }
+  .legend span b { color:var(--ocean-deep); font-variant-numeric:tabular-nums; }
+  /* two-architecture compare cards */
+  .arch { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.6rem 0; }
+  .arch .card { background:#fff; border:1px solid var(--rule); border-radius:var(--radius); padding:1rem 1.1rem 1.1rem; box-shadow:var(--shadow); }
+  .arch .card.cable { border-top:4px solid var(--ocean); }
+  .arch .card.nodes { border-top:4px solid var(--sand); }
+  .arch .card h4 { font-family:var(--sans); font-size:.95rem; margin:.1rem 0 .5rem; color:var(--abyss); }
+  .arch .card ul { margin:.3rem 0 0; padding-left:1.1rem; font-family:var(--sans); font-size:.86rem; color:var(--ink-soft); }
+  .arch .card .pro { color:var(--kelp); font-weight:600; }
+  .arch .card .con { color:var(--coral); font-weight:600; }
+  @media (max-width:38rem){ .arch { grid-template-columns:1fr; } .legend { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/anatomy.html">Anatomy</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 4 · Build the array · B5</p>
+  <h1 class="lesson-title">Build &amp; Deploy the Array</h1>
+  <p class="lesson-sub">You can build one calibrated ear. The mission needs four of them, hung in the right places,
+  with their clocks locked together — a real array you can lower off the western slope and use to pin Irène's group.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~a weekend of rigging</span><span class="sep">•</span>
+    <span>💲 the budget-stretching tier</span><span class="sep">•</span>
+    <span>🔧 needs B3 ×3–4 + B4</span><span class="sep">•</span>
+    <span class="tag build">Build &amp; deploy</span>
+  </div>
+
+  <div class="callout note">
+    <div class="callout-label">⤴ Before you start — what this lesson assumes</div>
+    <p>This is the summit of the build track, and it stacks on everything below it. You need the
+    <a href="0015-the-serious-build.html">serious PZT build (B3)</a> <strong>replicated three or four times</strong>,
+    each one <a href="0016-calibration.html">calibrated (B4)</a> so they actually match, and the localization theory
+    from <a href="0011-time-difference-of-arrival.html">T10</a> and
+    <a href="0012-arrays-and-hyperbolic-localization.html">T11</a> in your head — because here we turn that geometry
+    into hardware in the water. Parts and budget live under
+    <a href="../reference/shopping-list.html#proj-d">Project D · Localization array</a>.</p>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson — the payoff</div>
+    <p>Every prior lesson built toward a single object: a rig that can hear a sperm whale click and tell you
+    <em>where the whale is</em>. One hydrophone gives you a sound. An <strong>array</strong> gives you a position.
+    This is the physical instrument that does the thing the whole course promised — moored off the western slope of
+    Mauritius, listening for Irène's group, and converting their clicks into points on a chart.<span class="cite"><a href="#r-skar">3</a></span></p>
+  </div>
+
+  <h2><span class="num">1</span>How many ears, and where to hang them</h2>
+  <p>You proved the geometry in <a href="0012-arrays-and-hyperbolic-localization.html">T11</a>: each hydrophone
+  <em>pair</em> draws a hyperbola, and the pairs cross at the whale. The ladder of how many ears you need is fixed by
+  that geometry, not by budget.<span class="cite"><a href="#r-pg-arrays">1</a></span> Two sensors give an ambiguous
+  bearing; three give a position on the surface plane; <strong>four well-spread sensors give a true 3-D fix (x, y and
+  depth)</strong>, and a fifth removes the last mirror-image ambiguity.<span class="cite"><a href="#r-pg-tdoa">7</a></span>
+  For pinning a deep-diving clicker you want <strong>at least four</strong>, distributed in all three dimensions.</p>
+
+  <p>Where you put them matters as much as how many. Close-together sensors draw sloppy, nearly-parallel hyperbolae
+  that a tiny timing error smears across the sea; spread them far apart and the same error pins a crisp point.
+  PAMGuard's rule is blunt: arrays should be <strong>spaced as widely as possible</strong>, with the localization
+  excellent inside the array's footprint and usable out to a few times its
+  width.<span class="cite"><a href="#r-pg-overview">2</a></span> The working template for exactly our mission is the
+  <strong>Skarsoulis et al. (2022)</strong> observatory: <strong>three hydrophones moored ~1–2 km apart</strong>,
+  localizing sperm whales in <strong>3-D out to ~7 km</strong> by combining pairwise TDOAs with each click's
+  surface-reflected echo as a virtual fourth arrival.<span class="cite"><a href="#r-skar">3</a></span> That is the
+  shape — a kilometre-scale, wide-aperture array — you are building toward.</p>
+
+  <p>Drag the rig below and watch the geometry pay off. Move the hydrophones wide and the whale's
+  <span style="color:#b8841f;font-weight:700">uncertainty ellipse</span> shrinks to a tidy dot; bunch them together or
+  line them up and it blows out into a smear. The glowing teal water is where this array localizes well.</p>
+
+  <div class="toy">
+    <h3>📐 Toy — Array geometry planner: place the rig, read the fix quality</h3>
+    <p class="hint">Drag the <span style="color:#bfe9f2;font-weight:700">■ hydrophones</span> and the
+    <span style="color:#ffd479;font-weight:700">★ whale</span>. The teal glow shades where the array can localize
+    cleanly; the <span style="color:#ffd479;font-weight:700">amber ellipse</span> is the whale's relative position
+    uncertainty (exaggerated so you can see it — watch its <em>size and shape</em>, not an absolute number). Spread
+    wide → small round ellipse. Clustered or collinear → a long ambiguous smear. The jitter slider adds clock error,
+    just like badly-synced recorders.</p>
+    <canvas id="arrCanvas" width="760" height="440" aria-label="Interactive array-geometry planner showing localization quality for a draggable hydrophone array"></canvas>
+    <div class="row">
+      <span>Hydrophones:</span>
+      <span class="chip" data-n="3">3</span>
+      <span class="chip on" data-n="4">4 (3-D fix)</span>
+      <span class="chip" data-n="5">5 (unambiguous)</span>
+      <button class="btn ghost" id="resetBtn">⤺ Reset layout</button>
+    </div>
+    <div class="row">
+      <label for="jitR">Clock jitter between elements:</label>
+      <input type="range" id="jitR" min="0" max="1" step="0.05" value="0.30">
+      <output id="jitOut">0.30 ms</output>
+    </div>
+    <div class="verdict" id="arrVerdict">—</div>
+    <div class="legend">
+      <span>Elements: <b id="nOut">—</b></span>
+      <span>Array aperture (widest baseline): <b id="apOut">—</b></span>
+      <span>Whale range from array: <b id="rngOut">—</b></span>
+      <span>Geometry score: <b id="scoreOut">—</b></span>
+    </div>
+  </div>
+
+  <h2><span class="num">2</span>Two ways to wire it: one cable, or many buoys</h2>
+  <p>There are two honest architectures, and the choice drives everything else — cost, how wide you can spread, and
+  how hard the clocks are to tame.</p>
+
+  <div class="arch">
+    <div class="card cable">
+      <h4>① One cabled multichannel recorder</h4>
+      <p style="font-family:var(--sans);font-size:.86rem;color:var(--ink-soft);margin:.1rem 0 .5rem">All elements run
+      down cables into a single deck — e.g. a <a href="https://zoomcorp.com/en/us/field-recorders/field-recorders/f6/" target="_blank" rel="noopener">Zoom&nbsp;F6</a>:
+      <strong>6 XLR inputs, up to 192&nbsp;kHz, 32-bit float, per-channel +48&nbsp;V phantom</strong>.<span class="cite"><a href="#r-f6">4</a></span></p>
+      <ul>
+        <li><span class="pro">Sync is free.</span> Every channel shares one ADC clock — the recording is
+        <strong>sample-synchronous</strong> with zero extra work.</li>
+        <li><span class="con">Cable limits aperture.</span> Spread is capped by how much cable you can run and
+        moor; a kilometre of multicore is heavy, costly and lossy.</li>
+        <li>Powers phantom buffers down the same cable; one box to recover.</li>
+      </ul>
+    </div>
+    <div class="card nodes">
+      <h4>② Several autonomous nodes</h4>
+      <p style="font-family:var(--sans);font-size:.86rem;color:var(--ink-soft);margin:.1rem 0 .5rem">Each element is
+      its own self-contained logger — e.g. a <a href="https://www.openacousticdevices.info/audiomoth" target="_blank" rel="noopener">HydroMoth</a>:
+      <strong>standalone, up to 384&nbsp;kHz, AA-powered, case rated ~30–60&nbsp;m</strong>.<span class="cite"><a href="#r-hydromoth">5</a></span></p>
+      <ul>
+        <li><span class="pro">Cheap to spread wide.</span> No cable between nodes, so the aperture is limited only by
+        your boat — drop them kilometres apart. Drifting two-element rigs already detect sperm whales this
+        way.<span class="cite"><a href="#r-dasbr">6</a></span></li>
+        <li><span class="con">You must time-align them afterward.</span> Each node keeps its <em>own</em> clock, and
+        independent clocks drift apart (see §3).</li>
+        <li>Recover and download every node separately; battery life caps the deployment.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-label">★ The trade in one line</div>
+    <p>A cabled multichannel rig buys you <strong>perfect timing</strong> and pays in <strong>limited spread</strong>;
+    autonomous nodes buy you <strong>unlimited spread</strong> and pay in <strong>the timing problem</strong>. For a
+    first array within a budget, a 4–6-channel cabled recorder is the simpler, safer summit; go to autonomous nodes
+    only once you need a wider aperture than cable can give — and have a sync plan.</p>
+  </div>
+
+  <h2><span class="num">3</span>The hard part: time synchronization</h2>
+  <p>This is the idea that separates a working array from a pile of recordings. Localization is built entirely on
+  <a class="xref" href="../reference/glossary.html#tdoa">TDOA</a> — the <em>difference</em> in arrival time of the
+  same click at two hydrophones, typically tens of microseconds to a few milliseconds. If your two recorders don't
+  agree on what time it is, that disagreement adds straight onto every TDOA, and a wrong TDOA is a wrong
+  hyperbola.</p>
+
+  <p>The numbers are unforgiving. A modest clock offset of <strong>1&nbsp;ms</strong>, multiplied by
+  <span class="inline-math">c ≈ 1500&nbsp;m/s</span>, corrupts the range-difference by <strong>~1.5&nbsp;m</strong>;
+  a 2&nbsp;ms drift is ~3&nbsp;m of pure error before any acoustics — and T11 showed how a glancing array geometry
+  then multiplies that into tens or hundreds of metres of position error.<span class="cite"><a href="#r-pg-overview">2</a></span>
+  Worse, cheap oscillators drift continuously, so even a perfect start-of-deployment sync slides out of alignment over
+  hours.</p>
+
+  <ul>
+    <li><strong>One multichannel recorder = solved for free.</strong> All channels are sampled by one converter off
+    one clock, so they are inherently sample-aligned. This is the single biggest reason to start cabled.</li>
+    <li><strong>Independent recorders = the work begins.</strong> Each node must be stamped against a
+    <strong>shared reference</strong> — a GPS receiver delivering a one-pulse-per-second (PPS) tick to every logger,
+    or a periodic known signal — and then you still apply <strong>post-hoc clock-drift correction</strong>, fitting and
+    removing each node's slow offset in software.<span class="cite"><a href="#r-vanparijs">8</a></span></li>
+    <li><strong>Log the truth, not the plan.</strong> Record each node's actual sample-clock against UTC at start and
+    end; researchers chasing unambiguous 3-D fixes treat this clock bookkeeping as a first-class part of the
+    rig.<span class="cite"><a href="#r-whaledo">9</a></span></li>
+  </ul>
+
+  <div class="callout warning">
+    <div class="callout-label">⚠ Clocks lie — and the fix won't tell you</div>
+    <p>A timing error doesn't crash anything; it quietly moves your whale. The array will hand you a confident
+    position that is simply wrong, and nothing in the output flags it. If you choose autonomous nodes, your
+    synchronization scheme is not an accessory — it <em>is</em> the experiment. Prove it on land (clap test, two
+    nodes, known offset) before you trust it at sea.</p>
+  </div>
+
+  <h2><span class="num">4</span>The deployment hardware — getting it into the water</h2>
+  <p>An array is also a mooring problem. Off the western slope of Mauritius the water is deep fast, so every element
+  has to be held at a known place and brought home again. Be honest with yourself: this is the budget-stretching
+  tier, and the rigging, boat time and lost-gear risk are real.</p>
+
+  <ul>
+    <li><strong>Floats &amp; weights.</strong> Each hydrophone hangs on a vertical line between a sub-surface
+    <strong>float</strong> (holds it upright, off the bottom) and an <strong>anchor weight</strong> (pins the
+    position). A surface buoy marks it for recovery.</li>
+    <li><strong>Mooring line.</strong> Enough rated line for slope depth plus scope, plus a recovery method — a
+    surface buoy or an acoustic/galvanic release.</li>
+    <li><strong>Waterproof bulkhead connectors.</strong> Wet-mateable or potted <strong>bulkhead connectors</strong>
+    where cable enters any housing — the join is the usual leak. The element is sealed; the connectors and recorder
+    are not.</li>
+    <li><strong>Log every GPS position.</strong> You must <strong>know the geometry to invert it</strong>: record each
+    deployed hydrophone's GPS fix (and depth on the line). An unknown sensor position is an unknown focus — the
+    hyperbolae have nowhere to anchor, and the localization is impossible.<span class="cite"><a href="#r-vanparijs">8</a></span></li>
+  </ul>
+
+  <p>Use the checklist as a pre-deployment gate. Tap each item once it's ready; the tally tracks what's still to
+  source. Full parts and suppliers are under
+  <a href="../reference/shopping-list.html#proj-d">Project D</a>.</p>
+
+  <div class="checklist-widget">
+    <ul class="checklist">
+      <li data-check data-cost="600"><span class="ck-name">≥4 matched, calibrated hydrophones</span> <span class="ck-spec">— B3 build replicated ×4, each B4-calibrated so their sensitivities agree.</span> <span class="ck-cost">~$600</span></li>
+      <li data-check data-cost="450"><span class="ck-name">Multichannel recorder <em>or</em> synced nodes</span> <span class="ck-spec">— one Zoom F6-class deck (≥96 kHz, all channels at once), or HydroMoth-class loggers + a sync plan.</span> <span class="ck-cost">~$450</span></li>
+      <li data-check data-cost="60"><span class="ck-name">GPS + time reference</span> <span class="ck-spec">— for logging element positions, and PPS time-stamping if you went autonomous.</span> <span class="ck-cost">~$60</span></li>
+      <li data-check data-cost="120"><span class="ck-name">Mooring line, anchors &amp; floats</span> <span class="ck-spec">— rated for slope depth; sub-surface float + weight per element, surface marker.</span> <span class="ck-cost">~$120</span></li>
+      <li data-check data-cost="80"><span class="ck-name">Waterproof bulkhead connectors</span> <span class="ck-spec">— wet-mateable or potted at every housing entry; the #1 leak point.</span> <span class="ck-cost">~$80</span></li>
+      <li data-check data-cost="0"><span class="ck-name">Boat, crew &amp; recovery plan</span> <span class="ck-spec">— small-boat deployment over deep water; know how each unit comes back.</span> <span class="ck-cost">varies</span></li>
+      <li data-check data-cost="0"><span class="ck-name">Land sync + leak test</span> <span class="ck-spec">— clap-test the timing and bucket-soak every housing before it ever leaves the dock.</span> <span class="ck-cost">free</span></li>
+    </ul>
+    <div class="checklist-bar">
+      <span data-checklist-progress></span>
+      <span data-checklist-cost></span>
+    </div>
+  </div>
+
+  <h2><span class="num">5</span>Check yourself</h2>
+
+  <div class="quiz" data-explain-right="One clock, every channel." data-explain-wrong="See §2 and §3 on synchronization.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">Six elements into one Zoom F6, versus three HydroMoths on their own clocks — which is sample-synchronous for free?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Right. One recorder samples every channel off a single ADC clock, so the channels are inherently aligned — no post-processing needed.">The one cabled multichannel recorder</button>
+      <button class="opt" data-feedback="No. Independent loggers each free-run their own clock; you must time-align them afterward with GPS/PPS or drift correction.">The three separate autonomous loggers</button>
+      <button class="opt" data-feedback="No. Only the single-clock recorder is synchronous; wiring nodes together still leaves each one timing itself.">Both rigs once properly cabled</button>
+      <button class="opt" data-feedback="Not so — the cabled recorder is synchronous immediately. It is the autonomous nodes that need realignment.">Neither without later clock realignment</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="Four-plus, spread wide." data-explain-wrong="See §1 and the ladder in T11.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">For a true 3-D fix on a deep clicking whale, the practical array geometry is…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Yes. Four (ideally five) sensors distributed in x, y and depth, spaced as widely as possible, give a crisp unambiguous 3-D fix.">Four-plus elements spread far apart</button>
+      <button class="opt" data-feedback="No. Two sensors give only an ambiguous bearing — a left/right mirror with no range and no depth.">Two elements placed close together</button>
+      <button class="opt" data-feedback="No. Collinear sensors leave an ambiguity perpendicular to the line; the fix smears badly off-axis.">Four elements stacked dead in-line</button>
+      <button class="opt" data-feedback="No. Bunched-up sensors draw near-parallel hyperbolae, so any timing error blows the position out hugely.">Three elements bunched near shore</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="No geometry, no inversion." data-explain-wrong="See §4 on logging positions.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">You moored the array but never recorded each hydrophone's GPS position. Your localization is now…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Right. The hyperbolae anchor on the sensor positions; unknown foci means there is nothing to invert. Log every position.">Impossible without the known sensor geometry</button>
+      <button class="opt" data-feedback="No. Software cannot conjure positions you never measured — the geometry is an input, not an output.">Fine because software infers their positions</button>
+      <button class="opt" data-feedback="No. The recorder logs audio and its own clock, not where in the sea each element physically hung.">Fine since the recorder logs everything</button>
+      <button class="opt" data-feedback="No. A mystery baseline adds error, not information; an unknown focus only corrupts the fix.">Improved by the extra mystery baseline</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now do</h3>
+    <ol>
+      <li><strong>Size the array:</strong> at least four hydrophones, distributed in x, y and depth, spaced
+      <strong>as widely as possible</strong> — the Skarsoulis kilometre-scale template.</li>
+      <li><strong>Pick an architecture:</strong> one cabled multichannel recorder (sync free, spread limited) vs.
+      several autonomous nodes (spread free, sync is on you).</li>
+      <li>Treat <strong>time synchronization</strong> as the experiment: single recorder = sample-synchronous;
+      independent loggers need GPS/PPS stamping plus drift correction.</li>
+      <li>Rig the <strong>deployment hardware</strong> — floats, weights, mooring line, waterproof bulkhead
+      connectors — and <strong>log every element's GPS position</strong>, because you must know the geometry to invert it.</li>
+      <li>Gate it behind a <strong>land sync + leak test</strong> before it ever goes off the western slope.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · the array you are building</div>
+      <div class="title"><a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.873888/full" target="_blank" rel="noopener">Skarsoulis et al. (2022) — A real-time sperm-whale localization observatory</a></div>
+      <div class="desc">Three hydrophones moored ~1–2 km apart, localizing sperm whales in 3-D out to ~7 km from
+      pairwise TDOAs plus surface-reflected arrivals. Read it as the deployed-hardware blueprint: the aperture, the
+      mooring scale, and why timing and known geometry are everything.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>Planning your rig? Bring it to me.</b> Tell me your budget and the aperture you can reach by boat and I'll
+    help you choose cabled-vs-nodes; paste your recorder's channel count and sample rate and I'll sanity-check it for
+    clicks; or describe your sync idea and we'll stress-test whether it's tight enough for a real fix.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#tdoa">TDOA</a> ·
+    <a href="../reference/glossary.html#hyperbolic">hyperbolic localization</a> ·
+    <a href="../reference/glossary.html#ssp">sound-speed profile</a>.
+    <b>Builds on →</b> B3 (the serious build), B4 (calibration), T10/T11 (the localization geometry).
+    <b>Leads to →</b> B6 (localize a real whale with this rig).
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-pg-arrays">PAMGuard — <a href="https://www.pamguard.org/olhelp/localisation/docs/localisation_arrays.html" target="_blank" rel="noopener">Types of Array</a>. Element counts: 2 = ambiguous bearing, 3 = surface bearing, 4 = unambiguous 2-D, 5 = unambiguous 3-D; localization excellent within the array volume.</li>
+    <li id="r-pg-overview">PAMGuard — <a href="https://www.pamguard.org/olhelp/localisation/docs/localisation_overview.html" target="_blank" rel="noopener">Localisation Overview</a>. Each TDOA defines a hyperboloid; arrays should be "spaced as widely as possible"; timing and geometry error.</li>
+    <li id="r-skar">Skarsoulis et al. (2022) — <a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.873888/full" target="_blank" rel="noopener">Real-time sperm-whale localization observatory</a>. Three moored hydrophones ~1–2 km apart; TDOA + surface reflections; 3-D out to ~7 km.</li>
+    <li id="r-f6">Zoom — <a href="https://zoomcorp.com/en/us/field-recorders/field-recorders/f6/" target="_blank" rel="noopener">F6 Field Recorder</a>. 6 discrete locking-XLR inputs, up to 192 kHz, 32-bit float, +24/+48 V phantom (10 mA per channel).</li>
+    <li id="r-hydromoth">Open Acoustic Devices — <a href="https://www.openacousticdevices.info/audiomoth" target="_blank" rel="noopener">AudioMoth / HydroMoth</a>. Standalone full-spectrum logger up to 384 kHz, onboard real-time clock, 3×AA; underwater case rated ~30–60 m.</li>
+    <li id="r-dasbr">Barlow et al. (2016) — <a href="https://pubs.aip.org/asa/jasa/article/140/5/EL399/679287/Cetacean-acoustic-detections-from-free-floating" target="_blank" rel="noopener">Detections from free-floating vertical arrays</a>. Drifting 2-element DASBR sampling at 192 kHz detecting sperm whales — the low-cost autonomous-spread precedent.</li>
+    <li id="r-pg-tdoa">PAMGuard — <a href="https://www.pamguard.org/olhelp/localisation/docs/localisation_tdoa.html" target="_blank" rel="noopener">TDOA Localisation</a>. Cross-correlation TDOA; bearing (≥2) vs. 3-D (≥4 well-distributed sensors).</li>
+    <li id="r-vanparijs">Van Parijs et al. (2021) — <a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2021.760840/full" target="_blank" rel="noopener">Minimum PAM recommendations</a>. Calibration, sample rate by species, hydrophone count and known positions for defensible localization.</li>
+    <li id="r-whaledo">Snyder et al. (2024) — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11142720/" target="_blank" rel="noopener">Where's Whaledo</a>. Open pipeline combining a spaced TDOA array with a depth-separated group, with clock bookkeeping, for unambiguous 3-D fixes.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0016-calibration.html">
+      <div class="dir">← Previous · B4</div>
+      <div class="ttl">Calibration</div>
+    </a>
+    <a class="next" href="0018-localize-a-whale.html">
+      <div class="dir">Next · B6</div>
+      <div class="ttl">Localize a Whale →</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson 17 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Toy — array geometry planner ============================ */
+(function(){
+  var canvas = document.getElementById('arrCanvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if(!ctx) return;
+  var W = canvas.width, H = canvas.height;
+
+  /* --- world scale: the canvas shows roughly an 8 km-wide patch of sea --- */
+  var WORLD_W_M = 8000;
+  var mPerPx = WORLD_W_M / W;       // ~10.5 m per pixel
+  var C = 1500;                     // sound speed, m/s
+
+  /* --- elements --- */
+  var jitR    = document.getElementById('jitR');
+  var jitOut  = document.getElementById('jitOut');
+  var verdict = document.getElementById('arrVerdict');
+  var nOut    = document.getElementById('nOut');
+  var apOut   = document.getElementById('apOut');
+  var rngOut  = document.getElementById('rngOut');
+  var scoreOut= document.getElementById('scoreOut');
+
+  /* --- default layout (in px) --- */
+  function defaultSensors(n){
+    var s = [
+      {x:W*0.22, y:H*0.28, label:'A'},
+      {x:W*0.78, y:H*0.26, label:'B'},
+      {x:W*0.80, y:H*0.76, label:'C'},
+      {x:W*0.20, y:H*0.74, label:'D'},
+      {x:W*0.50, y:H*0.50, label:'E'}
+    ];
+    return s.slice(0,n).map(function(p){ return {x:p.x, y:p.y, label:p.label}; });
+  }
+  var N = 4;
+  var sensors = defaultSensors(N);
+  var src = {x:W*0.45, y:H*0.56};
+
+  function dist(ax,ay,bx,by){ return Math.hypot(ax-bx, ay-by); }
+
+  /* --- Fisher information matrix M = sum_{i<j} (ui-uj)(ui-uj)^T at point (px,py) --- */
+  function infoMatrix(px,py){
+    var us = [];
+    for(var i=0;i<sensors.length;i++){
+      var dx = sensors[i].x-px, dy = sensors[i].y-py;
+      var d = Math.hypot(dx,dy); if(d<1) d=1;
+      us.push([dx/d, dy/d]);
+    }
+    var a=0,b=0,c=0;
+    for(var p=0;p<us.length;p++) for(var q=p+1;q<us.length;q++){
+      var ex = us[p][0]-us[q][0], ey = us[p][1]-us[q][1];
+      a += ex*ex; b += ex*ey; c += ey*ey;
+    }
+    return {a:a, b:b, c:c};
+  }
+  /* smaller eigenvalue of a 2x2 symmetric [[a,b],[b,c]] */
+  function lamMin(m){
+    var tr = m.a+m.c, hd = (m.a-m.c)/2;
+    return tr/2 - Math.sqrt(hd*hd + m.b*m.b);
+  }
+  function lamMax(m){
+    var tr = m.a+m.c, hd = (m.a-m.c)/2;
+    return tr/2 + Math.sqrt(hd*hd + m.b*m.b);
+  }
+
+  function nPairs(){ var n=sensors.length; return n*(n-1)/2; }
+  function aperturePx(){
+    var mx=0;
+    for(var i=0;i<sensors.length;i++) for(var j=i+1;j<sensors.length;j++){
+      var d = dist(sensors[i].x,sensors[i].y, sensors[j].x,sensors[j].y);
+      if(d>mx) mx=d;
+    }
+    return mx;
+  }
+  function widestPair(){
+    var mx=0, bi=0, bj=1;
+    for(var i=0;i<sensors.length;i++) for(var j=i+1;j<sensors.length;j++){
+      var d = dist(sensors[i].x,sensors[i].y, sensors[j].x,sensors[j].y);
+      if(d>mx){ mx=d; bi=i; bj=j; }
+    }
+    return [bi,bj];
+  }
+  function centroid(){
+    var cx=0, cy=0;
+    sensors.forEach(function(p){ cx+=p.x; cy+=p.y; });
+    return {x:cx/sensors.length, y:cy/sensors.length};
+  }
+
+  /* --- scene chrome --- */
+  function drawGrid(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#06202e'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle = 'rgba(143,185,198,.07)'; ctx.lineWidth = 1;
+    var gpx = 1000/mPerPx;                      // 1 km grid
+    for(var x=gpx; x<W; x+=gpx){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for(var y=gpx; y<H; y+=gpx){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    // scale bar
+    ctx.strokeStyle = '#8fb9c6'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(16,H-16); ctx.lineTo(16+gpx,H-16); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(16,H-20); ctx.lineTo(16,H-12);
+    ctx.moveTo(16+gpx,H-20); ctx.lineTo(16+gpx,H-12); ctx.stroke();
+    ctx.fillStyle = '#8fb9c6'; ctx.font = '11px Inter, system-ui, sans-serif'; ctx.textAlign='left';
+    ctx.fillText('1 km', 16+gpx+8, H-12);
+  }
+
+  /* --- quality heatmap: shade where lamMin(M) is large (good geometry) --- */
+  function drawHeat(){
+    var step = 16;
+    var lref = 0.32 * Math.max(nPairs(),1);
+    for(var gy=step/2; gy<H; gy+=step){
+      for(var gx=step/2; gx<W; gx+=step){
+        var lm = lamMin(infoMatrix(gx,gy));
+        var q = lm/lref; if(q>1) q=1; if(q<0) q=0;
+        if(q>0.04){
+          ctx.fillStyle = 'rgba(70,178,196,'+(0.17*q).toFixed(3)+')';
+          ctx.fillRect(gx-step/2, gy-step/2, step, step);
+        }
+      }
+    }
+  }
+
+  /* --- baselines (all pairs faint; widest pair bright) --- */
+  function drawBaselines(){
+    var wp = widestPair();
+    for(var i=0;i<sensors.length;i++) for(var j=i+1;j<sensors.length;j++){
+      var wide = (i===wp[0] && j===wp[1]);
+      ctx.strokeStyle = wide ? 'rgba(127,224,239,.55)' : 'rgba(127,224,239,.14)';
+      ctx.lineWidth = wide ? 2 : 1;
+      ctx.beginPath();
+      ctx.moveTo(sensors[i].x, sensors[i].y);
+      ctx.lineTo(sensors[j].x, sensors[j].y);
+      ctx.stroke();
+    }
+  }
+
+  /* --- uncertainty ellipse at the whale from M^-1 (exaggerated for visibility) --- */
+  function drawEllipse(){
+    var m = infoMatrix(src.x, src.y);
+    var det = m.a*m.c - m.b*m.b;
+    if(det < 1e-4) det = 1e-4;            // clamp near-singular (collinear) geometry
+    // M^-1 entries
+    var A = m.c/det, B = -m.b/det, Cc = m.a/det;
+    var tr = A+Cc, hd = (A-Cc)/2;
+    var rad = Math.sqrt(hd*hd + B*B);
+    var l1 = tr/2 + rad, l2 = tr/2 - rad;
+    if(l2<0) l2=0;
+    var theta = 0.5*Math.atan2(2*B, A-Cc);
+    var jit = parseFloat(jitR.value); if(isNaN(jit)) jit=0.3;
+    var K = 42 * (jit/0.30);              // scale with clock jitter; 0.30 ms = unit
+    var maxR = 320;
+    var s1 = Math.min(Math.max(K*Math.sqrt(l1), 2), maxR);
+    var s2 = Math.min(Math.max(K*Math.sqrt(l2), 2), maxR);
+
+    ctx.save();
+    ctx.translate(src.x, src.y);
+    ctx.rotate(theta);
+    ctx.beginPath();
+    ctx.ellipse(0,0, s1, s2, 0, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,212,121,.16)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,212,121,.6)';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+    ctx.restore();
+    return {m:m, det:det, l1:l1, l2:l2};
+  }
+
+  function drawSensors(){
+    sensors.forEach(function(p){
+      ctx.fillStyle = '#2a9db0';
+      ctx.fillRect(p.x-6, p.y-6, 12, 12);
+      ctx.strokeStyle = '#bfe9f2'; ctx.lineWidth = 1.5;
+      ctx.strokeRect(p.x-6, p.y-6, 12, 12);
+      ctx.fillStyle = '#bfe9f2'; ctx.font = 'bold 12px Inter, system-ui, sans-serif'; ctx.textAlign='center';
+      ctx.fillText(p.label, p.x, p.y-11);
+    });
+  }
+  function drawSource(){
+    ctx.fillStyle = '#ffd479';
+    ctx.beginPath(); ctx.arc(src.x, src.y, 6, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#fff4cf'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(src.x, src.y, 10, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = '#ffd479'; ctx.font = 'bold 12px Inter, system-ui, sans-serif'; ctx.textAlign='center';
+    ctx.fillText('★ whale', src.x, src.y-15);
+  }
+
+  function render(){
+    drawGrid();
+    drawHeat();
+    drawBaselines();
+    var el = drawEllipse();
+    drawSensors();
+    drawSource();
+
+    // readouts
+    var jit = parseFloat(jitR.value); if(isNaN(jit)) jit=0.3;
+    jitOut.textContent = jit.toFixed(2)+' ms';
+    nOut.textContent = sensors.length+'';
+    var apKm = aperturePx()*mPerPx/1000;
+    apOut.textContent = apKm.toFixed(2)+' km';
+    var ctr = centroid();
+    var rngKm = dist(src.x,src.y,ctr.x,ctr.y)*mPerPx/1000;
+    rngOut.textContent = rngKm.toFixed(2)+' km';
+
+    // geometry score from M at whale
+    var m = el.m;
+    var lmn = lamMin(m), lmx = lamMax(m);
+    var anis = (lmx>1e-9) ? lmn/lmx : 0;
+    var near = el.det < 0.02 || lmn < 0.05;
+    var score, color, msg;
+    if(near){
+      score='POOR'; color='#ff8f6a';
+      msg='Near-collinear or the whale sits on a baseline — the array can’t tell front from back, so the fix smears into a long <b>ambiguous</b> streak. Move the elements off a single line.';
+    } else if(anis < 0.18){
+      score='FAIR'; color='#ffd479';
+      msg='Lopsided geometry: sharp one way, smeared the other. Even out the spread so the ellipse rounds up.';
+    } else if(apKm < 0.4){
+      score='FAIR'; color='#ffd479';
+      msg='Tightly clustered — the hyperbolae cross at shallow angles, so any clock error balloons. Drag the elements much wider apart.';
+    } else if(rngKm > 2.5*apKm){
+      score='FAIR'; color='#ffd479';
+      msg='The whale sits well outside the array footprint. Fixes get shaky past a few array-widths — a wider aperture extends your range.';
+    } else {
+      score='GOOD'; color='#7fe0a0';
+      msg='Crisp geometry: wide aperture, steep crossings, a tidy round ellipse. This is the rig you moor.';
+    }
+    if(jit >= 0.6 && !near){
+      msg += ' But this jitter is large — even good geometry can’t rescue sloppy clocks (§3).';
+    }
+    scoreOut.innerHTML = '<span style="color:'+color+'">'+score+'</span>';
+    verdict.innerHTML = '<b style="color:'+color+'">'+score+'.</b> '+msg;
+  }
+
+  /* --- dragging (whale or any hydrophone) --- */
+  var dragging = null;
+  function getPos(e){
+    var r = canvas.getBoundingClientRect();
+    var sx = canvas.width/r.width, sy = canvas.height/r.height;
+    var pt = (e.touches && e.touches[0]) ? e.touches[0] : e;
+    return { x:(pt.clientX-r.left)*sx, y:(pt.clientY-r.top)*sy };
+  }
+  function pick(pos){
+    var best=null, bd=26*26;
+    var d = (pos.x-src.x)*(pos.x-src.x)+(pos.y-src.y)*(pos.y-src.y);
+    if(d<bd){ best={t:'src'}; bd=d; }
+    sensors.forEach(function(p,i){
+      var dd=(pos.x-p.x)*(pos.x-p.x)+(pos.y-p.y)*(pos.y-p.y);
+      if(dd<bd){ best={t:'sensor',i:i}; bd=dd; }
+    });
+    return best;
+  }
+  function down(e){ var pos=getPos(e); dragging=pick(pos); if(dragging){ e.preventDefault(); move(e); } }
+  function move(e){
+    if(!dragging) return;
+    e.preventDefault();
+    var pos = getPos(e);
+    pos.x = Math.max(8, Math.min(W-8, pos.x));
+    pos.y = Math.max(8, Math.min(H-8, pos.y));
+    if(dragging.t==='src'){ src.x=pos.x; src.y=pos.y; }
+    else { sensors[dragging.i].x=pos.x; sensors[dragging.i].y=pos.y; }
+    render();
+  }
+  function up(){ dragging=null; }
+
+  canvas.addEventListener('mousedown', down);
+  window.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', up);
+  canvas.addEventListener('touchstart', down, {passive:false});
+  canvas.addEventListener('touchmove', move, {passive:false});
+  canvas.addEventListener('touchend', up);
+
+  /* --- controls --- */
+  if(jitR) jitR.addEventListener('input', render);
+  var reset = document.getElementById('resetBtn');
+  if(reset) reset.addEventListener('click', function(){
+    sensors = defaultSensors(N); src = {x:W*0.45, y:H*0.56}; render();
+  });
+  document.querySelectorAll('.toy .chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      document.querySelectorAll('.toy .chip').forEach(function(c){ c.classList.remove('on'); });
+      chip.classList.add('on');
+      N = parseInt(chip.getAttribute('data-n'),10) || 4;
+      sensors = defaultSensors(N); render();
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

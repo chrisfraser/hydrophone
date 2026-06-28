@@ -26,6 +26,7 @@
     <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
     <nav>
       <a href="../index.html">Lessons</a>
+      <a href="../reference/anatomy.html">Anatomy</a>
       <a href="../reference/glossary.html">Glossary</a>
       <a href="../reference/shopping-list.html">Shop</a>
       <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
@@ -231,6 +232,16 @@
       <button class="opt" data-feedback="Gain is set by the JFET stage, not by these blocking caps.">They raise input gain, lifting the quiet signal</button>
     </div>
     <div class="q-feedback"></div>
+  </div>
+
+  <div class="callout note">
+    <div class="callout-label">⌁ Two refinements worth knowing</div>
+    <p><strong>Put the buffer in the hydrophone, not at the recorder.</strong> A deck-end buffer still sends the raw
+    high-impedance signal down the cable, where it's far more susceptible to interference — integrate it at the
+    element. And the phantom/Alex-Rice path isn't the only option: a <strong>plug-in-power (PIP) buffer</strong>
+    (e.g. Zach Poff's 2SK209 design) runs off the 3–5 V a small recorder supplies on its 3.5 mm input — simpler for
+    handheld rigs and far more power-efficient than phantom (which generates 48 V only to throw most of it away —
+    relevant for long battery deployments). <em>(per <a href="https://zachpoff.com/resources/pip-stereo-piezo-preamplifier/" target="_blank" rel="noopener">Zach Poff ↗</a>)</em></p>
   </div>
 
   <div class="recap">

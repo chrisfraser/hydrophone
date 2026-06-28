@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B6 · Localize a Whale</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-B6-specific: the end-to-end "localize the whale" pipeline canvas */
+  .toy { background:linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; touch-action:none; cursor:default; }
+  .row { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .row .btn { cursor:pointer; border:1.5px solid var(--ocean); background:var(--ocean); color:#fff; font-weight:700; padding:.5rem .9rem; border-radius:8px; font-size:.85rem; }
+  .row .btn:hover { background:var(--ocean-deep); border-color:var(--ocean-deep); }
+  .row .btn.ghost { background:#fff; color:var(--ocean-deep); }
+  .row input[type=range] { accent-color:var(--ocean); flex:1; min-width:140px; }
+  .row output { font-variant-numeric:tabular-nums; color:var(--ocean-deep); font-weight:700; }
+  .toy .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.6rem; margin-top:.8rem; }
+  .toy .stat { background:#06202e; border-radius:8px; padding:.6rem .7rem; font-family:var(--sans); }
+  .toy .stat .k { font-size:.66rem; text-transform:uppercase; letter-spacing:.08em; color:#8fb9c6; }
+  .toy .stat .v { font-family:var(--mono); font-size:1.25rem; font-weight:700; color:#ffd479; line-height:1.3; }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.95rem; padding:.6rem .8rem; border-radius:8px; margin-top:.8rem; background:#06202e; color:#d8f1f5; line-height:1.5; }
+  .toy .verdict b { color:#ffd479; }
+  .legend { font-family:var(--sans); font-size:.8rem; color:var(--ink-faint); display:grid; grid-template-columns:1fr 1fr; gap:.25rem 1rem; margin-top:.7rem; }
+  .legend span b { color:var(--ocean-deep); }
+  .swatch { display:inline-block; width:.7rem; height:.7rem; border-radius:3px; margin-right:.35rem; vertical-align:baseline; }
+  @media (max-width:34rem){ .toy .stats { grid-template-columns:1fr; } .legend { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/anatomy.html">Anatomy</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 4 · Build the array · B6</p>
+  <h1 class="lesson-title">Localize a Whale</h1>
+  <p class="lesson-sub">This is the finale. You have a synchronized array in the water and every theory piece in
+  your head. Today they converge: raw multichannel audio in, a real 3-D position — and then a track — of a named
+  Mauritius sperm whale out. The whole course, paying off.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~16 minutes</span><span class="sep">•</span>
+    <span>🛰 The capstone — run the whole pipeline</span><span class="sep">•</span>
+    <span>🔬 Needs your B5 array (or PAMGuard demo data)</span><span class="sep">•</span>
+    <span class="tag ocean">Mission: audio → a 3-D fix</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson — this IS the mission</div>
+    <p>Every lesson before this built one piece. In <a href="0017-build-and-deploy-the-array.html">B5</a> you put a
+    <strong>synchronized multi-hydrophone array</strong> in the water; in Phase&nbsp;1 you learned to detect a click,
+    measure a <a href="../reference/glossary.html#tdoa">TDOA</a>, intersect
+    <a href="../reference/glossary.html#hyperbolic">hyperboloids</a>, and stitch fixes into a track. Nothing new is
+    introduced here — instead you <strong>assemble the whole end-to-end field workflow</strong> into one capstone and
+    do the thing the course promised on day one: <strong>put a real position on a clicking sperm whale off
+    Mauritius</strong>, built entirely from instruments and math you now own.<span class="cite"><a href="#r-skar">1</a></span></p>
+  </div>
+
+  <h2><span class="num">1</span>The pipeline — five moves you already own</h2>
+  <p>Localization in the field is not one big trick; it is five small moves chained together, and you have already
+  practised every one of them. The only new skill is running them in order, on the same recording.</p>
+
+  <table>
+    <caption>The end-to-end localization pipeline. Each stage is a lesson you have already done — this lesson just
+    connects them.<span class="cite"><a href="#r-skar">1</a></span></caption>
+    <thead><tr><th class="num">#</th><th>Stage — what happens</th><th>From</th></tr></thead>
+    <tbody>
+      <tr><td class="num"><b>1</b></td><td><b>Deploy &amp; record.</b> A synchronized, multichannel array logs the same instant of ocean on every hydrophone, sharing one clock.</td><td>B5</td></tr>
+      <tr><td class="num"><b>2</b></td><td><b>Detect the clicks</b> on each channel — an energy threshold, the Teager-Kaiser operator, or PAMGuard's click detector.<span class="cite"><a href="#r-detect">10</a></span></td><td>T8</td></tr>
+      <tr><td class="num"><b>3</b></td><td><b>Measure the TDOAs</b> between channel pairs by cross-correlation / <a href="../reference/glossary.html#gcc-phat">GCC-PHAT</a> — the lag at the peak.<span class="cite"><a href="#r-pg-tdoa">3</a></span></td><td>T10</td></tr>
+      <tr><td class="num"><b>4</b></td><td><b>Intersect the hyperboloids.</b> Convert each TDOA with the sound speed and cross the curves for a single 3-D <strong>fix</strong>.<span class="cite"><a href="#r-pg-overview">2</a></span></td><td>T11</td></tr>
+      <tr><td class="num"><b>5</b></td><td><b>Stitch the fixes</b> from successive clicks (after click-train association) into a <strong>track</strong> over time.<span class="cite"><a href="#r-pg-ct">4</a></span></td><td>T12</td></tr>
+    </tbody>
+  </table>
+
+  <p>That is the entire job. Feed in synchronized audio of a clicking whale, run moves 2→5, and a dot — then a path —
+  appears on your chart. The simulator below runs the full chain so you can watch each move hand off to the next.</p>
+
+  <h2><span class="num">2</span>Run it yourself — the end-to-end simulator</h2>
+  <p>A hidden whale is clicking and swimming across the scene. Four hydrophones (your B5 array) hear each click at
+  slightly different times. Step through — or auto-run — the full pipeline and watch a position, then a track, build
+  itself out of nothing but timing.</p>
+
+  <div class="toy">
+    <h3>🛰 Capstone — Localize the whale, click by click</h3>
+    <p class="hint">Press <b>Step</b> to walk one stage at a time, or <b>Auto-run</b> to play the whole track. Each
+    click: <b>① detect</b> — the wavefront reaches the four <span style="color:#7fe0ef">hydrophones</span> in order;
+    <b>② TDOA</b> — the cross-correlation peaks give each pair's lag; <b>③ fix</b> — the
+    <span style="color:#ffd479">hyperbolae</span> cross at the whale and drop a <span style="color:#fff">white
+    fix</span>. Successive fixes connect into a <span style="color:#ffd479">track</span>. Add timing noise and watch
+    the fixes scatter off the true path.</p>
+    <canvas id="locCanvas" width="760" height="520" aria-label="End-to-end localization: a clicking whale detected on four hydrophones, TDOAs measured, hyperbolae intersected into a fix, fixes stitched into a track"></canvas>
+    <div class="row">
+      <button class="btn" id="runBtn">▶ Auto-run the pipeline</button>
+      <button class="btn ghost" id="stepBtn">⏭ Step one stage</button>
+      <button class="btn ghost" id="resetBtn">↺ Reset</button>
+    </div>
+    <div class="row">
+      <label for="noiseR">Timing noise (jitter on each TDOA):</label>
+      <input type="range" id="noiseR" min="0" max="1.5" step="0.05" value="0">
+      <output id="noiseOut">0.00 ms</output>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">Stage</div><div class="v" id="stStage">—</div></div>
+      <div class="stat"><div class="k">This click's range</div><div class="v" id="stRange">—</div></div>
+      <div class="stat"><div class="k">Latest fix error</div><div class="v" id="stErr">—</div></div>
+    </div>
+    <div class="verdict" id="locVerdict">—</div>
+    <div class="legend">
+      <span><span class="swatch" style="background:#7fe0ef"></span><b>Hydrophones A–D</b> — your synchronized array</span>
+      <span><span class="swatch" style="background:#ffd479"></span><b>★ true whale</b> &amp; the stitched track</span>
+      <span><span class="swatch" style="background:#fff"></span><b>✕ fix</b> — where the hyperbolae cross</span>
+      <span><span class="swatch" style="background:#2a9db0"></span><b>TDOA peaks</b> — one per hydrophone pair</span>
+    </div>
+  </div>
+
+  <div class="callout note">
+    <div class="callout-label">⌗ Notice what timing alone buys you</div>
+    <p>With zero noise the hyperbolae meet exactly on the whale and the fix sits dead on the truth — you never
+    measured loudness, never knew when the whale clicked, only the tiny gaps between four arrivals. Push the noise
+    slider and the same geometry degrades gracefully: the fixes scatter, but the <em>track</em> still traces the
+    whale's path, because a wide array makes the hyperbolae cross at steep angles.<span class="cite"><a href="#r-pg-overview">2</a></span></p>
+  </div>
+
+  <h2><span class="num">3</span>Doing it for real in PAMGuard</h2>
+  <p>You can code this pipeline yourself, but you don't have to. <strong>PAMGuard</strong> — the free, open-source
+  tool working acousticians use — implements every stage as a module you wire together in a data model. Here is the
+  exact chain for sperm-whale clicks on your array:<span class="cite"><a href="#r-pg-overview">2</a></span></p>
+
+  <ol class="steps">
+    <li><div class="step-title">Sound Acquisition → multichannel</div>
+      <div class="step-detail">Point PAMGuard at your synchronized multichannel file (or live device) and tell it the
+      array geometry — each hydrophone's x, y, z. The geometry is what turns timings into metres.</div>
+      <div class="step-tip"><b>Tip:</b> get the hydrophone positions right; PAMGuard warns that position uncertainty feeds straight into every fix.<span class="cite"><a href="#r-pg-overview">2</a></span></div></li>
+    <li><div class="step-title">Click Detector → find the clicks</div>
+      <div class="step-detail">The click detector triggers on each broadband transient across the channels — the
+      software equivalent of the energy/TKEO detector from T8.</div>
+      <div class="step-tip"><b>Tip:</b> add a click classifier to keep sperm-whale clicks and reject snapping shrimp and echosounder pings.</div></li>
+    <li><div class="step-title">Click Train Detector → one whale at a time</div>
+      <div class="step-detail">Group the click stream into per-animal <strong>click trains</strong> by continuity, ICI
+      and the whale's IPI/coda fingerprint — so you localize <em>a</em> whale, not a chorus.<span class="cite"><a href="#r-pg-ct">4</a></span></div>
+      <div class="step-tip"><b>Tip:</b> this association step is the real bottleneck — the geometry that follows assumes you've matched the same click across channels.</div></li>
+    <li><div class="step-title">TDOA / large-aperture localizer → the fix</div>
+      <div class="step-detail">For each click, PAMGuard cross-correlates the channels for the pairwise TDOAs and
+      intersects the hyperboloids. With ≥4 well-spread hydrophones the output is a 3-D position.<span class="cite"><a href="#r-pg-tdoa">3</a></span><span class="cite"><a href="#r-pg-arrays">6</a></span></div>
+      <div class="step-tip"><b>Tip:</b> for a widely spaced moored array, use the large-aperture / group 3-D localizer rather than the small-array beamformer.</div></li>
+    <li><div class="step-title">Map → the track</div>
+      <div class="step-detail">The Map shows each fix in real time; as the whale keeps clicking, target-motion
+      analysis tightens the range and the fixes stitch into a trajectory you can export.<span class="cite"><a href="#r-pg-overview">2</a></span></div>
+      <div class="step-tip"><b>Tip:</b> overlay your boat's GPS so the track is in real-world coordinates you can hand to MMCO.</div></li>
+  </ol>
+
+  <h2><span class="num">4</span>How accurate is it, really — and your legal target</h2>
+  <p>Be honest about what this delivers. The reference system for exactly this job — <strong>Skarsoulis et al.
+  (2022)</strong> — moors <strong>three hydrophones ~1–2 km apart</strong> and localizes foraging sperm whales in
+  <strong>3-D out to roughly 6–7 km</strong> from the array, using pairwise TDOAs plus each click's surface-reflected
+  echo to recover depth.<span class="cite"><a href="#r-skar">1</a></span> That is the realistic envelope for a modest
+  moored array: a usable 3-D fix on a clicking whale anywhere inside a few kilometres. Two things set that limit:</p>
+  <ul>
+    <li><strong>Timing.</strong> Your fix is only as sharp as your TDOAs. Sampling and cross-correlation set a floor;
+    poor array geometry (shallow hyperbola crossings) then amplifies any timing wobble. Spreading the array wider is
+    the cure.<span class="cite"><a href="#r-pg-overview">2</a></span></li>
+    <li><strong>The sound bends.</strong> We assume a single speed <span class="inline-math">c ≈ 1500 m/s</span> and
+    straight rays. Real ocean sound speed varies with depth and rays <strong>curve toward slower water</strong>; that
+    refraction is the dominant error, and Skarsoulis notes the correct
+    <a href="../reference/glossary.html#ssp">sound-speed profile</a> matters because refraction significantly affects
+    the result.<span class="cite"><a href="#r-ssp">5</a></span><span class="cite"><a href="#r-skar">1</a></span>
+    Serious systems ray-trace through the measured profile instead of assuming a straight line.</li>
+  </ul>
+  <p>And the target is real. Mauritius has a small, resident, individually-named sperm-whale community — fewer than
+  <strong>40 catalogued</strong> animals, with Irène's year-round group of roughly
+  <strong>28</strong>.<span class="cite"><a href="#r-sarano">7</a></span><span class="cite"><a href="#r-mmco">8</a></span>
+  A hydrophone array reaches them <strong>legally from well outside the 100&nbsp;m prohibited zone</strong>: drop it
+  in free water beyond 200&nbsp;m, sit still, and you detect, size and track an animal you never disturb. The position
+  on your screen is a real point in the sea, on a whale you could put a name to.</p>
+
+  <h2><span class="num">5</span>Check yourself</h2>
+  <p>Last retrieval of the whole course — pull these from memory.</p>
+
+  <div class="quiz"
+       data-explain-right="Timing is the atom."
+       data-explain-wrong="Re-read the pipeline in §1.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">The single measurement every position fix in this pipeline is built from is…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Yes. The time difference of arrival between channel pairs — measured by the cross-correlation peak — is the atom the whole fix is built from.">the time difference of arrival across channels</button>
+      <button class="opt" data-feedback="No. Absolute loudness is never needed for a TDOA fix — only the timing gaps between arrivals matter.">the absolute loudness across the recorded channels</button>
+      <button class="opt" data-feedback="No. Background noise sets detectability, not the geometry — the fix comes from arrival-time differences.">the average background noise across the array</button>
+      <button class="opt" data-feedback="No. Sample rate bounds your timing precision, but the measurement itself is the arrival-time difference.">the internal sample rate across the recorders</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="A few kilometres — be honest."
+       data-explain-wrong="See the accuracy envelope in §4.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">Skarsoulis's three-hydrophone observatory gives usable 3-D fixes out to about…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Right — about 6–7 km from the array, set by when direct and surface-reflected arrivals can no longer be resolved.">around seven kilometres beyond the moored array</button>
+      <button class="opt" data-feedback="Far too far — seventy kilometres is an order of magnitude past the real ~7 km limit.">around seventy kilometres beyond the moored array</button>
+      <button class="opt" data-feedback="Far too short — a whale that close would be almost on top of the hydrophones.">around seven centimetres beyond the moored array</button>
+      <button class="opt" data-feedback="Absurdly short — the real envelope is kilometres, not millimetres, from the array.">around seven millimetres beyond the moored array</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="Refraction is the dominant error."
+       data-explain-wrong="See the two error sources in §4.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">Beyond timing jitter, the dominant source of localization error in open water is…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Yes. Sound speed varies with depth, so rays curve toward slower water; that refraction is the main error unless you ray-trace the real profile.">ray bending through the varying sound-speed profile</button>
+      <button class="opt" data-feedback="No. Buoy motion is a minor positioning issue, not the dominant error — refraction of the sound path is.">tidal sway of the moored array surface-floats</button>
+      <button class="opt" data-feedback="No. Recorder clocks drift from temperature and crystals, not magnetism, and it isn't the main error.">slow magnetic drift of the recorder sampling-clocks</button>
+      <button class="opt" data-feedback="No. Water colour is irrelevant to acoustics — the sound-speed profile bending the rays is the issue.">gradual colour shift of the surface seawater-layer</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="callout build">
+    <div class="callout-label">✓ You've done it — the mission, completed</div>
+    <p>Stop and take this in. You started not knowing what a hydrophone was; you can now <strong>build one,
+    calibrate it, deploy an array, and turn its raw audio into a 3-D position and a track of a named Mauritius sperm
+    whale</strong> — from first principles, legally, from outside the circle. That is the entire course, and you own
+    every piece of it. <strong>Where to take it next:</strong> run your real recordings through
+    <a href="https://www.pamguard.org/" target="_blank" rel="noopener">PAMGuard</a> and ask the
+    <a href="https://sourceforge.net/p/pamguard/mailman/pamguard-user/" target="_blank" rel="noopener">PAMGuard
+    list</a> when you get stuck; bring hardware questions to
+    <a href="https://wildlabs.net/groups/acoustics" target="_blank" rel="noopener">WILDLABS&nbsp;Acoustics</a><span class="cite"><a href="#r-wildlabs">9</a></span>;
+    and — most of all — introduce yourself to <a href="https://www.mmco.mu/" target="_blank" rel="noopener">MMCO</a>,
+    the local team who can tell you <em>which</em> whale you just heard.<span class="cite"><a href="#r-mmco">8</a></span>
+    Your first fix could be the start of a real contribution.</p>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now do</h3>
+    <ol>
+      <li>Run the full field pipeline: <strong>deploy → detect → TDOA → intersect → track</strong>, each stage a lesson you already did.</li>
+      <li>Turn synchronized multichannel audio into a single 3-D <strong>position fix</strong>, then stitch fixes into a <strong>track</strong>.</li>
+      <li>Build that chain in <strong>PAMGuard</strong>: acquisition → click detector → click-train detector → TDOA/large-aperture localizer → map.</li>
+      <li>State the honest envelope — usable 3-D to <strong>~7 km</strong> for a 1–2 km array — and name the errors: <strong>timing and ray bending</strong>.</li>
+      <li>Do it <strong>legally</strong> on a real, named Mauritius whale, from free water outside the 100&nbsp;m zone.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · the blueprint you just rebuilt</div>
+      <div class="title"><a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.873888/full" target="_blank" rel="noopener">Skarsoulis et al. (2022) — A real-time sperm-whale localization observatory</a></div>
+      <div class="desc">Three moored hydrophones ~1–2 km apart localizing sperm whales in 3-D out to ~6–7 km from
+      pairwise TDOAs plus surface-reflected arrivals, with the sound-speed profile as the critical accuracy term.
+      Every stage of the pipeline you just ran is in here — read it as the working system your array imitates.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>I'm your teacher — and you just finished.</b> Want help wiring the actual PAMGuard data model, sanity-checking
+    your first real fixes against the array geometry, or drafting that first email to MMCO with a track attached? Bring
+    your recordings to chat. This is the leap from course to contribution — let's make it.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#tdoa">TDOA</a> ·
+    <a href="../reference/glossary.html#gcc-phat">GCC-PHAT</a> ·
+    <a href="../reference/glossary.html#hyperbolic">hyperbolic localization</a> ·
+    <a href="../reference/glossary.html#ssp">sound-speed profile</a>.
+    <b>Builds on →</b> B5 (the array), T8 (detection), T10 (TDOA), T11 (hyperbolic fix), T12 (tracking &amp; the community).
+    <b>This is the finale.</b>
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-skar">Skarsoulis et al. (2022) — <a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.873888/full" target="_blank" rel="noopener">A real-time sperm-whale localization observatory</a>. 3 moored hydrophones ~1–2 km apart; TDOA + surface-reflected arrivals; 3-D fixes to ~6–7 km; correct sound-speed profile critical because refraction significantly affects localization.</li>
+    <li id="r-pg-overview">PAMGuard — <a href="https://www.pamguard.org/olhelp/localisation/docs/localisation_overview.html" target="_blank" rel="noopener">Localisation Overview</a>. Each TDOA defines a hyperboloid; intersect pairs for a fix; localizer menu (bearing, crossed bearings, hyperbolic, TMA, 3-D); spread the array as widely as possible; position uncertainty feeds error.</li>
+    <li id="r-pg-tdoa">PAMGuard — <a href="https://www.pamguard.org/olhelp/localisation/docs/localisation_tdoa.html" target="_blank" rel="noopener">TDOA Localisation</a>. TDOA from the cross-correlation peak; bearing with ≥2, 3-D with ≥4 distributed hydrophones.</li>
+    <li id="r-pg-ct">PAMGuard — <a href="https://github.com/PAMGuard/PAMGuard/blob/main/src/clickTrainDetector/click_train_help.md" target="_blank" rel="noopener">Click Train Detector</a>. Groups a stream of clicks into per-animal trains before localization.</li>
+    <li id="r-ssp">DOSITS — <a href="https://dosits.org/decision-makers/tutorials/science/sound-speed/" target="_blank" rel="noopener">Sound Speed</a>. ~1500 m/s nominal; varies with temperature, salinity, pressure; rays refract toward slower water — the main localization error.</li>
+    <li id="r-pg-arrays">PAMGuard — <a href="https://www.pamguard.org/olhelp/localisation/docs/localisation_arrays.html" target="_blank" rel="noopener">Types of Array</a>. 2 = ambiguous bearing; 3 = 2-D position; 4 well-spread = 3-D fix; 5 = unambiguous 3-D.</li>
+    <li id="r-sarano">Sarano et al. — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8074673/" target="_blank" rel="noopener">Social units &amp; vocal clans in Mauritius</a>. The resident, year-round, individually-named "Irène's group" (~28 whales).</li>
+    <li id="r-mmco">MMCO / Maubydick — <a href="https://www.mmco.mu/" target="_blank" rel="noopener">Mauritius Marine Conservation Organisation</a>. Local lead monitoring the resident population since 2011; fewer than 40 catalogued individuals.</li>
+    <li id="r-wildlabs">WILDLABS — <a href="https://wildlabs.net/groups/acoustics" target="_blank" rel="noopener">Acoustics group</a>. Active conservation-tech / passive-acoustic-monitoring community; first stop for hardware feedback.</li>
+    <li id="r-detect">Frontiers (2025) — <a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2025.1567001/full" target="_blank" rel="noopener">Survey of sperm-whale click-detection techniques</a>. Energy/TKEO, wavelet, template and CNN detectors (2002–2023).</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0017-build-and-deploy-the-array.html">
+      <div class="dir">← B5 · Build &amp; Deploy the Array</div>
+      <div class="ttl">Back to the array build</div>
+    </a>
+    <a class="next" href="../index.html">
+      <div class="dir">Course complete · Back to the map →</div>
+      <div class="ttl">You've localized a whale 🐋</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson B6 of the Hydrophone course · the capstone ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Capstone — end-to-end localization pipeline ============================ */
+(function(){
+  var canvas = document.getElementById('locCanvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if(!ctx) return;
+  var W = canvas.width, H = canvas.height;
+
+  /* --- world / scene geometry --- */
+  var WORLD_W_M = 11000;                 // canvas shows ~11 km of sea wide
+  var mPerPx = WORLD_W_M / W;            // ~14.5 m per px
+  var C = 1500;                          // sound speed, m/s
+  var mapH = 384;                        // map region height (px); strip below it
+  var cx = W/2, cy = mapH/2;             // array origin in px
+
+  /* hydrophones in metre coords (origin at scene centre, +x east, +y north) */
+  var sensorsM = [
+    {x:-900, y: 500, label:'A'},
+    {x: 900, y: 650, label:'B'},
+    {x: 650, y:-850, label:'C'},
+    {x:-800, y:-650, label:'D'}
+  ];
+
+  /* the (hidden) whale's true track, in metres — a sweeping arc a few km out */
+  var trackM = [
+    {x:-2900, y:1900}, {x:-1700, y:2300}, {x:-300, y:2400}, {x:1100, y:2200},
+    {x:2300, y:1600}, {x:3000, y:700}, {x:3300, y:-300}
+  ];
+
+  /* pairs of hydrophone indices */
+  var PAIRS = [];
+  for(var i=0;i<sensorsM.length;i++) for(var j=i+1;j<sensorsM.length;j++) PAIRS.push([i,j]);
+
+  /* metre -> px */
+  function pxX(xm){ return cx + xm/mPerPx; }
+  function pxY(ym){ return cy - ym/mPerPx; }
+
+  /* --- elements --- */
+  var noiseR = document.getElementById('noiseR');
+  var noiseOut = document.getElementById('noiseOut');
+  var stStage = document.getElementById('stStage');
+  var stRange = document.getElementById('stRange');
+  var stErr = document.getElementById('stErr');
+  var verdict = document.getElementById('locVerdict');
+
+  /* --- state machine --- */
+  var state;
+  var timer = null;
+  function fresh(){
+    return { step:0, phase:'detect', fixes:[], done:false, noiseUnits:newNoise() };
+  }
+  function newNoise(){ return PAIRS.map(function(){ return Math.random()*2-1; }); }
+  function noiseMs(){ return parseFloat(noiseR && noiseR.value) || 0; }
+
+  function whaleAt(s){ return trackM[Math.max(0, Math.min(trackM.length-1, s))]; }
+
+  function dist(ax,ay,bx,by){ return Math.hypot(ax-bx, ay-by); }
+
+  /* signed range-difference (metres) for a pair at a given source point */
+  function kAt(px,py,pair){
+    return dist(px,py, sensorsM[pair[0]].x,sensorsM[pair[0]].y)
+         - dist(px,py, sensorsM[pair[1]].x,sensorsM[pair[1]].y);
+  }
+  /* noisy measured k (metres) for the current step's whale */
+  function measuredKs(s){
+    var Wm = whaleAt(s);
+    var dk = (noiseMs()/1000)*C;
+    return PAIRS.map(function(p,i){
+      return kAt(Wm.x,Wm.y,p) + dk*(state.noiseUnits[i]||0);
+    });
+  }
+
+  /* coarse grid search for the best-fit source in metres → returns {x,y} metres */
+  function solveFix(kN){
+    var best = Infinity, bx = 0, by = 0;
+    var stepPx = 14;
+    for(var gy=stepPx/2; gy<mapH; gy+=stepPx){
+      for(var gx=stepPx/2; gx<W; gx+=stepPx){
+        var xm = (gx-cx)*mPerPx, ym = (cy-gy)*mPerPx;
+        var R = 0;
+        for(var i=0;i<PAIRS.length;i++){
+          var g = kAt(xm,ym,PAIRS[i]) - kN[i];
+          R += g*g;
+        }
+        if(R < best){ best = R; bx = xm; by = ym; }
+      }
+    }
+    return {x:bx, y:by};
+  }
+
+  /* ---- drawing helpers ---- */
+  function clearScene(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#06202e'; ctx.fillRect(0,0,W,H);
+  }
+  function drawGrid(){
+    ctx.strokeStyle = 'rgba(143,185,198,.08)'; ctx.lineWidth = 1;
+    var gpx = 1000/mPerPx;                    // 1 km
+    for(var x=cx%gpx; x<W; x+=gpx){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,mapH); ctx.stroke(); }
+    for(var y=cy%gpx; y<mapH; y+=gpx){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    // scale bar
+    ctx.strokeStyle = '#8fb9c6'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(16,mapH-16); ctx.lineTo(16+gpx,mapH-16); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(16,mapH-20); ctx.lineTo(16,mapH-12);
+    ctx.moveTo(16+gpx,mapH-20); ctx.lineTo(16+gpx,mapH-12); ctx.stroke();
+    ctx.fillStyle = '#8fb9c6'; ctx.font = '11px Inter, system-ui, sans-serif'; ctx.textAlign='left';
+    ctx.fillText('1 km', 16+gpx+8, mapH-12);
+  }
+  function drawSensors(){
+    sensorsM.forEach(function(p){
+      var X=pxX(p.x), Y=pxY(p.y);
+      ctx.fillStyle = '#2a9db0'; ctx.fillRect(X-6, Y-6, 12, 12);
+      ctx.strokeStyle = '#bfe9f2'; ctx.lineWidth = 1.5; ctx.strokeRect(X-6, Y-6, 12, 12);
+      ctx.fillStyle = '#bfe9f2'; ctx.font = 'bold 12px Inter, system-ui, sans-serif'; ctx.textAlign='center';
+      ctx.fillText(p.label, X, Y-11);
+    });
+  }
+  function drawTruePath(upto){
+    // faint dashed path the whale has actually travelled
+    ctx.save(); ctx.setLineDash([4,4]);
+    ctx.strokeStyle = 'rgba(255,212,121,.28)'; ctx.lineWidth = 1.4; ctx.beginPath();
+    for(var s=0;s<=upto && s<trackM.length;s++){
+      var X=pxX(trackM[s].x), Y=pxY(trackM[s].y);
+      if(s===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y);
+    }
+    ctx.stroke(); ctx.restore();
+  }
+  function drawWhale(s, ringsTo){
+    var Wm = whaleAt(s); var X=pxX(Wm.x), Y=pxY(Wm.y);
+    // detect-phase wavefronts: rings out to the farthest hydrophone
+    if(ringsTo != null){
+      ctx.strokeStyle = 'rgba(255,212,121,.20)'; ctx.lineWidth = 1.3;
+      [0.45,0.72,1.0].forEach(function(f){
+        ctx.beginPath(); ctx.arc(X,Y, ringsTo*f, 0, Math.PI*2); ctx.stroke();
+      });
+    }
+    ctx.fillStyle = '#ffd479';
+    ctx.beginPath(); ctx.arc(X, Y, 7, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#fff4cf'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(X, Y, 11, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = '#ffd479'; ctx.font = 'bold 12px Inter, system-ui, sans-serif'; ctx.textAlign='center';
+    ctx.fillText('★ whale', X, Y-16);
+  }
+  function drawArrivalOrder(s){
+    // rank hydrophones by arrival time; label order + relative ms
+    var Wm = whaleAt(s);
+    var arr = sensorsM.map(function(p,i){
+      return {i:i, t: dist(Wm.x,Wm.y,p.x,p.y)/C};
+    }).sort(function(a,b){ return a.t-b.t; });
+    var t0 = arr[0].t;
+    arr.forEach(function(a, rank){
+      var p = sensorsM[a.i]; var X=pxX(p.x), Y=pxY(p.y);
+      ctx.fillStyle = '#ffd479'; ctx.font = 'bold 11px Inter, system-ui, sans-serif'; ctx.textAlign='center';
+      ctx.fillText('#'+(rank+1), X, Y+22);
+      ctx.fillStyle = '#8fb9c6'; ctx.font = '9px Inter, system-ui, sans-serif';
+      ctx.fillText('+'+((a.t-t0)*1000).toFixed(0)+' ms', X, Y+33);
+    });
+  }
+  function drawHyper(Pi, Pj, kpx, color){
+    var dx = Pj.x-Pi.x, dy = Pj.y-Pi.y;
+    var foc = Math.hypot(dx,dy)/2; if(foc < 1e-6) return;
+    var ux = dx/(2*foc), uy = dy/(2*foc);
+    var vx = -uy, vy = ux;
+    var ox = (Pi.x+Pj.x)/2, oy = (Pi.y+Pj.y)/2;
+    var a = Math.abs(kpx)/2; if(a >= foc) a = foc*0.999;
+    var b = Math.sqrt(Math.max(foc*foc - a*a, 1e-6));
+    var sgn = (kpx >= 0) ? 1 : -1;
+    var reach = Math.hypot(W,H) + 280;
+    var Tmax = Math.asinh(reach/Math.max(b,1)) + 0.6;
+    var steps = 220, prevIn = false;
+    ctx.strokeStyle = color; ctx.lineWidth = 1.6; ctx.beginPath();
+    for(var k=0;k<=steps;k++){
+      var t = -Tmax + (2*Tmax)*k/steps;
+      var ax = sgn*a*Math.cosh(t), bb = b*Math.sinh(t);
+      var X = ox + ux*ax + vx*bb;
+      var Y = oy + uy*ax + vy*bb;
+      var inside = (X>-280 && X<W+280 && Y>-280 && Y<mapH+280);
+      if(inside){ if(prevIn) ctx.lineTo(X,Y); else ctx.moveTo(X,Y); }
+      prevIn = inside;
+    }
+    ctx.stroke();
+  }
+  function drawFixes(){
+    if(state.fixes.length===0) return;
+    // connect fixes into the stitched track
+    ctx.strokeStyle = 'rgba(255,212,121,.85)'; ctx.lineWidth = 2.2; ctx.beginPath();
+    state.fixes.forEach(function(f, i){
+      var X=pxX(f.x), Y=pxY(f.y);
+      if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y);
+    });
+    ctx.stroke();
+    state.fixes.forEach(function(f, i){
+      var X=pxX(f.x), Y=pxY(f.y);
+      var last = (i===state.fixes.length-1);
+      ctx.fillStyle = '#ffd479';
+      ctx.beginPath(); ctx.arc(X,Y, last?2.5:3.2, 0, Math.PI*2); ctx.fill();
+      if(last){
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(X-7,Y-7); ctx.lineTo(X+7,Y+7);
+        ctx.moveTo(X+7,Y-7); ctx.lineTo(X-7,Y+7);
+        ctx.stroke();
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Inter, system-ui, sans-serif'; ctx.textAlign='center';
+        ctx.fillText('✕ fix', X, Y-12);
+      }
+    });
+    if(state.fixes.length>1){
+      var mid = state.fixes[Math.floor(state.fixes.length/2)];
+      ctx.fillStyle = 'rgba(255,212,121,.9)'; ctx.font = 'bold 11px Inter, system-ui, sans-serif'; ctx.textAlign='left';
+      ctx.fillText('TRACK', pxX(mid.x)+10, pxY(mid.y)-6);
+    }
+  }
+
+  /* ---- correlation strip (bottom): one mini-peak per hydrophone pair ---- */
+  function drawCorrStrip(showPeaks, kN){
+    var y0 = mapH, hh = H - mapH;
+    ctx.fillStyle = '#041824'; ctx.fillRect(0, y0, W, hh);
+    ctx.strokeStyle = 'rgba(143,185,198,.22)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0,y0+.5); ctx.lineTo(W,y0+.5); ctx.stroke();
+    ctx.fillStyle = '#8fb9c6'; ctx.font = '10px Inter, system-ui, sans-serif'; ctx.textAlign='left';
+    ctx.fillText('CROSS-CORRELATION TDOA  ·  one peak per hydrophone pair', 14, y0+15);
+
+    var n = PAIRS.length;
+    var cellW = W / n, pad = 8;
+    var Lmax = 0;                                  // max |lag| ms across pairs (for scaling)
+    // scale by array aperture
+    var ap = 0;
+    for(var a=0;a<sensorsM.length;a++) for(var b=a+1;b<sensorsM.length;b++){
+      var d = dist(sensorsM[a].x,sensorsM[a].y,sensorsM[b].x,sensorsM[b].y); if(d>ap) ap=d;
+    }
+    Lmax = (ap/C)*1000 * 1.05;
+
+    var axY = y0 + hh - 16;
+    PAIRS.forEach(function(p, i){
+      var x0 = i*cellW + pad, x1 = (i+1)*cellW - pad, midX = (x0+x1)/2;
+      ctx.strokeStyle = 'rgba(143,185,198,.25)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x0,axY); ctx.lineTo(x1,axY); ctx.stroke();
+      // pair label
+      ctx.fillStyle = '#bfe9f2'; ctx.font = 'bold 10px Inter, system-ui, sans-serif'; ctx.textAlign='center';
+      ctx.fillText(sensorsM[p[0]].label+'–'+sensorsM[p[1]].label, midX, y0+30);
+      if(!showPeaks || !kN){
+        ctx.fillStyle = '#5b8593'; ctx.font = '10px Inter, system-ui, sans-serif';
+        ctx.fillText('…', midX, axY-12);
+        return;
+      }
+      var lagMs = (kN[i]/C)*1000;
+      var u = Math.max(-1, Math.min(1, lagMs/Lmax));
+      var peakX = midX + u*((x1-x0)/2 - 4);
+      var amp = hh - 72;
+      // sharp gaussian peak
+      ctx.strokeStyle = '#ffd479'; ctx.lineWidth = 1.8; ctx.beginPath();
+      var first = true;
+      for(var px=x0; px<=x1; px++){
+        var d2 = (px-peakX);
+        var R = Math.exp(-(d2*d2)/(2*6*6));
+        var Y = axY - R*amp;
+        if(first){ ctx.moveTo(px,Y); first=false; } else ctx.lineTo(px,Y);
+      }
+      ctx.stroke();
+      ctx.fillStyle = '#ffd479'; ctx.beginPath(); ctx.arc(peakX, axY-amp, 3, 0, Math.PI*2); ctx.fill();
+      ctx.font = 'bold 10px Inter, system-ui, sans-serif'; ctx.textAlign='center';
+      ctx.fillText((lagMs>=0?'+':'')+lagMs.toFixed(1)+' ms', peakX, axY-amp-6);
+    });
+  }
+
+  /* ---- master render ---- */
+  function render(){
+    clearScene();
+    drawGrid();
+
+    var s = state.step;
+    var Wm = whaleAt(s);
+    var phase = state.phase;
+
+    // farthest hydrophone distance in px (for detect rings)
+    var maxd = 0;
+    sensorsM.forEach(function(p){ var d=dist(Wm.x,Wm.y,p.x,p.y)/mPerPx; if(d>maxd) maxd=d; });
+
+    drawTruePath(s);
+
+    // measured ks for this click (used by tdoa + fix)
+    var kN = measuredKs(s);
+
+    // hyperbolae + fixes appear only in fix phase (and persist via fixes for past steps)
+    if(phase === 'fix'){
+      PAIRS.forEach(function(p, i){
+        drawHyper(sensorsM[p[0]], sensorsM[p[1]], kN[i]/mPerPx, 'rgba(255,212,121,.55)');
+      });
+    }
+    drawFixes();
+    drawSensors();
+    drawWhale(s, phase==='detect' ? maxd : null);
+    if(phase === 'detect') drawArrivalOrder(s);
+
+    // correlation strip
+    drawCorrStrip(phase==='tdoa' || phase==='fix', kN);
+
+    // ---- readouts ----
+    if(noiseOut) noiseOut.textContent = noiseMs().toFixed(2)+' ms';
+    var ctr = centroidM();
+    if(stRange) stRange.textContent = (dist(Wm.x,Wm.y,ctr.x,ctr.y)/1000).toFixed(2)+' km';
+    var phaseName = phase==='detect' ? '① Detect' : (phase==='tdoa' ? '② TDOA' : '③ Fix');
+    if(state.done) phaseName = '✓ Track';
+    if(stStage) stStage.textContent = phaseName;
+
+    var lastErr = state.fixes.length ? state.fixes[state.fixes.length-1].err : null;
+    if(stErr) stErr.textContent = (lastErr==null) ? '—' : (lastErr<8 ? '0 m' : Math.round(lastErr)+' m');
+
+    setVerdict();
+  }
+
+  function centroidM(){
+    var sx=0, sy=0; sensorsM.forEach(function(p){ sx+=p.x; sy+=p.y; });
+    return {x:sx/sensorsM.length, y:sy/sensorsM.length};
+  }
+
+  function setVerdict(){
+    if(!verdict) return;
+    if(state.done){
+      var n = state.fixes.length;
+      var avg = 0; state.fixes.forEach(function(f){ avg += f.err; }); avg /= Math.max(n,1);
+      verdict.innerHTML = '<b>Track complete.</b> '+n+' clicks localized into one path. '+
+        (noiseMs()<=0
+          ? 'With perfect timing every fix landed on the whale — an exact track.'
+          : 'Mean fix error about <b>'+Math.round(avg)+' m</b> from timing jitter, yet the stitched path still '+
+            'traces the whale. Wider aperture or less noise tightens it.');
+      return;
+    }
+    if(state.phase==='detect'){
+      verdict.innerHTML = '<b>① Detect.</b> Click #'+(state.step+1)+' radiates out and reaches the four '+
+        'hydrophones in order (#1 nearest → #4 farthest). Same click, four arrival times.';
+    } else if(state.phase==='tdoa'){
+      verdict.innerHTML = '<b>② Measure TDOA.</b> Cross-correlate each pair — the peak lag is that pair\'s '+
+        'time-difference. '+PAIRS.length+' pairs, '+PAIRS.length+' numbers.';
+    } else {
+      var f = state.fixes[state.fixes.length-1];
+      verdict.innerHTML = '<b>③ Intersect → fix.</b> Each TDOA draws a hyperbola; they cross at the '+
+        '<b>✕ fix</b>'+ (f && f.err>8 ? ', about <b>'+Math.round(f.err)+' m</b> off the truth' : ', dead on the whale')+
+        '. Step on to localize the next click and grow the track.';
+    }
+  }
+
+  /* ---- advance the pipeline one micro-stage ---- */
+  function advance(){
+    if(state.done) return false;
+    if(state.phase==='detect'){
+      state.phase = 'tdoa';
+    } else if(state.phase==='tdoa'){
+      state.phase = 'fix';
+      var kN = measuredKs(state.step);
+      var fix = solveFix(kN);
+      var Wm = whaleAt(state.step);
+      fix.err = dist(fix.x,fix.y,Wm.x,Wm.y);
+      state.fixes.push(fix);
+    } else {
+      if(state.step >= trackM.length-1){ state.done = true; render(); return false; }
+      state.step++; state.phase = 'detect'; state.noiseUnits = newNoise();
+    }
+    render();
+    return true;
+  }
+
+  /* ---- auto-run ---- */
+  var runBtn = document.getElementById('runBtn');
+  function stopRun(){
+    if(timer){ clearInterval(timer); timer = null; }
+    if(runBtn) runBtn.textContent = '▶ Auto-run the pipeline';
+  }
+  function startRun(){
+    if(timer) return;
+    if(state.done) reset();
+    if(runBtn) runBtn.textContent = '⏸ Pause';
+    timer = setInterval(function(){
+      if(!advance()) stopRun();
+    }, 850);
+  }
+  if(runBtn) runBtn.addEventListener('click', function(){ if(timer) stopRun(); else startRun(); });
+
+  var stepBtn = document.getElementById('stepBtn');
+  if(stepBtn) stepBtn.addEventListener('click', function(){ stopRun(); advance(); });
+
+  function reset(){
+    stopRun();
+    state = fresh();
+    render();
+  }
+  var resetBtn = document.getElementById('resetBtn');
+  if(resetBtn) resetBtn.addEventListener('click', reset);
+
+  if(noiseR) noiseR.addEventListener('input', render);
+
+  /* ---- go ---- */
+  state = fresh();
+  render();
+})();
+</script>
+</body>
+</html>

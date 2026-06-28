@@ -41,6 +41,16 @@ Every entry was opened and checked. Prune ruthlessly; annotate every link.
 - [Teledyne RESON — Hydrophone FAQ](https://www.teledynemarine.com/en-us/products/SiteAssets/RESON/Hydrophone%20FAQ%20v1-1.pdf) — Commercial-grade specs: sensitivity, resonance, directivity, built-in preamps.
 - [Cetacean Research C57 Hydrophone](https://www.cetaceanresearch.com/hydrophones/c57-hydrophone/index.html) — Research-grade cylinder (−187 dB, +20/+33 dB, 0.015–45 kHz, 370 m). *Design target/benchmark.*
 
+**Zach Poff — DIY hydrophone & contact-mic resources** *(high-trust practitioner; the practical companion to the build lessons):*
+- [Building A Simple Durable Contact Microphone (Zach Poff)](https://zachpoff.com/resources/building-contact-mics/) — Step-by-step piezo-disc assembly: soldering, foil shielding, felt/metal damping, plasti-dip. *Hands-on companion to B1; buy discs with wires pre-attached so you don't vaporise the plating.*
+- [Choosing a Contact Mic For Field Recording (Zach Poff)](https://zachpoff.com/resources/choosing-a-contact-mic-for-field-recording/) — Clearest plain-language case for why a piezo needs a high-Z buffer, plus the resonance/"honk" spectrum. *For the T2/B2 impedance intuition.*
+- [3D-Printed DIY Contact Microphone (Zach Poff)](https://zachpoff.com/resources/3d-printed-diy-contact-microphone/) — Bonding a 27 mm piezo to aluminium to flatten resonance + a printable strain-relief housing. *Rugged housing + damping ideas for B1/B3.*
+- [Hydrophone Experiments II (Zach Poff)](https://zachpoff.com/resources/hydrophone-experiments-ii/) — Silicone-potted electret hydrophones (WM-61a vs Primo EM172 vs AQ-2000) + encapsulation do's/don'ts. *A flat, low-noise NON-piezo build path; soft silicone only — hard potting kills electret output.*
+- [Hydrophone Review: HTI-92-WB / Ambient ASF-2 / DIY (Zach Poff)](https://zachpoff.com/resources/hydrophone-review-hti-92-wb-ambient-asf-2-diy-design/) — DIY-vs-commercial listening test (resonance, output, gain/noise). *Sets realistic expectations of a DIY build vs a pro reference.*
+- [Hydrophone Review: Ambient ASF-1/ASF-2, Aquarian, JrF (Zach Poff)](https://zachpoff.com/resources/hydrophone-review-ambient-asf-1-asf-2-aquarian-audio-jrf/) — Flat-vs-resonant tradeoffs, HF limits, cost, durability. *When deciding whether you need accurate HF capture for clicks (budget units roll off ~3–5 kHz — inside the click band).*
+- [PIP Stereo Piezo Preamplifier (Zach Poff)](https://zachpoff.com/resources/pip-stereo-piezo-preamplifier/) — 2SK209 JFET plug-in-power buffer with open PCB/3D files. *The alternative to the Alex Rice/phantom path when feeding a small 3.5 mm PIP recorder.*
+- [Cheap Microphones for Ultrasound (Zach Poff)](https://zachpoff.com/resources/cheap-microphones-for-ultrasound/) — Cheap electret/MEMS capsules measured to ~100 kHz at 192 kHz (Primo EM258/EM172, Knowles SPU1410 MEMS). *When specifying HF capability + sample rate for click capture.*
+
 ### Sperm Whale Acoustics — the quarry
 - [NOAA — Diving Deep into Sperm Whale Clicks](https://www.fisheries.noaa.gov/science-blog/diving-deep-sperm-whale-clicks) — Usual clicks, buzzes/creaks, codas/clans, the IPI size method. *Plain-language entry point.*
 - [NOAA — Sperm Whale species page](https://www.fisheries.noaa.gov/species/sperm-whale) — Baseline biology: size, diving (~600 m/45 min), matrilineal units, status.
@@ -89,12 +99,14 @@ Every entry was opened and checked. Prune ruthlessly; annotate every link.
 - [scikit-maad](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.13711) — Audio loading/segmentation, acoustic features, SPL.
 - [PyPAM](https://github.com/lifewatch/pypam) — Chunked underwater-audio processing w/ hydrophone metadata. *Python ingestion pipeline.*
 - [Ketos](https://docs.meridian.cs.dal.ca/ketos/) · [OpenSoundscape](http://opensoundscape.org/en/latest/) · [ANIMAL-SPOT](https://github.com/ChristianBergler/ANIMAL-SPOT) — ML detector toolkits *(out of scope until manual detection works — see MISSION).*
+- [Watkins Marine Mammal Sound Database (WHOI)](https://www.watkins-marinemammalsounddatabase.org/) — ~2,000 curated, freely downloadable marine-mammal recordings including sperm whales. *Free practice data for the theory phase — open these in Audacity/Raven to read real clicks before you own a hydrophone.*
 
 ### Recorders (array-capable, ≥96 kHz)
 - [HydroMoth / AudioMoth (Open Acoustic Devices)](https://www.openacousticdevices.info/audiomoth) — Low-cost recorder up to 384 kHz, underwater case, 3×AA. *Cheap autonomous node.*
 - [Zoom F6](https://zoomcorp.com/en/us/field-recorders/field-recorders/f6/) — 6 XLR, up to 192 kHz, 32-bit float, +24/+48 V phantom. **Value choice for a phantom-powered array.**
 - [Sound Devices MixPre-6 II](https://www.sounddevices.com/mixpre-6-ii-specifications/) — Up to 192 kHz/32-bit float, 10 Hz–80 kHz, ultra-low-noise preamps. *Premium option.*
 - [Orcasound — Pi node (hydrophone→headphone)](https://www.orcasound.net/2018/04/27/orcasounds-new-live-audio-solution-from-hydrophone-to-headphone-with-a-raspberry-pi-computer-and-hls-dash-streaming-software/) — Live-streaming Pi + Pisound (192 kHz, ~$800, open source). *Cabled real-time node.*
+- [Zoom Recorder Technical Details (Zach Poff)](https://zachpoff.com/resources/zoom-recorder-technical-details/) — Plug-in-power vs phantom behaviour and quirks of H1n/H5/H2n/F3. *When picking a deck and powering a JFET buffer; the **Zoom F3 (32-bit float, 192 kHz)** is ideal for ultrasonic clicks, and note phantom is wildly inefficient for low-current front-ends (favour PIP for long battery deployments).*
 
 ### Mauritius & Regulations
 - [Sarano et al. — Social units & vocal clans in Mauritius (PMC)](https://pmc.ncbi.nlm.nih.gov/articles/PMC8074673/) — Resident ~28-whale matrilineal "Irène's group", year-round. *Who/where/when for deployment.*
