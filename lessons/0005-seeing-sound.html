@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T4 · Seeing Sound</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-specific: the spectrogram-explorer canvas + controls */
+  .toy { background:linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; }
+  .row { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .chip { cursor:pointer; border:1.5px solid var(--rule); background:#fff; border-radius:999px; padding:.32rem .7rem; font-weight:600; color:var(--ink-soft); }
+  .chip.on { border-color:var(--ocean); background:#e7f5f7; color:var(--ocean-deep); }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.92rem; padding:.7rem .85rem; border-radius:8px; margin-top:.8rem; background:#06202e; color:#d8f1f5; line-height:1.5; }
+  .toy .verdict b { color:#ffd479; }
+  .toy .foot { font-family:var(--sans); font-size:.76rem; color:var(--ink-faint); margin:.6rem 0 0; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 1 · Theory · T4</p>
+  <h1 class="lesson-title">Seeing Sound: Waveforms &amp; Spectrograms</h1>
+  <p class="lesson-sub">The single most-used skill in this whole course is eyeballing a picture of sound. Today you
+  learn to read one — with free software and free recordings, no hardware required.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~14 minutes</span><span class="sep">•</span>
+    <span>🛠 Free software — do this today</span><span class="sep">•</span>
+    <span class="tag ocean">Skill: read a spectrogram</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson</div>
+    <p>You already know a sperm whale <strong>clicks</strong>, and you can talk about how loud that click is in
+    decibels. But you have never <em>seen</em> one. Every detection in this course — every position fix, every
+    coda you ever decode — begins the same way: you open a recording and <strong>look at a spectrogram</strong>.
+    This is where you first lay eyes on a whale click. Learn to read the picture now and the rest of the mission
+    is just practice.</p>
+  </div>
+
+  <h2><span class="num">1</span>Two pictures of one sound</h2>
+  <p>A recording is just a long list of numbers — air, or water, pressure measured thousands of times a second.
+  There are two standard ways to draw it, and they answer different questions.<span class="cite"><a href="#r-dosits">2</a></span></p>
+  <p>The <strong><a href="../reference/glossary.html#spectrogram">waveform</a></strong> plots
+  <em>amplitude against time</em>: a wiggly line, loud bits tall, quiet bits flat. It tells you <em>when</em>
+  something happened and how loud — but nothing about <em>pitch</em>. The
+  <strong><a href="../reference/glossary.html#spectrogram">spectrogram</a></strong> plots
+  <em>frequency against time</em>, with <strong>colour standing in for energy</strong>: time runs left-to-right,
+  low notes sit at the bottom and high notes at the top, and a bright pixel means "lots of energy at this pitch,
+  at this instant."<span class="cite"><a href="#r-cornell">1</a></span> The waveform shows the shape of the
+  sound; the spectrogram shows its <em>colour</em>. For whales, the spectrogram wins almost every time.</p>
+
+  <h2><span class="num">2</span>Why a click is a crisp vertical line</h2>
+  <p>A sperm-whale click is two things at once: <strong>extremely brief</strong> (a few thousandths of a second)
+  and <strong>broadband</strong> — its energy is smeared across a huge span of frequencies, from a few hundred
+  hertz up to tens of kilohertz.<span class="cite"><a href="#r-goold">5</a></span> Put those two facts on a
+  frequency-vs-time chart and there is only one shape they can make: a thin stripe that is narrow in time but
+  tall in frequency. A <strong>vertical line</strong>. That is exactly why a spectrogram is the go-to view for
+  finding clicks — the Audacity manual notes it is "often easier to see clicks" there than in a
+  waveform.<span class="cite"><a href="#r-audacity">3</a></span></p>
+  <p>The opposite kind of sound — a steady whistle or a hum that holds one pitch and lasts a while — does the
+  reverse: narrow in frequency, long in time, so it draws a <strong>horizontal line</strong>. Keep that pair in
+  your head: <em>brief-and-broadband points up, steady-and-tonal lies flat.</em> Almost everything you will ever
+  hunt for is one of those two shapes, or a smear in between.</p>
+
+  <div class="callout note">
+    <div class="callout-label">⌗ How the spectrogram is actually made</div>
+    <p>A computer can't ask "what frequencies are here <em>right now</em>" — frequency only has meaning over a
+    stretch of time. So it cheats: it chops the recording into many short, overlapping
+    <strong>windows</strong>, runs a Fourier transform on each one to find the frequencies inside, and stacks the
+    results side by side into an image. That's the <strong>short-time Fourier transform (STFT)</strong>. The one
+    knob that matters is how long each window is — and, as the next toy shows, it forces a trade you cannot
+    escape.<span class="cite"><a href="#r-cornell">1</a></span></p>
+  </div>
+
+  <h2><span class="num">3</span>The window-size trade-off — you can't have both</h2>
+  <p>Here is the catch at the heart of every spectrogram. A <strong>short</strong> window pins down <em>time</em>
+  beautifully (you can say exactly when each click landed) but blurs <em>frequency</em>. A <strong>long</strong>
+  window pins down <em>frequency</em> beautifully (you can read a tone's pitch to the hertz) but blurs
+  <em>time</em>. Sharpen one and you smear the other — Audacity's own manual shows two clicks that are crisp and
+  separate at a short window "smeared together into one" at a long one.<span class="cite"><a href="#r-audacity">3</a></span>
+  There is no setting that is sharp in both at once:</p>
+
+  <div class="formula"><span class="op">(time resolution)</span> <span class="var">×</span> <span class="op">(frequency resolution)</span> <span class="var">≈</span> constant
+  <small>Make the window longer and Δt grows while Δf shrinks — their product barely moves. Pick the window to suit what you're hunting.</small></div>
+
+  <p>Play with the explorer below. It draws the <em>same</em> synthetic sound two ways: a steady tone (the
+  horizontal line) plus a train of broadband clicks (the vertical lines). The waveform up top never changes — it's
+  the raw sound. Only the <strong>spectrogram</strong> changes, because the window is an
+  <em>analysis choice</em>, not a property of the sound. Switch the window and watch the trade happen.</p>
+
+  <div class="toy">
+    <h3>🔬 Spectrogram Explorer — short window vs long window</h3>
+    <p class="hint">One signal, two pictures. Tap a window size and watch the spectrogram: a <b>short</b> window
+    makes the clicks razor-sharp but bloats the tone into a fat band; a <b>long</b> window makes the tone a clean
+    line but smears the clicks until they merge. The waveform (top) is the raw sound — it never moves.</p>
+    <canvas id="specCanvas" width="720" height="360" aria-label="Waveform and spectrogram of a tone plus a click train, with a window-size control"></canvas>
+    <div class="row">
+      <span>STFT window:</span>
+      <span class="chip" data-n="256">Short · 256</span>
+      <span class="chip on" data-n="1024">Medium · 1024</span>
+      <span class="chip" data-n="4096">Long · 4096</span>
+    </div>
+    <div class="verdict" id="specVerdict">—</div>
+    <p class="foot">Window size is in samples, as in Audacity/Raven. The frequency blur is exaggerated here so the
+    trade-off is easy to see — but the time↔frequency relationship itself is real.</p>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-label">★ The rule of thumb you'll actually use</div>
+    <p>Hunting <strong>clicks</strong> (detection, and later timing the same click at two hydrophones for a
+    position fix)? Use a <strong>short window</strong> — you need sharp <em>time</em>. Measuring a
+    <strong>tone or a whistle's pitch</strong>? Use a <strong>long window</strong> — you need sharp
+    <em>frequency</em>. When you don't yet know what you're looking at, start in the
+    <strong>middle</strong> and adjust. This one habit carries you straight into sampling (T6) and click detection
+    (T8).</p>
+  </div>
+
+  <h2><span class="num">4</span>Do it for real, today</h2>
+  <p>None of this needs your hydrophone. The software is free, the recordings are free and public, and a real
+  sperm-whale click is a few clicks away:</p>
+  <table>
+    <caption>Everything here is free. Open a tool, load a recording, and find a vertical line.</caption>
+    <thead><tr><th>Free tool</th><th>What it's for</th></tr></thead>
+    <tbody>
+      <tr><td><b>Audacity</b></td><td>The everywhere editor. Load a WAV, switch a track to Spectrogram view, set the window size — exactly the knob you just played with.<span class="cite"><a href="#r-audacity">3</a></span></td></tr>
+      <tr><td><b>Raven Lite</b> (Cornell)</td><td>Built by bioacousticians for this job: record, and view sound as spectrograms and waveforms. Free for students and hobbyists.<span class="cite"><a href="#r-raven">4</a></span></td></tr>
+    </tbody>
+  </table>
+  <p>For something to look at, the <strong>Watkins Marine Mammal Sound Database</strong> (WHOI) is a free archive
+  of ~2,000 recordings across 60+ species, sperm whales included.<span class="cite"><a href="#r-watkins">6</a></span>
+  The <strong>Dominica Sperm Whale Project</strong> is the home of the canonical coda work and a good window onto
+  what real click trains look like.<span class="cite"><a href="#r-dswp">7</a></span> Grab a sperm-whale clip,
+  open it in a spectrogram, and find your first vertical line. That's the win.</p>
+
+  <h2><span class="num">5</span>Check yourself</h2>
+  <p>No peeking. Pulling these out of your own head is what makes them stick.</p>
+
+  <div class="quiz"
+       data-explain-right="Exactly."
+       data-explain-wrong="Look at the two shapes again.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">In the spectrogram, a steady tone that holds one pitch shows up as…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="A tone is narrow in frequency and long in time, so it draws a flat horizontal line across the picture.">a level horizontal line</button>
+      <button class="opt" data-feedback="That's a click — brief but broadband. A sustained tone holds one pitch, so it lies flat.">a sharp vertical streak</button>
+      <button class="opt" data-feedback="A diagonal means the pitch is sliding upward over time. A steady tone holds one pitch, so it's flat.">a rising diagonal ramp</button>
+      <button class="opt" data-feedback="A point is one brief event at one pitch. A sustained tone lasts, so it stretches into a flat line.">a small flashing point</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="The window trade-off."
+       data-explain-wrong="Revisit the explorer.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">You want to time clicks precisely — to detect them and later locate the whale. Pick:</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Short window = sharp time resolution. Each click stays a clean, separate vertical line you can time precisely.">Short window, best time detail</button>
+      <button class="opt" data-feedback="A long window blurs time — clicks smear sideways and merge. It's the wrong tool for precise timing.">Long window, best time detail</button>
+      <button class="opt" data-feedback="A short window blurs frequency, not the reverse. You'd get good timing but a fuzzy, unreadable pitch.">Short window, best pitch detail</button>
+      <button class="opt" data-feedback="Sharp pitch is what a long window buys you — useful for tones, but it smears the click timing you need.">Long window, best pitch detail</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="That's the whole reason."
+       data-explain-wrong="Re-read section 2.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">A sperm-whale click prints as a vertical line because the click itself is…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Brief → narrow in time; broadband → energy at every height. Together that's a thin, tall vertical line.">brief and broadband in frequency</button>
+      <button class="opt" data-feedback="That describes a sustained tone, which draws a flat horizontal line — the opposite of a click.">long and narrowband in frequency</button>
+      <button class="opt" data-feedback="Loudness sets brightness, not shape. Brevity, not volume, is what makes the line vertical.">loud and broadband in frequency</button>
+      <button class="opt" data-feedback="Slow and single-pitched is tone-like — a horizontal line. A click is fast and spread across frequency.">slow and narrowband in frequency</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now do</h3>
+    <ol>
+      <li>Tell a <strong>waveform</strong> (amplitude vs time) from a <strong>spectrogram</strong> (frequency vs time, colour = energy) and say what each is good for.</li>
+      <li>Recognise a sperm-whale click on sight: <strong>broadband + brief = a vertical line</strong>; a steady tone = a horizontal line.</li>
+      <li>Explain the <strong>STFT window trade-off</strong> — short window sharpens time, long window sharpens frequency, never both.</li>
+      <li>Pick the window for the job: <strong>short for clicks</strong>, long for tones, middle when unsure.</li>
+      <li>Practise <strong>today</strong> with free tools (Audacity, Raven Lite) and free recordings (Watkins, the Dominica project).</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · work through this next</div>
+      <div class="title"><a href="https://www.birds.cornell.edu/ccb/virtual-lab-sound-analysis-principles/" target="_blank" rel="noopener">Cornell — Virtual Lab: Sound Analysis Principles</a></div>
+      <div class="desc">A free, self-paced lab from the bioacousticians who make Raven: digital-audio basics, how a spectrogram is built, and exactly the window/resolution trade-off you just played with — explained by the people who wrote the software.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>I'm your teacher — ask me anything.</b> Stuck on why frequency "needs time" to exist, unsure what window
+    to set in Audacity, or want me to talk you through a Watkins clip you opened? Paste a screenshot of your
+    spectrogram and we'll read it together. Confused beats stuck.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#spectrogram">spectrogram</a> ·
+    <a href="../reference/glossary.html#regular-click">regular click</a> ·
+    <a href="../reference/glossary.html#nyquist">Nyquist rate</a> ·
+    <a href="../reference/glossary.html#ici">ICI</a>.
+    <b>Builds toward →</b> T6 (sampling — how fast you must record to catch a click) and T8 (detection — letting
+    the computer find the vertical lines for you).
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-cornell">Cornell K. Lisa Yang Center — <a href="https://www.birds.cornell.edu/ccb/virtual-lab-sound-analysis-principles/" target="_blank" rel="noopener">Virtual Lab: Sound Analysis Principles</a>. Free self-paced course on digital audio, spectrograms, and the window/resolution trade-off.</li>
+    <li id="r-dosits">DOSITS — <a href="https://dosits.org/science/measurement/how-are-sounds-viewed-and-analyzed/" target="_blank" rel="noopener">How are sounds viewed and analyzed?</a> Waveforms (amplitude vs time) vs spectrograms (frequency vs time, colour = level).</li>
+    <li id="r-audacity">Audacity — <a href="https://manual.audacityteam.org/man/spectrogram_view.html" target="_blank" rel="noopener">Spectrogram View (manual)</a>. Clicks are easier to see here; window 256 keeps two clicks separate, 2048 smears them into one.</li>
+    <li id="r-raven">Cornell — <a href="https://www.ravensoundsoftware.com/software/raven-lite/" target="_blank" rel="noopener">Raven Lite</a>. Free software to record and view sound as spectrograms and waveforms; for students, educators and hobbyists.</li>
+    <li id="r-goold">Goold &amp; Jones (1995) — <a href="https://pubmed.ncbi.nlm.nih.gov/7560502/" target="_blank" rel="noopener">Time and frequency characteristics of sperm whale clicks</a>. Broadband clicks with energy out to ≥12–15 kHz.</li>
+    <li id="r-watkins">WHOI — <a href="https://cis.whoi.edu/science/B/whalesounds/index.cfm" target="_blank" rel="noopener">Watkins Marine Mammal Sound Database</a>. Free, public archive of ~2,000 recordings across 60+ species, sperm whales included.</li>
+    <li id="r-dswp">Dominica Sperm Whale Project — <a href="https://www.thespermwhaleproject.org/about" target="_blank" rel="noopener">About</a>. Shane Gero's long-term study; canonical coda/click-train methods and recordings.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0004-decibels-without-tears.html">
+      <div class="dir">← T3</div>
+      <div class="ttl">Decibels Without Tears</div>
+    </a>
+    <a class="next" href="0006-clicks-codas-and-the-clan.html">
+      <div class="dir">Next · T5</div>
+      <div class="ttl">Clicks, Codas &amp; the Clan →</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson T4 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Spectrogram Explorer ============================
+   One synthetic signal — a steady 6 kHz tone + a train of broadband clicks —
+   drawn as a waveform (raw, fixed) and a spectrogram (window-dependent).
+   The STFT window sets two resolutions that trade against each other:
+       time blur  sigma_t  ∝  N        (long window  → smeared clicks)
+       freq blur  sigma_f  ∝  1/N      (short window → smeared tone)
+   The frequency blur is visually exaggerated so the trade-off is obvious; the
+   inverse relationship (their product is constant) is faithful.
+============================================================================ */
+(function(){
+  var canvas = document.getElementById('specCanvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if(!ctx) return;
+  var W = canvas.width, H = canvas.height;
+
+  // ---- geometry
+  var padL = 56, padR = 18;
+  var wTop = 34, wBot = 150, wMid = (wTop+wBot)/2;
+  var sTop = 196, sBot = 326;
+  var specL = padL, specR = W - padR, specW = specR - specL, specH = sBot - sTop;
+
+  // ---- the synthetic signal
+  var T = 1.0;                                   // seconds shown
+  var fMax = 24;                                 // kHz axis top
+  var fTone = 6;                                 // kHz — the steady tone
+  var clicks = [0.10,0.26,0.42,0.58,0.74,0.90];  // click times (s)
+  var fs = 48000;                                // model sample rate
+
+  // ---- analysis state
+  var N = 1024;                                  // current window (samples)
+  var verdictEl = document.getElementById('specVerdict');
+
+  function xOf(t){ return specL + (t/T)*specW; }
+  function yOf(f){ return sBot - (f/fMax)*specH; }
+
+  // colour ramp: dark ocean → bright teal → gold highlight
+  var STOPS = [[0,[6,32,46]],[0.18,[11,85,102]],[0.45,[42,157,176]],[0.72,[191,233,242]],[1,[255,212,121]]];
+  function ramp(v){
+    if(v<=0) return STOPS[0][1];
+    if(v>=1) return STOPS[STOPS.length-1][1];
+    for(var i=1;i<STOPS.length;i++){
+      if(v<=STOPS[i][0]){
+        var a=STOPS[i-1], b=STOPS[i];
+        var f=(v-a[0])/(b[0]-a[0]);
+        return [ a[1][0]+(b[1][0]-a[1][0])*f,
+                 a[1][1]+(b[1][1]-a[1][1])*f,
+                 a[1][2]+(b[1][2]-a[1][2])*f ];
+      }
+    }
+    return STOPS[STOPS.length-1][1];
+  }
+
+  function blurs(){
+    var pxPerSec = specW / T;
+    var pxPerHz  = specH / (fMax*1000);
+    var EXAG = 24;                               // frequency-blur exaggeration (visual only)
+    var sigT = (N/fs) * pxPerSec;               // time blur (px)  ∝ N
+    var sigF = (fs/N) * pxPerHz * EXAG;         // freq blur (px)  ∝ 1/N
+    return { sigT: Math.max(sigT,0.8), sigF: Math.max(sigF,0.8) };
+  }
+
+  function drawWaveform(){
+    // midline
+    ctx.strokeStyle='rgba(143,185,198,.25)';
+    ctx.beginPath(); ctx.moveTo(specL,wMid); ctx.lineTo(specR,wMid); ctx.stroke();
+    // steady tone — a gentle continuous ripple (raw signal, never changes)
+    ctx.strokeStyle='#2a9db0'; ctx.lineWidth=1.3; ctx.beginPath();
+    for(var px=specL; px<=specR; px++){
+      var u=(px-specL)/specW;
+      var y=wMid - 15*Math.sin(2*Math.PI*13*u);
+      if(px===specL) ctx.moveTo(px,y); else ctx.lineTo(px,y);
+    }
+    ctx.stroke();
+    // clicks — tall damped transient spikes on top
+    ctx.strokeStyle='#ffd479'; ctx.lineWidth=1.8;
+    clicks.forEach(function(tc){
+      var xc=xOf(tc);
+      ctx.beginPath();
+      for(var d=-10; d<=46; d++){
+        var env=Math.exp(-Math.abs(d)/5.5);
+        var y=wMid - 46*env*Math.sin(2*Math.PI*d/4.2);
+        var x=xc+d;
+        if(d===-10) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    });
+  }
+
+  function drawSpectrogram(){
+    var b = blurs();
+    var sigT=b.sigT, sigF=b.sigF, two=2;
+    var yTone=yOf(fTone), toneAmp=0.82, clickAmp=1.0;
+
+    // background
+    ctx.fillStyle='#04161f'; ctx.fillRect(specL, sTop, specW, specH);
+
+    // precompute: tone depends only on row, clicks only on column
+    var cols=[], rows=[], x, y, k;
+    var xc=clicks.map(xOf);
+    for(x=specL; x<specR; x+=two){
+      var c=0;
+      for(k=0;k<xc.length;k++){ var dx=x-xc[k]; c+=Math.exp(-(dx*dx)/(2*sigT*sigT)); }
+      cols.push(Math.min(c,1)*clickAmp);
+    }
+    for(y=sTop; y<sBot; y+=two){
+      var dy=y-yTone;
+      rows.push(toneAmp*Math.exp(-(dy*dy)/(2*sigF*sigF)));
+    }
+
+    // paint cells (screen-blend tone + clicks)
+    var ci=0;
+    for(x=specL; x<specR; x+=two, ci++){
+      var cv=cols[ci];
+      var ri=0;
+      for(y=sTop; y<sBot; y+=two, ri++){
+        var v = 1-(1-rows[ri])*(1-cv);
+        if(v<0.05) continue;
+        var col=ramp(v);
+        ctx.fillStyle='rgb('+(col[0]|0)+','+(col[1]|0)+','+(col[2]|0)+')';
+        ctx.fillRect(x, y, two, two);
+      }
+    }
+  }
+
+  function drawAxes(){
+    ctx.fillStyle='#8fb9c6'; ctx.font='12px Inter, system-ui, sans-serif'; ctx.textAlign='left';
+    ctx.fillText('WAVEFORM  —  amplitude vs time   (the raw sound — fixed)', padL, 20);
+    ctx.fillText('SPECTROGRAM  —  frequency vs time   (window = '+N+' samples)', padL, 182);
+
+    // frequency ticks
+    ctx.font='10px Inter, system-ui, sans-serif'; ctx.fillStyle='#5b8593'; ctx.textAlign='right';
+    [0,6,12,18,24].forEach(function(f){
+      var y=yOf(f);
+      ctx.fillText((f? f+'k':'0'), specL-6, y+3);
+    });
+    ctx.save(); ctx.translate(14,(sTop+sBot)/2); ctx.rotate(-Math.PI/2);
+    ctx.textAlign='center'; ctx.fillStyle='#5b8593'; ctx.fillText('frequency (Hz)',0,0); ctx.restore();
+
+    // time ticks
+    ctx.textAlign='center'; ctx.fillStyle='#5b8593';
+    [0,0.25,0.5,0.75,1.0].forEach(function(t){
+      ctx.fillText(t.toFixed(2)+'s', xOf(t), sBot+16);
+    });
+
+    // labels for the two features
+    ctx.textAlign='left'; ctx.fillStyle='#bfe9f2'; ctx.font='10px Inter, system-ui, sans-serif';
+    ctx.fillText('← tone (6 kHz)', specL+4, yOf(fTone)-6);
+
+    // live sharpness tags, top-right of spectrogram
+    var clickSharp = N<=256, toneSharp = N>=4096;
+    ctx.textAlign='right'; ctx.font='bold 10px Inter, system-ui, sans-serif';
+    ctx.fillStyle = clickSharp ? '#ffd479' : (toneSharp ? '#7f97a1' : '#bfe9f2');
+    ctx.fillText('clicks: '+(clickSharp?'SHARP':(toneSharp?'SMEARED':'ok')), specR-4, sTop+14);
+    ctx.fillStyle = toneSharp ? '#ffd479' : (clickSharp ? '#7f97a1' : '#bfe9f2');
+    ctx.fillText('tone: '+(toneSharp?'SHARP':(clickSharp?'SMEARED':'ok')), specR-4, sTop+28);
+  }
+
+  function setVerdict(){
+    var v;
+    if(N<=256)
+      v='<b>Short window (256).</b> Razor-sharp time: every click is a clean vertical line you could time to the '+
+        'millisecond. But the tone bloats into a fat horizontal band — you can’t read its pitch. '+
+        '<b>Best for clicks.</b>';
+    else if(N>=4096)
+      v='<b>Long window (4096).</b> Razor-sharp frequency: the tone collapses to a thin, exact line. But the '+
+        'clicks blur sideways and start to merge — you lose <i>when</i> each one happened. <b>Best for tones.</b>';
+    else
+      v='<b>Medium window (1024).</b> A balanced compromise — clicks stay distinct and the tone is a readable '+
+        'line. The sensible default when you don’t yet know what you’re looking at.';
+    if(verdictEl) verdictEl.innerHTML = v;
+  }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#06202e'; ctx.fillRect(0,0,W,H);
+    drawWaveform();
+    drawSpectrogram();
+    drawAxes();
+    setVerdict();
+  }
+
+  var chips = document.querySelectorAll('.toy .chip');
+  chips.forEach(function(chip){
+    chip.addEventListener('click', function(){
+      chips.forEach(function(c){ c.classList.remove('on'); });
+      chip.classList.add('on');
+      N = parseFloat(chip.getAttribute('data-n'));
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

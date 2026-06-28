@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 1 · The Loudest Animal in the Sea</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-1-specific: the canvas toy + range meter */
+  .toy { background: linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; }
+  .row { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .row .btn { cursor:pointer; border:1.5px solid var(--ocean); background:var(--ocean); color:#fff; font-weight:700; padding:.5rem .9rem; border-radius:8px; font-size:.85rem; }
+  .row .btn:hover { background:var(--ocean-deep); border-color:var(--ocean-deep); }
+  .row .btn.ghost { background:#fff; color:var(--ocean-deep); }
+  .chip { cursor:pointer; border:1.5px solid var(--rule); background:#fff; border-radius:999px; padding:.32rem .7rem; font-weight:600; color:var(--ink-soft); }
+  .chip.on { border-color:var(--ocean); background:#e7f5f7; color:var(--ocean-deep); }
+  .meter { height:26px; border-radius:6px; background:linear-gradient(90deg,#1a3a4a,#0b6b7a); position:relative; overflow:hidden; margin:.5rem 0; }
+  .meter .fill { position:absolute; inset:0 auto 0 0; background:linear-gradient(90deg,#2a9db0,#ffd479); width:0%; transition:width .12s; }
+  .meter .thr { position:absolute; top:-4px; bottom:-4px; width:3px; background:var(--coral); }
+  .verdict { font-family:var(--sans); font-weight:700; font-size:1rem; padding:.5rem .7rem; border-radius:7px; margin-top:.4rem; }
+  .verdict.yes { background:#eef7ef; color:#245c30; border:1px solid #cfe6d3; }
+  .verdict.no  { background:#fdf0ec; color:#8d2f1a; border:1px solid #f0cfc4; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 1 · Theory &amp; Foundations · T1</p>
+  <h1 class="lesson-title">The Loudest Animal in the Sea</h1>
+  <p class="lesson-sub">Before you build anything, meet your quarry — and find out why a hydrophone the size
+  of your thumb can hear a sperm whale kilometres away.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~12 minutes</span><span class="sep">•</span>
+    <span>🛠 No build required — do this today</span><span class="sep">•</span>
+    <span class="tag ocean">Mission: detect &amp; localize</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson</div>
+    <p>Your mission is to build a hydrophone and use it to <strong>find and track the resident sperm whales of
+    Mauritius</strong>. Everything downstream — the element you buy, how fast you sample, how you turn two
+    microphones into a position fix — is shaped by one fact: <em>what these animals sound like, and how their
+    sound travels.</em> This lesson hands you that fact, with two toys you can play with right now.</p>
+  </div>
+
+  <h2><span class="num">1</span>The whales are already there</h2>
+  <p>Off the <strong>western slope of Mauritius</strong> lives a small, <em>resident</em> population of sperm
+  whales — fewer than forty animals, catalogued one by one from photographs since 2011.<span class="cite"><a href="#r-mmco">5</a></span>
+  At its heart is a stable matrilineal family — "Irène's group", around 28 whales — seen year after year in the
+  same waters.<span class="cite"><a href="#r-sarano">4</a></span> The western continental slope is recognised as
+  one of the most important sperm-whale breeding and feeding habitats in the entire southwestern Indian
+  Ocean.<span class="cite"><a href="#r-imma">6</a></span></p>
+  <p>This is the rare gift your mission rests on: you do not have to chase whales across an ocean. <strong>They
+  have an address</strong>, and they are home all year. Your job is to learn to listen.</p>
+
+  <div class="callout warning">
+    <div class="callout-label">⚠ Listen, don't disturb</div>
+    <p>Mauritius law sets a <strong>100 m no-go "prohibited zone"</strong> around a whale and a 100–200 m
+    "regulated zone"; since March 2020 it is an offence to swim or dive with them without a scientific
+    permit.<span class="cite"><a href="#r-law">10</a></span> A hydrophone is the perfect tool here — it lets you
+    study a whale from far outside that circle, without touching its world. We will treat the law as a design
+    constraint, not an afterthought.</p>
+  </div>
+
+  <h2><span class="num">2</span>What a sperm whale actually sounds like</h2>
+  <p>A sperm whale does not sing. It <strong>clicks</strong> — short, broadband bursts of sound it uses as
+  biological sonar to hunt squid in the lightless deep.<span class="cite"><a href="#r-noaa">1</a></span> And these
+  are not gentle clicks. A sperm whale's "usual" click is the <strong>loudest sound made by any animal on
+  Earth</strong>, with on-axis source levels reported up to ~236 dB re 1 µPa @ 1 m.<span class="cite"><a href="#r-mohl">3</a></span>
+  For comparison, that figure dwarfs a rifle shot. <em>This loudness is your single biggest advantage.</em></p>
+
+  <p>Clicks come in types, told apart by their rhythm — the <a href="../reference/glossary.html#ici">inter-click
+  interval</a> (ICI):</p>
+  <table>
+    <caption>Sperm whale click types — approximate values.<span class="cite"><a href="#r-wiki">2</a></span> Source levels are on-axis; off to the side they are much quieter.</caption>
+    <thead><tr><th>Type</th><th>What it's for</th><th class="num">Source level</th><th class="num">Peak freq</th><th class="num">ICI</th></tr></thead>
+    <tbody>
+      <tr><td><b>Usual</b> click</td><td>Long-range echolocation while foraging</td><td class="num">~230 dB</td><td class="num">~15 kHz</td><td class="num">0.5–1 s</td></tr>
+      <tr><td><b>Creak</b> / buzz</td><td>Closing in on prey (a rapid "rrrip")</td><td class="num">~205 dB</td><td class="num">~15 kHz</td><td class="num">5–100 ms</td></tr>
+      <tr><td><b>Coda</b></td><td>Social — patterned, like Morse</td><td class="num">~180 dB</td><td class="num">~5 kHz</td><td class="num">0.1–0.5 s</td></tr>
+      <tr><td><b>Slow</b> click</td><td>Made by big roving males</td><td class="num">~190 dB</td><td class="num">~0.5 kHz</td><td class="num">5–8 s</td></tr>
+    </tbody>
+  </table>
+
+  <div class="toy">
+    <h3>🔊 Toy 1 — Hear a click train, and see why it looks like vertical lines</h3>
+    <p class="hint">Pick a click type, press play (synthetic — your speakers, not a real whale), and watch the same
+    sound drawn two ways. The <b>spectrogram</b> at the bottom is the view you'll live in for the rest of this
+    course: each click is a crisp <b>vertical line</b>. The gap between lines is the ICI.</p>
+    <canvas id="trainCanvas" width="720" height="300" aria-label="Waveform and spectrogram of a click train"></canvas>
+    <div class="row">
+      <span>Click type:</span>
+      <span class="chip on" data-ici="0.75" data-type="usual">Usual (0.75 s)</span>
+      <span class="chip" data-ici="0.30" data-type="coda">Coda (0.30 s)</span>
+      <span class="chip" data-ici="0.05" data-type="creak">Creak (0.05 s)</span>
+      <span class="chip" data-ici="1.50" data-type="slow">Slow (1.5 s)</span>
+    </div>
+    <div class="row">
+      <button class="btn" id="playBtn">▶ Play click train</button>
+      <button class="btn ghost" id="stopBtn">■ Stop</button>
+      <span class="muted" id="trainReadout" style="font-family:var(--sans)">ICI = 0.75 s · 7 clicks in view</span>
+    </div>
+  </div>
+
+  <div class="callout note">
+    <div class="callout-label">⌗ Two intervals — don't mix them up</div>
+    <p>The gap <em>between</em> whole clicks is the <a href="../reference/glossary.html#ici">ICI</a> — it sets the
+    rhythm. But hidden <em>inside</em> a single click is a second, tiny gap: the
+    <a href="../reference/glossary.html#ipi">inter-pulse interval (IPI)</a>, an echo bouncing back and forth across
+    the whale's huge spermaceti organ. The IPI is a <strong>ruler</strong>: a longer head means a longer IPI, so
+    one click can tell you the whale's body length.<span class="cite"><a href="#r-noaa">1</a></span> We'll measure
+    it with a single hydrophone in a later lesson — your first "win" that needs no array.</p>
+  </div>
+
+  <h2><span class="num">3</span>Why you can hear them from kilometres away</h2>
+  <p>Sound spreads out from a whale like an expanding sphere. As the sphere grows, the same energy is smeared over
+  a bigger and bigger surface, so the sound gets quieter with distance. The rule near the source is brutally
+  simple — <strong>every doubling of distance costs about 6 dB</strong> (this is <em>spherical spreading</em>:
+  <span class="inline-math">TL = 20·log₁₀ r</span>).<span class="cite"><a href="#r-spread">7</a></span> Far out,
+  once the sound is trapped between the sea surface and the seabed, the loss eases to ~3 dB per doubling.</p>
+  <p>Start at 236 dB and you have an enormous budget to spend on distance. That is the whole reason a cheap
+  hydrophone works: <strong>the whale does the hard part by being deafeningly loud.</strong> The calculator below
+  is a first, honest taste of the <a href="../reference/glossary.html#sonar-equation">passive sonar equation</a> we
+  build properly in Lesson 10.</p>
+
+  <div class="calc">
+    <div class="calc-title">📏 Toy 2 — How far can you hear a clicking whale?</div>
+    <div class="controls">
+      <div class="control">
+        <label>Click type (sets source level) <output id="slOut">Usual · 230 dB</output></label>
+        <select id="slSel">
+          <option value="230" selected>Usual click — 230 dB</option>
+          <option value="205">Creak — 205 dB</option>
+          <option value="190">Slow click — 190 dB</option>
+          <option value="180">Coda — 180 dB</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>Distance to the whale <output id="rOut">5.0 km</output></label>
+        <input type="range" id="rRange" min="0.2" max="30" step="0.1" value="5">
+      </div>
+      <div class="control">
+        <label>Background sea noise — your detection floor <output id="nlOut">75 dB</output></label>
+        <input type="range" id="nlRange" min="55" max="100" step="1" value="75">
+        <small style="font-family:var(--sans);color:var(--ink-faint)">calm night ↔ rough seas &amp; shipping</small>
+      </div>
+    </div>
+    <div class="readout">
+      Click arrives at <span class="big" id="rlVal">—</span> <span class="unit">dB re 1 µPa</span>
+      <div class="meter" id="meter"><div class="fill" id="meterFill"></div><div class="thr" id="meterThr"></div></div>
+      <div class="verdict yes" id="verdict">—</div>
+      <div style="font-family:var(--sans);font-size:.82rem;color:#8fb9c6;margin-top:.6rem">
+        Ideal max detection range ≈ <b id="maxR" style="color:#ffd479">—</b>
+        &nbsp;·&nbsp; assumes spherical spreading + ~1 dB/km absorption
+      </div>
+    </div>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-label">★ The honest caveat (and your roadmap)</div>
+    <p>That tool assumes the click points straight at you in open water. Reality is stingier: the loud click is a
+    <strong>forward-pointing beam</strong>, so off to the side it's far quieter; rough seas raise the noise; and
+    <em>pinpointing a position</em> needs the whale closer still. A real Mauritius-like observatory — three
+    moored hydrophones ~1–2 km apart — localizes sperm whales in 3-D with useful accuracy out to about
+    <strong>7 km</strong>.<span class="cite"><a href="#r-skar">9</a></span> That study is the blueprint this whole
+    course climbs toward.</p>
+  </div>
+
+  <h2><span class="num">4</span>Check yourself</h2>
+  <p>Quick retrieval practice — no peeking. Getting these <em>out of your head</em> is what makes them stick.</p>
+
+  <div class="quiz"
+       data-explain-right="Exactly."
+       data-explain-wrong="Have another look above.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">Which interval is the tiny gap <em>inside one click</em> that reveals the whale's body length?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="IPI — pulses echoing across the spermaceti organ. Drop it into T = 1.258·IPI + 5.736 to get length in metres.">The inter-pulse interval</button>
+      <button class="opt" data-feedback="That's the gap between whole clicks — it sets the rhythm, not the size. The size clue is the inter-pulse interval.">The inter-click interval</button>
+      <button class="opt" data-feedback="Not a standard term. The body-length clue is the inter-pulse interval — pulses inside a single click.">The inter-burst interval</button>
+      <button class="opt" data-feedback="Not a standard term. The body-length clue is the inter-pulse interval — pulses inside a single click.">The inter-creak interval</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="Spherical spreading."
+       data-explain-wrong="Look at the spreading rule again.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">Close to the whale, every time you double your distance the click loses about…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Spherical spreading: −6 dB per range-doubling (TL = 20·log₁₀ r). The −3 dB case only kicks in far out, once sound is ducted between surface and seabed.">About 6 dB</button>
+      <button class="opt" data-feedback="That's the far-field cylindrical case. Near the source it's −6 dB per doubling.">About 3 dB</button>
+      <button class="opt" data-feedback="Too steep. Spherical spreading costs −6 dB per doubling of range.">About 9 dB</button>
+      <button class="opt" data-feedback="Too gentle. Spherical spreading costs −6 dB per doubling of range.">About 1 dB</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="The loudest animal there is."
+       data-explain-wrong="Check the source-level table.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">Roughly how loud is a sperm whale's usual click, measured 1 m from the source?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Up to ~236 dB re 1 µPa @ 1 m — the loudest sound made by any animal. That headroom is what makes a cheap hydrophone viable.">About 230 dB</button>
+      <button class="opt" data-feedback="Far too quiet — that's more like ordinary speech in air. A usual click is ~230 dB re 1 µPa underwater.">About 120 dB</button>
+      <button class="opt" data-feedback="Still low. A usual click reaches ~230 dB re 1 µPa @ 1 m — the loudest of any animal.">About 170 dB</button>
+      <button class="opt" data-feedback="Close, but it's louder still — ~230 dB re 1 µPa @ 1 m, the loudest animal sound known.">About 200 dB</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now say</h3>
+    <ol>
+      <li>Mauritius has a small <strong>resident</strong> sperm-whale population on its western slope — a fixed, year-round target.</li>
+      <li>Sperm whales <strong>click</strong>; the usual click is the <strong>loudest animal sound on Earth</strong> (~230 dB re 1 µPa @ 1 m).</li>
+      <li>Click <em>types</em> differ by <strong>ICI</strong>; in a spectrogram each click is a <strong>vertical line</strong>.</li>
+      <li>Sound weakens by <strong>~6 dB per doubling of range</strong> near the source — but the whale is so loud you can still hear it kilometres off.</li>
+      <li>You'll <strong>listen from outside the 100 m zone</strong> — legal, ethical, and exactly what a hydrophone is for.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · read this next</div>
+      <div class="title"><a href="https://www.fisheries.noaa.gov/science-blog/diving-deep-sperm-whale-clicks" target="_blank" rel="noopener">NOAA Fisheries — “Diving Deep into Sperm Whale Clicks”</a></div>
+      <div class="desc">The clearest plain-language tour of usual clicks, creaks, codas and the IPI body-length trick — straight from the people who study them. ~10-minute read.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>I'm your teacher — ask me anything.</b> Curious why clicks are broadband, what "dB re 1 µPa" really
+    means, or whether your boat/phone could already record one? Just ask in chat. Confused beats stuck.
+  </div>
+
+  <div class="crosslinks">
+    <b>Linked:</b> Glossary →
+    <a href="../reference/glossary.html#source-level">source level</a>,
+    <a href="../reference/glossary.html#ici">ICI</a>,
+    <a href="../reference/glossary.html#ipi">IPI</a>,
+    <a href="../reference/glossary.html#spectrogram">spectrogram</a>,
+    <a href="../reference/glossary.html#transmission-loss">transmission loss</a>.
+    Builds toward → <b>Lesson 10</b> (sonar equation) and <b>Lesson 12</b> (sizing a whale from its clicks).
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-noaa">NOAA Fisheries — <a href="https://www.fisheries.noaa.gov/science-blog/diving-deep-sperm-whale-clicks" target="_blank" rel="noopener">Diving Deep into Sperm Whale Clicks</a>. Click types, codas, the IPI head-size method.</li>
+    <li id="r-wiki">Wikipedia — <a href="https://en.wikipedia.org/wiki/Sperm_whale" target="_blank" rel="noopener">Sperm whale</a>. Well-cited click-type table (source levels, peak frequencies, ICIs).</li>
+    <li id="r-mohl">Møhl, Wahlberg, Madsen et al. (2003) — <a href="https://www.marinebioacoustics.com/files/2003/Mohl_et_al_2003a.pdf" target="_blank" rel="noopener">The monopulsed nature of sperm whale clicks</a>. On-axis source levels up to ~236 dB re 1 µPa @ 1 m.</li>
+    <li id="r-sarano">Sarano et al. — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8074673/" target="_blank" rel="noopener">Social units & vocal clans in Mauritius</a>. Resident ~28-whale matrilineal group, year-round.</li>
+    <li id="r-mmco">MMCO / Maubydick — <a href="https://www.mmco.mu/cetaceane/" target="_blank" rel="noopener">Cetaceans</a>. Resident population &lt;40 (38 catalogued), studied since 2011.</li>
+    <li id="r-imma">IUCN MMPATF — <a href="https://www.marinemammalhabitat.org/factsheets/mascarene-islands-associated-oceanic-features/" target="_blank" rel="noopener">Mascarene Islands IMMA factsheet</a>. Western Mauritius slope as key breeding/feeding habitat.</li>
+    <li id="r-spread">DOSITS — <a href="https://dosits.org/science/advanced-topics/cylindrical-vs-spherical-spreading/" target="_blank" rel="noopener">Cylindrical vs spherical spreading</a>. −6 dB/doubling (spherical) vs −3 dB (cylindrical).</li>
+    <li id="r-dosits">DOSITS — <a href="https://dosits.org/galleries/technology-gallery/basic-technology/hydrophonereceiver/" target="_blank" rel="noopener">Hydrophone / Receiver</a>. What a passive piezoelectric hydrophone is.</li>
+    <li id="r-skar">Skarsoulis et al. (2022) — <a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.873888/full" target="_blank" rel="noopener">Real-time sperm-whale localization observatory</a>. 3 moored hydrophones, 3-D TDOA fixes to ~7 km.</li>
+    <li id="r-law">Govt. of Mauritius — <a href="https://faolex.fao.org/docs/pdf/mat116851.pdf" target="_blank" rel="noopener">Dolphin and Whale Watching Regulations 2012 (GN 154)</a>. 100 m prohibited / 100–200 m regulated zones.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="../index.html">
+      <div class="dir">← Back</div>
+      <div class="ttl">Course home</div>
+    </a>
+    <a class="next" href="0003-pressure-to-voltage.html">
+      <div class="dir">Next · T2</div>
+      <div class="ttl">Pressure → Voltage →</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson 1 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Toy 1 — click-train canvas + WebAudio ============================ */
+(function(){
+  var canvas = document.getElementById('trainCanvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height, pad = 42;
+  var WINDOW = 5.0;                 // seconds shown
+  var ici = 0.75;                   // current inter-click interval
+  var readout = document.getElementById('trainReadout');
+  var actx = null, playing = false, playStart = 0, rafId = null;
+
+  function clickTimes(){
+    var t = [], k = 0;
+    while(k*ici <= WINDOW){ t.push(k*ici); k++; }
+    return t;
+  }
+  function xOf(t){ return pad + (t/WINDOW)*(W-2*pad); }
+
+  function draw(playheadT){
+    var times = clickTimes();
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#06202e'; ctx.fillRect(0,0,W,H);
+
+    // ---- panel labels & divider
+    ctx.font = '12px Inter, system-ui, sans-serif';
+    ctx.fillStyle = '#8fb9c6';
+    ctx.fillText('WAVEFORM  —  pressure vs time', pad, 18);
+    ctx.fillText('SPECTROGRAM  —  frequency vs time   (each click = a vertical line)', pad, 168);
+
+    var wTop=30, wBot=150, wMid=(wTop+wBot)/2;
+    var sTop=178, sBot=288;
+
+    // ---- waveform midline
+    ctx.strokeStyle='rgba(143,185,198,.25)'; ctx.beginPath(); ctx.moveTo(pad,wMid); ctx.lineTo(W-pad,wMid); ctx.stroke();
+
+    // ---- spectrogram background
+    ctx.fillStyle='#031824'; ctx.fillRect(pad-2,sTop,W-2*pad+4,sBot-sTop);
+
+    times.forEach(function(tc){
+      var x = xOf(tc);
+      var lit = (playheadT!=null && playheadT>=tc && playheadT<tc+0.12);
+      // waveform: damped wiggle
+      ctx.strokeStyle = lit ? '#ffd479' : '#2a9db0';
+      ctx.lineWidth = lit ? 2.4 : 1.6;
+      ctx.beginPath();
+      for(var i=0;i<=22;i++){
+        var ph=i/22, env=Math.exp(-ph*7), amp=Math.sin(ph*Math.PI*9)*env*48;
+        var xx=x+ph*16, yy=wMid-amp;
+        if(i===0)ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy);
+      }
+      ctx.stroke();
+      // spectrogram: broadband vertical line (gradient = energy across frequency)
+      var g = ctx.createLinearGradient(0,sTop,0,sBot);
+      if(lit){ g.addColorStop(0,'#fff4cf'); g.addColorStop(1,'#ffb648'); }
+      else   { g.addColorStop(0,'#bfe9f2'); g.addColorStop(0.5,'#2a9db0'); g.addColorStop(1,'#0b5566'); }
+      ctx.fillStyle=g;
+      ctx.fillRect(x-(lit?2:1.3), sTop+4, lit?4:2.6, sBot-sTop-8);
+    });
+
+    // ---- ICI annotation between first two clicks (if they fit)
+    if(times.length>1){
+      var x1=xOf(times[0]), x2=xOf(times[1]), yA=wBot+0;
+      ctx.strokeStyle='#ffd479'; ctx.fillStyle='#ffd479'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(x1,yA); ctx.lineTo(x2,yA); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x1,yA-4); ctx.lineTo(x1,yA+4);
+      ctx.moveTo(x2,yA-4); ctx.lineTo(x2,yA+4); ctx.stroke();
+      ctx.font='11px Inter, system-ui'; ctx.textAlign='center';
+      ctx.fillText('ICI '+ici.toFixed(2)+' s', (x1+x2)/2, yA-6);
+      ctx.textAlign='left';
+    }
+
+    // ---- time axis
+    ctx.fillStyle='#5b8593'; ctx.font='10px Inter, system-ui';
+    for(var s=0;s<=WINDOW;s++){ var x=xOf(s); ctx.fillText(s+'s', x-4, H-3); }
+
+    // ---- playhead
+    if(playheadT!=null){
+      var px=xOf(Math.min(playheadT,WINDOW));
+      ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(px,24); ctx.lineTo(px,H-12); ctx.stroke();
+    }
+  }
+
+  function setReadout(){
+    var n = clickTimes().length;
+    readout.textContent = 'ICI = '+ici.toFixed(2)+' s · '+n+' clicks in view';
+  }
+
+  function playClick(t){
+    var dur=0.005, n=Math.ceil(actx.sampleRate*dur);
+    var buf=actx.createBuffer(1,n,actx.sampleRate), d=buf.getChannelData(0);
+    for(var j=0;j<n;j++){ d[j]=(Math.random()*2-1)*Math.exp(-j/(n*0.22)); }
+    var src=actx.createBufferSource(); src.buffer=buf;
+    var bp=actx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=6500; bp.Q.value=0.6;
+    var g=actx.createGain(); g.gain.value=0.85;
+    src.connect(bp); bp.connect(g); g.connect(actx.destination);
+    src.start(t);
+  }
+
+  function animate(){
+    if(!playing) return;
+    var elapsed = actx.currentTime - playStart;
+    if(elapsed > WINDOW+0.15){ stop(); draw(null); return; }
+    draw(elapsed);
+    rafId = requestAnimationFrame(animate);
+  }
+
+  function play(){
+    try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); }
+    catch(e){ /* no audio — visualization still animates */ }
+    stop();
+    playing = true;
+    var base = actx ? actx.currentTime+0.06 : 0;
+    playStart = base;
+    if(actx){ clickTimes().forEach(function(tc){ playClick(base+tc); }); }
+    else { playStart = performance.now()/1000; } // fallback clock
+    // unify clock for fallback
+    if(!actx){ var p0=performance.now(); (function loop(){ if(!playing)return; var el=(performance.now()-p0)/1000; if(el>WINDOW+0.15){stop();draw(null);return;} draw(el); requestAnimationFrame(loop); })(); }
+    else { rafId=requestAnimationFrame(animate); }
+  }
+  function stop(){ playing=false; if(rafId) cancelAnimationFrame(rafId); }
+
+  document.getElementById('playBtn').addEventListener('click', play);
+  document.getElementById('stopBtn').addEventListener('click', function(){ stop(); draw(null); });
+
+  document.querySelectorAll('.toy .chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      document.querySelectorAll('.toy .chip').forEach(function(c){ c.classList.remove('on'); });
+      chip.classList.add('on');
+      ici = parseFloat(chip.getAttribute('data-ici'));
+      stop(); setReadout(); draw(null);
+    });
+  });
+
+  setReadout();
+  draw(null);
+})();
+
+/* ============================ Toy 2 — detection-range calculator ============================ */
+(function(){
+  var slSel=document.getElementById('slSel'), rRange=document.getElementById('rRange'), nlRange=document.getElementById('nlRange');
+  if(!slSel) return;
+  var slOut=document.getElementById('slOut'), rOut=document.getElementById('rOut'), nlOut=document.getElementById('nlOut');
+  var rlVal=document.getElementById('rlVal'), fill=document.getElementById('meterFill'), thrEl=document.getElementById('meterThr');
+  var verdict=document.getElementById('verdict'), maxR=document.getElementById('maxR');
+  var ALPHA=1.0;                 // dB/km absorption (~12 kHz, approximate)
+  var typeName={230:'Usual',205:'Creak',190:'Slow click',180:'Coda'};
+
+  function tl(km){ var r=Math.max(km*1000,1); return 20*Math.log10(r) + ALPHA*km; } // spherical + absorption
+  function rl(sl,km){ return sl - tl(km); }
+
+  function maxRange(sl,nl){
+    // smallest km where rl <= nl  (scan finely)
+    var lo=0.05, hi=2000;
+    for(var km=lo; km<=hi; km*=1.02){ if(rl(sl,km) < nl) return km; }
+    return hi;
+  }
+
+  function update(){
+    var sl=parseFloat(slSel.value), km=parseFloat(rRange.value), nl=parseFloat(nlRange.value);
+    slOut.textContent = typeName[sl]+' · '+sl+' dB';
+    rOut.textContent = km.toFixed(1)+' km';
+    nlOut.textContent = nl+' dB';
+    var received = rl(sl,km), se = received - nl;
+    rlVal.textContent = received.toFixed(0);
+    // meter: map 40..200 dB to 0..100%
+    var pct=function(v){ return Math.max(0,Math.min(100,(v-40)/(200-40)*100)); };
+    fill.style.width = pct(received)+'%';
+    thrEl.style.left = pct(nl)+'%';
+    if(se>0){ verdict.className='verdict yes'; verdict.textContent='✓ Detected — signal excess +'+se.toFixed(0)+' dB above the noise'; }
+    else    { verdict.className='verdict no';  verdict.textContent='✗ Lost in the noise — '+se.toFixed(0)+' dB (below the floor)'; }
+    var mr=maxRange(sl,nl);
+    maxR.textContent = (mr>=999? '>1000 km' : mr.toFixed(1)+' km');
+  }
+  slSel.addEventListener('change',update);
+  rRange.addEventListener('input',update);
+  nlRange.addEventListener('input',update);
+  update();
+})();
+</script>
+</body>
+</html>

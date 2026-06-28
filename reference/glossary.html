@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glossary · Hydrophone Course</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  /* Reference-specific: tight definition list, jump nav, alphabet index */
+  .glossary-entry { border-bottom: 1px solid var(--rule); padding: 1.05rem 0; scroll-margin-top: 5rem; }
+  .glossary-entry:target { background: #fffdf4; box-shadow: -1rem 0 0 #fffdf4, 1rem 0 0 #fffdf4; }
+  .glossary-term { font-family: var(--sans); font-weight: 700; font-size: 1.06rem; color: var(--abyss); display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+  .glossary-term .sym { font-family: var(--mono); font-size: .82rem; color: var(--ocean); background: var(--paper-2); padding: .1rem .45rem; border-radius: 5px; font-weight: 600; }
+  .glossary-term .unit { font-family: var(--mono); font-size: .72rem; color: var(--ink-faint); }
+  .glossary-def { margin: .4rem 0 0; color: var(--ink-soft); }
+  .glossary-def .xref { font-family: var(--sans); font-size: .85em; }
+  .jump { position: sticky; top: 0; z-index: 5; background: rgba(251,250,245,.94); backdrop-filter: blur(6px); border-bottom: 1px solid var(--rule); padding: .55rem 0; margin-bottom: 1rem; }
+  .jump .wrap { display: flex; flex-wrap: wrap; gap: .25rem .4rem; font-family: var(--sans); font-size: .8rem; }
+  .jump a { text-decoration: none; padding: .12rem .4rem; border-radius: 5px; color: var(--ocean-deep); }
+  .jump a:hover { background: var(--paper-2); }
+  .cat { font-family: var(--sans); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-faint); margin: 2.2rem 0 .3rem; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="glossary.html">Glossary</a>
+      <a href="shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Reference</p>
+  <h1 class="lesson-title">Glossary</h1>
+  <p class="lesson-sub">The shared vocabulary of the course. Every lesson links here; every term means
+  exactly this. Bookmark it.</p>
+  <p class="muted" style="font-family:var(--sans);font-size:.85rem">Grouped by theme, roughly in the order
+  you meet them. Symbols and units shown where they matter. <code>↗</code> marks a cross-reference.</p>
+
+  <nav class="jump" aria-label="Jump to term">
+    <div class="wrap" style="padding-inline:0">
+      <a href="#hydrophone">Hydrophone</a>
+      <a href="#piezo">Piezo element</a>
+      <a href="#sensitivity">Sensitivity (M)</a>
+      <a href="#preamp">Preamp</a>
+      <a href="#decibel">Decibel</a>
+      <a href="#source-level">Source level</a>
+      <a href="#transmission-loss">Transmission loss</a>
+      <a href="#noise-level">Ambient noise</a>
+      <a href="#sonar-equation">Sonar equation</a>
+      <a href="#calibration">Calibration</a>
+      <a href="#nyquist">Nyquist rate</a>
+      <a href="#spectrogram">Spectrogram</a>
+      <a href="#regular-click">Regular click</a>
+      <a href="#coda">Coda</a>
+      <a href="#ici">ICI</a>
+      <a href="#ipi">IPI</a>
+      <a href="#tdoa">TDOA</a>
+      <a href="#gcc-phat">GCC-PHAT</a>
+      <a href="#hyperbolic">Hyperbolic localization</a>
+      <a href="#ssp">Sound-speed profile</a>
+    </div>
+  </nav>
+
+  <!-- ===================== HARDWARE ===================== -->
+  <p class="cat">The instrument</p>
+
+  <div class="glossary-entry" id="hydrophone">
+    <div class="glossary-term">Hydrophone</div>
+    <p class="glossary-def">A passive underwater microphone — usually <a class="xref" href="#piezo">piezoelectric</a> —
+    that converts the pressure of a passing sound wave into a small electrical voltage. "Passive" means it only
+    listens; it never emits sound.</p>
+  </div>
+
+  <div class="glossary-entry" id="piezo">
+    <div class="glossary-term">Piezoelectric element</div>
+    <p class="glossary-def">A ceramic (typically <b>PZT</b> — lead zirconate titanate) disc or cylinder that
+    generates an electric charge when mechanically deformed by sound pressure. It is the sensing core of most
+    hydrophones, and the cheap part that makes a DIY build possible.</p>
+  </div>
+
+  <div class="glossary-entry" id="sensitivity">
+    <div class="glossary-term">Receiving sensitivity <span class="sym">M</span> <span class="unit">dB re 1 V/µPa</span></div>
+    <p class="glossary-def">How much voltage a hydrophone produces per unit of sound pressure. Always a
+    <em>negative</em> number; <b>less negative = more sensitive</b> (−164 dB beats −180 dB). The figure you must
+    know to turn recorded volts back into real pressure — see <a class="xref" href="#calibration">calibration</a>.</p>
+  </div>
+
+  <div class="glossary-entry" id="preamp">
+    <div class="glossary-term">Preamplifier</div>
+    <p class="glossary-def">A buffer/amplifier placed right at the element that matches the piezo's very high
+    impedance to a recorder's low-impedance input. Without it the signal is lost and the sound is thin and
+    coloured. Integrated (in-sensor) preamps outperform cable-mounted ones.</p>
+  </div>
+
+  <!-- ===================== THE DECIBEL WORLD ===================== -->
+  <p class="cat">Levels &amp; the decibel world</p>
+
+  <div class="glossary-entry" id="decibel">
+    <div class="glossary-term">Decibel <span class="sym">dB</span></div>
+    <p class="glossary-def">A logarithmic ratio of two quantities. Underwater sound is referenced to
+    <b>1 micropascal (1 µPa)</b>, whereas air uses 20 µPa — so an in-water dB figure is <b>not</b> comparable to
+    an in-air one. Roughly: +6 dB ≈ double the pressure, +20 dB ≈ ten times.</p>
+  </div>
+
+  <div class="glossary-entry" id="source-level">
+    <div class="glossary-term">Source level <span class="sym">SL</span> <span class="unit">dB re 1 µPa @ 1 m</span></div>
+    <p class="glossary-def">How loud a source is, referred back to 1 m from it. Sperm whale
+    <a class="xref" href="#regular-click">clicks</a> reach ~230–236 dB re 1 µPa @ 1 m — the loudest sound made
+    by any animal.</p>
+  </div>
+
+  <div class="glossary-entry" id="transmission-loss">
+    <div class="glossary-term">Transmission loss <span class="sym">TL</span> <span class="unit">dB</span></div>
+    <p class="glossary-def">How much a sound weakens with range, dominated by geometric spreading:
+    <b>−6 dB per range-doubling</b> (spherical, <code>TL = 20·log₁₀ r</code>) close to the source, easing to
+    <b>−3 dB</b> (cylindrical, <code>TL = 10·log₁₀ r</code>) once the sound is trapped between surface and bottom.</p>
+  </div>
+
+  <div class="glossary-entry" id="noise-level">
+    <div class="glossary-term">Ambient noise / noise level <span class="sym">NL</span></div>
+    <p class="glossary-def">Background ocean sound — distant shipping (low frequencies), wind and breaking
+    waves (mid/high), thermal noise (very high) — summarised by the <b>Wenz curves</b>. It sets the floor a
+    signal must rise above to be heard.</p>
+  </div>
+
+  <div class="glossary-entry" id="sonar-equation">
+    <div class="glossary-term">Passive sonar equation</div>
+    <p class="glossary-def">The bookkeeping that decides whether you hear a source:
+    <code>SE = (SL − TL) − (NL − DI) − DT</code>, where DI is the array directivity index and DT the detection
+    threshold. No target-strength term and only one-way <a class="xref" href="#transmission-loss">TL</a>
+    (you listen, you don't ping). Detectable when <b>signal excess SE &gt; 0 dB</b>.</p>
+  </div>
+
+  <div class="glossary-entry" id="calibration">
+    <div class="glossary-term">Calibration</div>
+    <p class="glossary-def">Assigning a hydrophone its true <a class="xref" href="#sensitivity">sensitivity</a>
+    (via pistonphone or comparison against a reference unit). Required before recorded volts can become absolute
+    sound pressure — the line between a "microphone" and a measuring instrument.</p>
+  </div>
+
+  <!-- ===================== DIGITAL ===================== -->
+  <p class="cat">Capturing &amp; viewing</p>
+
+  <div class="glossary-entry" id="nyquist">
+    <div class="glossary-term">Nyquist rate</div>
+    <p class="glossary-def">The minimum sampling rate to capture a signal faithfully: <b>more than twice the
+    highest frequency of interest</b>. Sample too slowly and high frequencies <b>alias</b> into false low ones.
+    Sperm whale clicks reach tens of kHz → ≥96 kHz is the working standard.</p>
+  </div>
+
+  <div class="glossary-entry" id="spectrogram">
+    <div class="glossary-term">Spectrogram</div>
+    <p class="glossary-def">A frequency-versus-time image of sound (time →, frequency ↑, colour = energy).
+    Transient <a class="xref" href="#regular-click">clicks</a> appear as crisp <b>vertical lines</b>, which is
+    why it is the primary tool for inspecting whale recordings.</p>
+  </div>
+
+  <!-- ===================== WHALE ===================== -->
+  <p class="cat">The quarry — sperm whale sounds</p>
+
+  <div class="glossary-entry" id="regular-click">
+    <div class="glossary-term">Regular (usual) click</div>
+    <p class="glossary-def">A sperm whale's broadband echolocation click (~300 Hz–30 kHz, most energy ~5–25 kHz,
+    <a class="xref" href="#ici">ICI</a> ~0.5–2 s). Highly directional and forward-beamed at high frequencies;
+    used to find prey in the deep.</p>
+  </div>
+
+  <div class="glossary-entry" id="coda">
+    <div class="glossary-term">Coda</div>
+    <p class="glossary-def">A short, patterned, rhythmic sequence of clicks used <b>socially</b> (not for
+    echolocation). Whales sharing coda dialects form <b>vocal clans</b>. The Mauritius residents have their own
+    clan dialect.</p>
+  </div>
+
+  <div class="glossary-entry" id="ici">
+    <div class="glossary-term">Inter-click interval <span class="sym">ICI</span></div>
+    <p class="glossary-def">The time gap <em>between successive clicks</em> in a train. It distinguishes click
+    types: usual ~0.5–2 s, creak/buzz ~5–100 ms, coda ~0.1–0.5 s, slow click ~5–8 s.</p>
+  </div>
+
+  <div class="glossary-entry" id="ipi">
+    <div class="glossary-term">Inter-pulse interval <span class="sym">IPI</span></div>
+    <p class="glossary-def">The spacing between the internal pulses <em>within a single click</em>, set by sound
+    bouncing across the spermaceti organ. A stable proxy for head — and thus body — length:
+    <code>T = 1.258·IPI + 5.736</code> (IPI in ms → length in m). Do not confuse with
+    <a class="xref" href="#ici">ICI</a>.</p>
+  </div>
+
+  <!-- ===================== LOCALIZATION ===================== -->
+  <p class="cat">Localization — the summit</p>
+
+  <div class="glossary-entry" id="tdoa">
+    <div class="glossary-term">Time difference of arrival <span class="sym">TDOA</span></div>
+    <p class="glossary-def">The difference in arrival time of the <em>same</em> sound at two hydrophones — the
+    basic measurement behind localization. Each TDOA, times the
+    <a class="xref" href="#ssp">sound speed</a>, fixes a difference in range to the source.</p>
+  </div>
+
+  <div class="glossary-entry" id="gcc-phat">
+    <div class="glossary-term">GCC-PHAT</div>
+    <p class="glossary-def">Generalized Cross-Correlation with Phase Transform — phase-whitens two signals so the
+    correlation peak is sharp and robust under noise and reverberation. The standard way to measure
+    <a class="xref" href="#tdoa">TDOA</a> (Knapp &amp; Carter, 1976).</p>
+  </div>
+
+  <div class="glossary-entry" id="hyperbolic">
+    <div class="glossary-term">Hyperbolic localization</div>
+    <p class="glossary-def">Locating a source by intersecting the hyperboloids defined by
+    <a class="xref" href="#tdoa">TDOAs</a> between hydrophone pairs. Two sensors give an (ambiguous) bearing;
+    <b>≥4 well-spread sensors</b> give a true 3-D fix.</p>
+  </div>
+
+  <div class="glossary-entry" id="ssp">
+    <div class="glossary-term">Sound-speed profile <span class="sym">SSP</span> <span class="unit">~1450–1570 m/s</span></div>
+    <p class="glossary-def">How sound speed varies with depth (via temperature, salinity, pressure — nominal
+    ~1500 m/s). It bends ray paths (rays curve toward slower water) and is the main source of localization
+    error. A sound-speed minimum near ~1000 m forms the long-range <b>SOFAR channel</b>.</p>
+  </div>
+
+  <div class="crosslinks">
+    <b>Using the course:</b> Terms here are defined once and reused everywhere.
+    See the <a href="../index.html">lesson map</a> · the
+    <a href="../RESOURCES.md">resource list</a> backs every claim with a primary source.
+  </div>
+
+  <p class="pagefoot">Hydrophone course · Glossary · adheres across all lessons ·
+  <a href="https://github.com/chrisfraser/hydrophone">github.com/chrisfraser/hydrophone</a></p>
+</main>
+</body>
+</html>

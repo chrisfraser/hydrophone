@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hydrophone · Build one, find sperm whales off Mauritius</title>
+<meta name="description" content="An interactive, project-based course on building hydrophones and using them to detect and localize the resident sperm whales of Mauritius. Theory first, then the hardware builds.">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .phase { margin:2.6rem 0; }
+  .phase-head { display:flex; align-items:baseline; gap:.7rem; flex-wrap:wrap; border-bottom:2px solid var(--rule); padding-bottom:.5rem; }
+  .phase-head .ph-n { font-family:var(--sans); font-weight:800; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:#fff; background:var(--ocean); padding:.2rem .55rem; border-radius:999px; }
+  .phase-head h2 { margin:0; border:0; }
+  .phase-head .ph-tag { font-family:var(--sans); font-size:.78rem; color:var(--ink-faint); margin-left:auto; }
+  .phase-intro { font-family:var(--sans); font-size:.9rem; color:var(--ink-soft); margin:.7rem 0 0; }
+  .lesson-card .code { font-family:var(--sans); font-weight:800; font-size:.78rem; color:var(--surface); min-width:2.3rem; letter-spacing:.02em; }
+  .procure { background:linear-gradient(165deg,#0a3d5c,var(--ocean)); color:#eaf6f8; border-radius:var(--radius); padding:1.4rem 1.5rem; margin:1rem 0; box-shadow:var(--shadow); display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap; }
+  .procure .big { font-size:2rem; }
+  .procure h3 { margin:0 0 .25rem; color:#fff; font-family:var(--serif); font-weight:600; font-size:1.3rem; }
+  .procure p { margin:0; color:#cfe6ec; font-family:var(--sans); font-size:.9rem; max-width:34rem; }
+  .procure a.cta { margin-left:auto; background:var(--sand); color:#2a1e02; font-family:var(--sans); font-weight:700; text-decoration:none; padding:.6rem 1.1rem; border-radius:8px; white-space:nowrap; }
+  .procure a.cta:hover { background:#e0b85a; }
+  @media (max-width:40rem){ .procure a.cta{ margin-left:0; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="#phase-1">Theory</a>
+      <a href="reference/shopping-list.html">Shop</a>
+      <a href="#phase-3">Build</a>
+      <a href="reference/glossary.html">Glossary</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap-wide">
+    <p class="kicker">A build-and-listen course · Mauritius</p>
+    <h1>Build a hydrophone.<br>Find the sperm whales.</h1>
+    <p>From the physics of a click to a multi-hydrophone array that pinpoints a whale by the microseconds between
+    arrivals. <strong>Theory first</strong> — learn the whole picture while your hardware ships — <strong>then
+    build</strong>. Every claim cited; every concept a toy you can play with.</p>
+  </div>
+</section>
+
+<main class="wrap-wide">
+
+  <div class="callout mission" style="margin-top:2rem">
+    <div class="callout-label">◎ The mission</div>
+    <p>Build your own hydrophone from accessible parts and use it to <strong>detect, then localize and track, the
+    resident sperm whales off western Mauritius</strong> — legally and ethically. Because hardware is slow to reach
+    the island, the course runs <strong>theory-first</strong>: understand everything, <a href="reference/shopping-list.html">order parts up front</a>,
+    then build once they arrive.
+    <a href="reference/glossary.html">Glossary</a> · <a href="reference/shopping-list.html">Shopping List</a> · <a href="https://github.com/chrisfraser/hydrophone/blob/main/RESOURCES.md">Resources</a></p>
+  </div>
+
+  <!-- ===================== PHASE 1 — THEORY ===================== -->
+  <div class="phase" id="phase-1">
+    <div class="phase-head">
+      <span class="ph-n">Phase 1</span>
+      <h2>Theory &amp; Foundations</h2>
+      <span class="ph-tag">no hardware needed · free software + public recordings</span>
+    </div>
+    <p class="phase-intro">The whole conceptual arc — from how a hydrophone works to the localization math —
+    before you pick up a soldering iron. Do these while your parts are in transit.</p>
+    <ul class="lesson-list">
+      <a class="lesson-card" href="lessons/0001-the-loudest-animal.html">
+        <span class="code">T1</span>
+        <span><span class="t">The Loudest Animal in the Sea</span>
+        <span class="d">Meet the Mauritius residents and the click — why a cheap hydrophone hears one kilometres away.</span></span>
+        <span class="status-pill ready">Ready</span>
+      </a>
+      <a class="lesson-card" href="lessons/0003-pressure-to-voltage.html"><span class="code">T2</span><span><span class="t">Pressure → Voltage</span><span class="d">How a piezo turns a passing sound wave into electricity — the heart of every hydrophone.</span></span><span class="status-pill ready">Ready</span></a>
+      <a class="lesson-card" href="lessons/0004-decibels-without-tears.html"><span class="code">T3</span><span><span class="t">Decibels Without Tears</span><span class="d">The 1 µPa underwater world, with a worked example and a tiny converter.</span></span><span class="status-pill ready">Ready</span></a>
+      <a class="lesson-card" href="lessons/0005-seeing-sound.html"><span class="code">T4</span><span><span class="t">Seeing Sound</span><span class="d">Waveforms vs spectrograms — read real clicks in free software, no hardware required.</span></span><span class="status-pill ready">Ready</span></a>
+      <a class="lesson-card" href="lessons/0006-clicks-codas-and-the-clan.html"><span class="code">T5</span><span><span class="t">Clicks, Codas &amp; the Mauritius Clan</span><span class="d">The quarry up close: click types, coda dialects, and who's out there.</span></span><span class="status-pill ready">Ready</span></a>
+      <a class="lesson-card" href="lessons/0007-sampling-fast-enough.html"><span class="code">T6</span><span><span class="t">Sampling Fast Enough</span><span class="d">Nyquist, aliasing, and why ≥96 kHz is non-negotiable for clicks.</span></span><span class="status-pill ready">Ready</span></a>
+      <a class="lesson-card" href="lessons/0008-will-i-even-hear-it.html"><span class="code">T7</span><span><span class="t">Will I Even Hear It?</span><span class="d">The passive sonar equation, properly — with a real detection-range calculator.</span></span><span class="status-pill ready">Ready</span></a>
+      <a class="lesson-card" href="lessons/0009-detecting-clicks.html"><span class="code">T8</span><span><span class="t">Detecting Clicks</span><span class="d">Energy thresholds, the Teager-Kaiser operator, and PAMGuard — on free sample recordings.</span></span><span class="status-pill ready">Ready</span></a>
+      <a class="lesson-card" href="lessons/0010-sizing-a-whale.html"><span class="code">T9</span><span><span class="t">Sizing a Whale from One Click</span><span class="d">The inter-pulse interval and T = 1.258·IPI + 5.736 — measure a whale from a single click.</span></span><span class="status-pill ready">Ready</span></a>
+      <a class="lesson-card" href="lessons/0011-time-difference-of-arrival.html"><span class="code">T10</span><span><span class="t">Time Difference of Arrival</span><span class="d">Cross-correlation (GCC-PHAT), and how two hydrophones give a bearing.</span></span><span class="status-pill ready">Ready</span></a>
+      <a class="lesson-card" href="lessons/0012-arrays-and-hyperbolic-localization.html"><span class="code">T11</span><span><span class="t">Arrays &amp; Hyperbolic Localization</span><span class="d">Geometry, intersecting hyperboloids, and a true 3-D position fix.</span></span><span class="status-pill ready">Ready</span></a>
+      <a class="lesson-card" href="lessons/0013-tracking-law-community.html"><span class="code">T12</span><span><span class="t">Tracking, the Law &amp; the Community</span><span class="d">Stitch fixes into tracks, the Mauritius rules, and plugging into MMCO &amp; PAMGuard.</span></span><span class="status-pill ready">Ready</span></a>
+    </ul>
+  </div>
+
+  <!-- ===================== PHASE 2 — PROCUREMENT ===================== -->
+  <div class="phase" id="phase-2">
+    <div class="phase-head">
+      <span class="ph-n">Phase 2</span>
+      <h2>Procurement</h2>
+      <span class="ph-tag">do this early — in parallel with theory</span>
+    </div>
+    <p class="phase-intro">Hardware is the slow part, especially shipped to Mauritius. Decide your budget and
+    order the long-lead items now, so they're waiting when you reach the builds.</p>
+    <div class="procure">
+      <span class="big">🛒</span>
+      <div>
+        <h3>The Shopping List</h3>
+        <p>Itemized parts per project, approximate prices, supplier links, lead-time flags, and a three-tier
+        up-front purchase plan mapped to the ~$200–600 budget.</p>
+      </div>
+      <a class="cta" href="reference/shopping-list.html">Open the Shopping List →</a>
+    </div>
+  </div>
+
+  <!-- ===================== PHASE 3 — BUILD ===================== -->
+  <div class="phase" id="phase-3">
+    <div class="phase-head">
+      <span class="ph-n">Phase 3</span>
+      <h2>Build the instrument</h2>
+      <span class="ph-tag">hardware · once theory's done and parts have arrived</span>
+    </div>
+    <p class="phase-intro">Now the soldering iron comes out. From a cheap learning ear to a calibrated,
+    research-grade hydrophone you made yourself.</p>
+    <ul class="lesson-list">
+      <a class="lesson-card" href="lessons/0002-your-first-underwater-ear.html">
+        <span class="code">B1</span>
+        <span><span class="t">Your First Underwater Ear</span>
+        <span class="d">Build a cheap piezo hydrophone and record underwater sound — your first hands-on win. <a href="reference/shopping-list.html#proj-a">(Project A parts)</a></span></span>
+        <span class="status-pill ready">Ready</span>
+      </a>
+      <a class="lesson-card" href="lessons/0014-adding-a-preamp.html"><span class="code">B2</span><span><span class="t">Adding a Preamp</span><span class="d">Build the Alex Rice JFET front-end — fixes the thin sound and enables long cable runs. <a href="reference/shopping-list.html#proj-b">(Project B)</a></span></span><span class="status-pill ready">Ready</span></a>
+      <a class="lesson-card" href="lessons/0015-the-serious-build.html"><span class="code">B3</span><span><span class="t">The Serious Build</span><span class="d">PZT cylinder + preamp + acoustically-transparent potting: your real instrument. <a href="reference/shopping-list.html#proj-c">(Project C)</a></span></span><span class="status-pill ready">Ready</span></a>
+      <a class="lesson-card" href="lessons/0016-calibration.html"><span class="code">B4</span><span><span class="t">Calibration</span><span class="d">Give your hydrophone a real sensitivity number, so volts become pascals.</span></span><span class="status-pill ready">Ready</span></a>
+    </ul>
+  </div>
+
+  <!-- ===================== PHASE 4 — ARRAY ===================== -->
+  <div class="phase" id="phase-4">
+    <div class="phase-head">
+      <span class="ph-n">Phase 4</span>
+      <h2>Build &amp; run the array</h2>
+      <span class="ph-tag">the summit · localization in the water</span>
+    </div>
+    <p class="phase-intro">Combine everything into a synchronized multi-hydrophone array and put a real position
+    on a clicking whale off Mauritius.</p>
+    <ul class="lesson-list">
+      <li class="lesson-card todo"><span class="code">B5</span><span><span class="t">Build &amp; Deploy the Array</span><span class="d">Multiple elements, time-sync, floats and moorings — the localization rig. <a href="reference/shopping-list.html#proj-d">(Project D)</a></span></span><span class="status-pill soon">Soon</span></li>
+      <li class="lesson-card todo"><span class="code">B6</span><span><span class="t">Localize a Whale</span><span class="d">Detections + timing → a 3-D fix in the field. The whole course, paying off.</span></span><span class="status-pill soon">Soon</span></li>
+    </ul>
+  </div>
+
+  <div class="callout note">
+    <div class="callout-label">⌁ How this works</div>
+    <p>I build the next lesson when you're ready for it, pitched to what you've just learned. We're working through
+    <strong>Phase 1 (theory)</strong> now; order hardware from <a href="reference/shopping-list.html">Phase 2</a>
+    whenever you like so it arrives in time. Done with a lesson, or want to jump ahead? Tell me in chat.</p>
+  </div>
+
+  <p class="pagefoot">
+    Hydrophone — a personal course built with <a href="https://claude.com/claude-code">Claude Code</a> ·
+    <a href="https://github.com/chrisfraser/hydrophone">github.com/chrisfraser/hydrophone</a><br>
+    Mission: detect &amp; localize the resident sperm whales of Mauritius — legally, ethically, from first principles.
+  </p>
+</main>
+</body>
+</html>

@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T8 · Detecting Clicks</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-specific: the click-detector playground */
+  .toy { background:linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; }
+  .row { display:flex; flex-wrap:wrap; gap:.7rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .row .btn { cursor:pointer; border:1.5px solid var(--ocean); background:var(--ocean); color:#fff; font-weight:700; padding:.5rem .9rem; border-radius:8px; font-size:.85rem; }
+  .row .btn:hover { background:var(--ocean-deep); border-color:var(--ocean-deep); }
+  .row .btn.ghost { background:#fff; color:var(--ocean-deep); }
+  .row .btn.on { background:var(--sand); border-color:var(--sand); color:#3a2c05; }
+  .row label { display:flex; flex-direction:column; gap:.25rem; flex:1 1 230px; font-weight:600; color:var(--ink-soft); }
+  .row input[type=range] { width:100%; accent-color:var(--ocean); }
+  .row output { font-variant-numeric:tabular-nums; color:var(--ocean-deep); font-weight:700; }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.95rem; padding:.7rem .85rem; border-radius:8px; margin-top:.9rem; background:#06202e; color:#d8f1f5; line-height:1.5; }
+  .toy .verdict b { color:#ffd479; }
+  .swatch { display:inline-block; width:.72rem; height:.72rem; border-radius:2px; vertical-align:middle; margin:0 .15rem 0 .35rem; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 1 · Theory · T8</p>
+  <h1 class="lesson-title">Detecting Clicks: Thresholds, TKEO &amp; PAMGuard</h1>
+  <p class="lesson-sub">You can already read a click off a spectrogram with your eye. Now teach a computer to do
+  it automatically — the step that turns an hour of recording into a list of time-stamped clicks.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~14 minutes</span><span class="sep">•</span>
+    <span>🛠 No hardware — practise in software</span><span class="sep">•</span>
+    <span class="tag math">A little signal math</span><span class="sep">•</span>
+    <span class="tag ocean">Mission: audio → detections</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson</div>
+    <p>A foraging sperm whale dives for ~45 minutes and clicks roughly once a second the whole
+    way down — <strong>thousands of clicks in a single dive</strong>.<span class="cite"><a href="#r-watwood">6</a></span>
+    Nobody marks those by hand. Automatic <strong>detection</strong> is the machine that reads a long recording and
+    spits out a clean list of <em>"a click happened here, and here, and here."</em> That list — clicks with
+    timestamps — is the raw material for everything ahead: the <a href="../reference/glossary.html#tdoa">arrival-time
+    differences</a> you'll <a href="../reference/glossary.html#hyperbolic">cross-correlate to localize the
+    animal</a>.<span class="cite"><a href="#r-skar">7</a></span> No detector, no position fix.</p>
+  </div>
+
+  <h2><span class="num">1</span>From eyeballing to automatic</h2>
+  <p>On a <a href="../reference/glossary.html#spectrogram">spectrogram</a> a sperm whale
+  <a href="../reference/glossary.html#regular-click">click</a> is unmistakable: a crisp vertical line, loud and
+  broadband, standing clear of the murk. Your eye nails it in a fraction of a second. The trouble is scale — a week
+  of recording is millions of those moments, and you cannot scroll through all of them. So we hand the job to an
+  algorithm, and the algorithm needs a <em>rule</em> for what counts as a click. The whole lesson is about making
+  that rule good.</p>
+
+  <h2><span class="num">2</span>The simplest detector — an energy threshold</h2>
+  <p>The obvious rule: a click is <strong>loud</strong>, so flag any moment where the signal energy jumps above
+  some level. Square the samples (energy ∝ amplitude²), draw a horizontal <strong>threshold</strong> line, and
+  every time the energy pokes above it, declare a detection.<span class="cite"><a href="#r-frontiers">1</a></span>
+  It is one line of arithmetic and it half-works.</p>
+  <p>Half. Because the ocean is not silent. Distant shipping, breaking waves, your own mooring creaking, a snapping
+  shrimp next door — these throw up energy <em>too</em>, and a dumb threshold can't tell a click from a thump. That
+  forces a miserable trade, the central fact of all detection:</p>
+
+  <div class="callout key">
+    <div class="callout-label">★ The detection trade-off</div>
+    <p><strong>Lower</strong> the threshold and you catch fainter, more distant clicks — but you also let in more
+    noise, so <strong>false alarms</strong> climb. <strong>Raise</strong> it to silence the noise and you start
+    <strong>missing</strong> the quiet real clicks. There is no setting that is purely "better"; every threshold
+    buys detections with false alarms, or buys silence with misses. Engineers draw this as an <em>ROC curve</em> —
+    the unavoidable compromise between probability of detection and false-positive
+    rate.<span class="cite"><a href="#r-frontiers">1</a></span></p>
+  </div>
+
+  <p>So the raw energy threshold isn't wrong — it's just <em>blunt</em>. The fix is not a cleverer threshold; it's
+  giving the threshold a cleaner signal to work on.</p>
+
+  <h2><span class="num">3</span>TKEO — sharpening the click first</h2>
+  <p>Here is the trick that makes thresholds behave. Before thresholding, run the signal through the
+  <strong>Teager–Kaiser Energy Operator</strong> (TKEO) — a tiny three-sample formula that estimates the
+  instantaneous "mechanical" energy of a waveform:<span class="cite"><a href="#r-tkeo">2</a></span></p>
+
+  <div class="formula">
+    ψ[<span class="var">x</span>(n)] <span class="op">=</span> <span class="var">x</span>(n)<sup>2</sup> <span class="op">−</span> <span class="var">x</span>(n−1)<span class="op">·</span><span class="var">x</span>(n+1)
+    <small>For a tone A·cos(ωn) it returns ≈ A²·sin²(ω) ≈ A²ω² — energy weighted by <em>frequency squared</em>.
+    A click is both loud (big A) and high-frequency/broadband (big ω), so ψ shoots up. Slow, low-frequency ocean
+    rumble has tiny ω, so ψ barely registers it.</small>
+  </div>
+
+  <p>That ω² weighting is the magic. Real ocean noise is dominated by <em>low</em> frequencies — shipping, swell,
+  flow noise — exactly the band TKEO suppresses, while it amplifies the high-frequency transients that clicks are
+  made of. The result is the same click sitting far higher above the background, so a single fixed threshold now
+  catches it cleanly. TKEO is cheap, runs in real time, and is noted as
+  "particularly useful for detecting transient events such as clicks" that "works well even in noisy
+  backgrounds."<span class="cite"><a href="#r-frontiers">1</a></span> Play with it below.</p>
+
+  <div class="toy">
+    <h3>🛰 Toy — Click-detector playground: raw energy vs TKEO</h3>
+    <p class="hint">A noisy 4-second clip hides <b>5 real clicks</b>. Move the threshold and the noise; tap the
+    button to switch the detector between raw energy and TKEO. Markers along the top score every threshold:
+    <span class="swatch" style="background:#3fbf63"></span>caught ·
+    <span class="swatch" style="background:#e8674c"></span>false alarm ·
+    <span class="swatch" style="background:transparent;border:1.5px solid #e8674c"></span>missed click.
+    With raw energy a clean threshold barely exists; with TKEO almost any threshold catches all five.</p>
+    <canvas id="detCanvas" width="720" height="300" aria-label="Click detector playground: detector output, threshold, and scored detections"></canvas>
+    <div class="row">
+      <button class="btn" id="modeBtn">Detector: ENERGY |x|² — tap for TKEO</button>
+      <button class="btn ghost" id="regenBtn">↻ New clip</button>
+    </div>
+    <div class="row">
+      <label>Threshold: <output id="thrOut">0.40</output> of click height
+        <input type="range" id="thrRange" min="5" max="95" step="1" value="40">
+      </label>
+      <label>Ocean noise: <output id="nzOut">moderate</output>
+        <input type="range" id="nzRange" min="0" max="100" step="1" value="45">
+      </label>
+    </div>
+    <div class="verdict" id="detVerdict">—</div>
+  </div>
+
+  <p>Notice the pattern: in <b>ENERGY</b> mode, crank the noise up and the safe window for the threshold collapses
+  — set it low and false alarms flood in, set it high and the faint clicks vanish. Switch to <b>TKEO</b> and the
+  low-frequency floor drops away; the five clicks stand alone, and a wide range of thresholds gets all of them with
+  zero false alarms. Same data, same threshold idea — just a sharper signal underneath it.</p>
+
+  <h2><span class="num">4</span>PAMGuard — the tool you'll actually use</h2>
+  <p>You don't have to code any of this. <strong>PAMGuard</strong> is the free, open-source
+  (GPL) software that is the field standard for passive acoustic monitoring — "world leading software for the
+  Detection, Classification, and Localisation of marine mammal sounds," used everywhere from research moorings to
+  Greenpeace surveys.<span class="cite"><a href="#r-pamguard">3</a></span> It runs the same logic you just played
+  with, only properly, and needs no programming.</p>
+
+  <p>Two of its modules matter to you now:</p>
+  <table>
+    <caption>The two PAMGuard modules that take you from audio to per-animal click lists.</caption>
+    <thead><tr><th>Module</th><th>What it does for you</th></tr></thead>
+    <tbody>
+      <tr><td><b>Click Detector</b></td><td>Finds transients (your threshold + a TKEO-style energy step), then
+        <em>classifies</em> them — a Basic classifier inherited from RainbowClick for high-frequency porpoise
+        clicks, or a Frequency-Sweep classifier that suits lower-frequency whales. Each click is tested against
+        each type in turn.<span class="cite"><a href="#r-pamclass">4</a></span></td></tr>
+      <tr><td><b>Click Train Detector</b></td><td>Groups the loose pile of detections into <strong>click
+        trains</strong> — sequences of regularly spaced clicks from <em>one</em> animal — using the
+        <a href="../reference/glossary.html#ici">inter-click interval</a>. This is what separates two whales
+        clicking at once, and what later feeds localization.<span class="cite"><a href="#r-pamtrain">5</a></span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout note">
+    <div class="callout-label">⤳ Practise with no hardware</div>
+    <p>You can do all of this today on a laptop: download PAMGuard, feed it a free sperm-whale recording, and watch
+    the Click Detector light up the same vertical lines you'd mark by eye — then let the Click Train Detector sort
+    them into one whale's train. That's your dress rehearsal for the real array, long before you've soldered
+    anything.</p>
+  </div>
+
+  <h2><span class="num">5</span>Check yourself</h2>
+  <p>Quick retrieval — no peeking. Pulling these out of your head is what makes them stick.</p>
+
+  <div class="quiz"
+       data-explain-right="That's the trade-off."
+       data-explain-wrong="Re-read the detection trade-off.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">You lower the energy threshold to catch fainter, more distant clicks. What also rises?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="A lower bar lets noise spikes through too — detections and false alarms always climb together. That's the whole reason TKEO matters.">More false alarms appear</button>
+      <button class="opt" data-feedback="Backwards — a lower threshold catches MORE faint clicks, not fewer. The cost is false alarms.">Fewer faint clicks survive</button>
+      <button class="opt" data-feedback="Backwards — lowering the bar lets MORE noise spikes through, which is exactly the problem.">Fewer noise spikes pass</button>
+      <button class="opt" data-feedback="Backwards — lowering the bar reveals MORE real clicks, not fewer. The price you pay is false alarms.">More clicks stay hidden</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="Energy weighted by frequency²."
+       data-explain-wrong="Look at the ψ[x] formula again.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">Why does the Teager–Kaiser operator make a click stand out from ocean noise?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="ψ ≈ A²ω², so it rewards signals that are both loud (big A) and high-frequency (big ω) — exactly what a click is.">It boosts fast loud click energy</button>
+      <button class="opt" data-feedback="TKEO doesn't blur or average anything — that's a separate smoothing step. It weights energy by frequency², so clicks tower over low rumble.">It blurs slow soft noise rumble</button>
+      <button class="opt" data-feedback="Nyquist is about sampling rate, not detection. TKEO is a three-sample energy formula applied after recording.">It marks each click onset time</button>
+      <button class="opt" data-feedback="TKEO doesn't pick a fixed number of peaks — it transforms the whole signal so a later threshold works better.">It picks ten loud noise peaks</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="Trains = per-animal."
+       data-explain-wrong="See the PAMGuard table.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">What does PAMGuard's Click Train Detector add on top of the Click Detector?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="It links regularly spaced clicks (by their ICI) into a train from one animal — separating two whales clicking at once.">It groups clicks into single trains</button>
+      <button class="opt" data-feedback="Recording to disk is a separate front-end job. The Click Train Detector works on already-detected clicks.">It writes the raw recording files</button>
+      <button class="opt" data-feedback="Peak-frequency measurement is part of click classification, not the train detector, which works on timing.">It measures the click peak frequency</button>
+      <button class="opt" data-feedback="The threshold lives in the Click Detector. The train detector groups detections; it doesn't set thresholds.">It sets the energy threshold level</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now say</h3>
+    <ol>
+      <li>Automatic <strong>detection</strong> turns a long recording into a time-stamped list of clicks — the raw material for localization.</li>
+      <li>A raw <strong>energy threshold</strong> works but is blunt: every setting trades <strong>false alarms</strong> against <strong>misses</strong> (the ROC trade-off).</li>
+      <li><strong>TKEO</strong> — <span class="inline-math">ψ[x(n)] = x(n)² − x(n−1)·x(n+1)</span> — weights energy by frequency², lifting clicks above low-frequency noise so a threshold works far better.</li>
+      <li><strong>PAMGuard</strong> (free, open-source, field standard) runs this for you: the <strong>Click Detector</strong> finds &amp; classifies, the <strong>Click Train Detector</strong> groups clicks per animal.</li>
+      <li>You can practise the whole pipeline today on free recordings — <strong>no hardware required</strong>.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · read this next</div>
+      <div class="title"><a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2025.1567001/full" target="_blank" rel="noopener">Frontiers in Marine Science (2025) — Survey of sperm-whale click-detection techniques</a></div>
+      <div class="desc">The best single map of this whole lesson: it walks the family of detectors — energy/amplitude
+      thresholds, the Teager–Kaiser operator, wavelets, template matching, and CNNs — and frames every one against
+      the same detection-vs-false-alarm (ROC) trade-off. Read it to see where the simple tools you just met sit on
+      the ladder, and where the field is heading. (PAMGuard itself is the hands-on tool — grab it from
+      <a href="https://www.pamguard.org/" target="_blank" rel="noopener">pamguard.org</a> once you've read this.)</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>I'm your teacher — ask me anything.</b> Want a free sperm-whale clip to test PAMGuard on, help reading a
+    Click Detector window, or the difference between a missed click and a false alarm in your own data? Just ask.
+    Confused beats stuck.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#spectrogram">spectrogram</a> ·
+    <a href="../reference/glossary.html#regular-click">regular click</a> ·
+    <a href="../reference/glossary.html#ici">ICI</a> ·
+    <a href="../reference/glossary.html#tdoa">TDOA</a> ·
+    <a href="../reference/glossary.html#gcc-phat">GCC-PHAT</a>.
+    <b>Builds toward →</b> T9 (sizing a whale from one click), and the localization phase where these detections
+    become arrival-time differences.
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-frontiers">Frontiers in Marine Science (2025) — <a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2025.1567001/full" target="_blank" rel="noopener">Survey of sperm-whale click-detection techniques</a>. Energy/TKEO/wavelet/template/CNN; the ROC detection-vs-false-alarm trade-off; TKEO useful for transients in noisy backgrounds.</li>
+    <li id="r-tkeo">Kandia &amp; Stylianou (2006) — <a href="https://www.researchgate.net/publication/222823042_Detection_of_sperm_whale_clicks_based_on_the_Teager-Kaiser_energy_operator" target="_blank" rel="noopener">Detection of sperm whale clicks based on the Teager–Kaiser energy operator</a>. The foundational TKEO transient enhancer for clicks; ψ[x(n)] = x(n)² − x(n−1)·x(n+1).</li>
+    <li id="r-pamguard">PAMGuard — <a href="https://www.pamguard.org/" target="_blank" rel="noopener">official site</a>. Free, open-source (GPL) detection/classification/localization software; "world leading," no coding required.</li>
+    <li id="r-pamclass">PAMGuard — <a href="https://www.pamguard.org/olhelp/detectors/clickDetectorHelp/docs/ClickDetector_clickClassification.html" target="_blank" rel="noopener">Click Detector classification help</a>. Basic (RainbowClick) vs Frequency-Sweep classifiers; each click tested against each type in turn.</li>
+    <li id="r-pamtrain">PAMGuard — <a href="https://github.com/PAMGuard/PAMGuard/blob/main/src/clickTrainDetector/click_train_help.md" target="_blank" rel="noopener">Click Train Detector help</a>. Groups individual clicks into per-animal trains.</li>
+    <li id="r-watwood">Watwood et al. (2006) — <a href="https://pubmed.ncbi.nlm.nih.gov/16689963/" target="_blank" rel="noopener">Deep-diving foraging behaviour of sperm whales</a>. Mean max depths 644–985 m; clicking starts early in descent — thousands of clicks per ~45 min dive.</li>
+    <li id="r-skar">Skarsoulis et al. (2022) — <a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.873888/full" target="_blank" rel="noopener">Real-time sperm-whale localization observatory</a>. Detected clicks → TDOA → 3-D fixes to ~7 km. The blueprint this course climbs toward.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0008-will-i-even-hear-it.html">
+      <div class="dir">← T7 · Will I Even Hear It?</div>
+      <div class="ttl">The detection range you can expect</div>
+    </a>
+    <a class="next" href="0010-sizing-a-whale.html">
+      <div class="dir">Next · T9 · Sizing a Whale from One Click →</div>
+      <div class="ttl">Turn an IPI into a body length</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson 9 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Toy — click-detector playground ============================ */
+(function(){
+  var canvas = document.getElementById('detCanvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if(!ctx) return;
+  var W = canvas.width, H = canvas.height;
+  var padL = 44, padR = 14, padT = 30, padB = 26;
+
+  var NS = 4096;                                  // raw-signal resolution
+  var centers = [0.10, 0.27, 0.45, 0.63, 0.84];   // true click positions (fraction)
+  var amps    = [1.00, 0.80, 1.10, 0.72, 0.95];   // varied loudness
+  var clickW  = 70;                               // click envelope decay (samples)
+  var swellsC = [0.36, 0.72];                     // low-frequency false-alarm traps
+  var x = new Float32Array(NS);                   // raw signal
+  var d = new Float32Array(NS);                   // normalized detector output
+  var tkeoOn = false;
+  var baseSeed = 1234567, seed = baseSeed;
+
+  var thrRange = document.getElementById('thrRange'), nzRange = document.getElementById('nzRange');
+  var thrOut = document.getElementById('thrOut'), nzOut = document.getElementById('nzOut');
+  var modeBtn = document.getElementById('modeBtn'), regenBtn = document.getElementById('regenBtn');
+  var verdict = document.getElementById('detVerdict');
+
+  function rng(){ seed = (seed*1103515245 + 12345) & 0x7fffffff; return seed/0x7fffffff; }
+  function gauss(){ return (rng()+rng()+rng()+rng()-2)/2; }   // ~normal, modest spread
+
+  function buildSignal(){
+    seed = baseSeed;
+    var nz = parseFloat(nzRange.value)/100;
+    var noiseAmp = 0.05 + nz*0.55;
+    // 1) low-frequency-dominated ocean noise (red noise via 1-pole low-pass)
+    var lp = 0, a = 0.90;
+    for(var n=0;n<NS;n++){
+      lp = a*lp + (1-a)*gauss();
+      x[n] = lp * noiseAmp * 3.0;
+    }
+    // 2) deliberate low-frequency swells — fool an energy threshold, not TKEO
+    for(var s=0;s<swellsC.length;s++){
+      var c0 = Math.round(swellsC[s]*NS), wsw = 160, f = 2*Math.PI/90;
+      var A = 0.25 + nz*0.55;
+      for(var m=c0-wsw;m<c0+wsw;m++){
+        if(m<0||m>=NS) continue;
+        var e = Math.exp(-Math.pow((m-c0)/(wsw*0.6),2));
+        x[m] += A * e * Math.sin((m-c0)*f);
+      }
+    }
+    // 3) the real clicks — high-frequency damped bursts
+    for(var k=0;k<centers.length;k++){
+      var cc = Math.round(centers[k]*NS), Ak = amps[k], fc = 2*Math.PI/5.5;
+      for(var i=cc;i<cc+clickW*2 && i<NS;i++){
+        var ev = Math.exp(-(i-cc)/clickW);
+        x[i] += Ak * ev * Math.sin((i-cc)*fc);
+      }
+    }
+  }
+
+  function smooth(arr, win){
+    var out = new Float32Array(arr.length), half = win>>1;
+    for(var n=0;n<arr.length;n++){
+      var sum=0, cnt=0;
+      for(var j=n-half;j<=n+half;j++){ if(j>=0 && j<arr.length){ sum+=arr[j]; cnt++; } }
+      out[n] = sum/cnt;
+    }
+    return out;
+  }
+
+  function computeDetection(){
+    var raw = new Float32Array(NS), n;
+    if(tkeoOn){
+      for(n=1;n<NS-1;n++){ var psi = x[n]*x[n] - x[n-1]*x[n+1]; raw[n] = psi>0?psi:0; }
+    } else {
+      for(n=0;n<NS;n++){ raw[n] = x[n]*x[n]; }
+    }
+    var sm = smooth(raw, tkeoOn?9:11);
+    // normalize by the strongest peak inside the true-click windows
+    var peak = 1e-9;
+    for(var k=0;k<centers.length;k++){
+      var cc = Math.round(centers[k]*NS);
+      for(n=cc;n<cc+clickW && n<NS;n++){ if(sm[n]>peak) peak=sm[n]; }
+    }
+    for(n=0;n<NS;n++){ d[n] = sm[n]/peak; }
+  }
+
+  function detect(thr){
+    var dets = [], n = 0;
+    while(n<NS){
+      if(d[n]>=thr){
+        var pk = n;
+        while(n<NS && d[n]>=thr){ if(d[n]>d[pk]) pk=n; n++; }
+        dets.push(pk);
+      } else n++;
+    }
+    return dets;
+  }
+
+  function match(dets){
+    var tol = Math.round(clickW*1.1);
+    var used = dets.map(function(){ return false; });
+    var hits = [], misses = [], i, k;
+    for(k=0;k<centers.length;k++){
+      var cc = Math.round(centers[k]*NS), best=-1, bd=1e9;
+      for(i=0;i<dets.length;i++){
+        if(used[i]) continue;
+        var dd = Math.abs(dets[i]-cc);
+        if(dd<bd && dd<=tol){ bd=dd; best=i; }
+      }
+      if(best>=0){ used[best]=true; hits.push(dets[best]); }
+      else misses.push(cc);
+    }
+    var fa = [];
+    for(i=0;i<dets.length;i++){ if(!used[i]) fa.push(dets[i]); }
+    return { hits:hits, misses:misses, fa:fa };
+  }
+
+  function xOf(n){ return padL + (n/(NS-1))*(W-padL-padR); }
+  function yOf(v){ var hi=(H-padB)-padT; var c=Math.max(0,Math.min(1.15,v)); return (H-padB) - c*hi; }
+  function peakIn(px,plotW){
+    var n0=Math.floor(px/plotW*(NS-1)), n1=Math.floor((px+1)/plotW*(NS-1)), m=0;
+    for(var n=n0;n<=n1 && n<NS;n++){ if(d[n]>m) m=d[n]; }
+    return m;
+  }
+
+  function draw(thr, res){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#06202e'; ctx.fillRect(0,0,W,H);
+    var y0 = H-padB, plotW = W-padL-padR;
+
+    // title
+    ctx.font = '12px Inter, system-ui, sans-serif';
+    ctx.fillStyle = '#8fb9c6'; ctx.textAlign = 'left';
+    ctx.fillText((tkeoOn?'TKEO  ψ[x]':'ENERGY  |x|²') + '   —   detector output vs time', padL, 18);
+
+    // faint true-click guide lines (mostly covered by the area; tops stay as hints)
+    for(var k=0;k<centers.length;k++){
+      var gx = xOf(centers[k]*NS);
+      ctx.strokeStyle = 'rgba(255,255,255,.10)';
+      ctx.setLineDash([3,4]); ctx.beginPath(); ctx.moveTo(gx,padT-2); ctx.lineTo(gx,y0); ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    // baseline
+    ctx.strokeStyle = 'rgba(143,185,198,.25)'; ctx.beginPath(); ctx.moveTo(padL,y0); ctx.lineTo(W-padR,y0); ctx.stroke();
+
+    // detector output as filled area (peak-hold per pixel)
+    var px;
+    ctx.beginPath(); ctx.moveTo(padL,y0);
+    for(px=0;px<=plotW;px++){ ctx.lineTo(padL+px, yOf(peakIn(px,plotW))); }
+    ctx.lineTo(W-padR,y0); ctx.closePath();
+    ctx.fillStyle = 'rgba(42,157,176,.30)'; ctx.fill();
+    ctx.beginPath();
+    for(px=0;px<=plotW;px++){ var X=padL+px, Y=yOf(peakIn(px,plotW)); if(px===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); }
+    ctx.strokeStyle = '#2a9db0'; ctx.lineWidth = 1.4; ctx.stroke();
+
+    // scored markers along the top
+    res.hits.forEach(function(n){
+      var X=xOf(n);
+      ctx.strokeStyle='#3fbf63'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X,padT-4); ctx.lineTo(X,y0); ctx.stroke();
+      ctx.fillStyle='#3fbf63'; ctx.beginPath(); ctx.arc(X,padT-4,4,0,Math.PI*2); ctx.fill();
+    });
+    res.fa.forEach(function(n){
+      var X=xOf(n);
+      ctx.strokeStyle='#e8674c'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X,padT-4); ctx.lineTo(X,y0); ctx.stroke();
+      ctx.fillStyle='#e8674c'; ctx.beginPath(); ctx.arc(X,padT-4,4,0,Math.PI*2); ctx.fill();
+    });
+    res.misses.forEach(function(n){
+      var X=xOf(n);
+      ctx.strokeStyle='#e8674c'; ctx.lineWidth=1.6; ctx.beginPath(); ctx.arc(X,padT-4,5,0,Math.PI*2); ctx.stroke();
+    });
+
+    // threshold line
+    var ty = yOf(thr);
+    ctx.strokeStyle='#ffd479'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
+    ctx.beginPath(); ctx.moveTo(padL,ty); ctx.lineTo(W-padR,ty); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#ffd479'; ctx.font='bold 11px Inter, system-ui'; ctx.textAlign='right';
+    ctx.fillText('threshold', W-padR-2, ty-4); ctx.textAlign='left';
+
+    // time axis
+    ctx.fillStyle='#5b8593'; ctx.font='10px Inter, system-ui';
+    for(var s=0;s<=4;s++){ var sx=padL+(s/4)*plotW; ctx.fillText(s+'s', sx-4, H-7); }
+  }
+
+  function noiseWord(nz){ return nz<25?'calm':nz<55?'moderate':nz<80?'rough':'storm + shipping'; }
+
+  function update(){
+    if(!thrRange||!nzRange) return;
+    var thr = parseFloat(thrRange.value)/100;
+    if(thrOut) thrOut.textContent = thr.toFixed(2);
+    var nz = parseFloat(nzRange.value);
+    if(nzOut) nzOut.textContent = noiseWord(nz);
+    computeDetection();
+    var res = match(detect(thr));
+    draw(thr, res);
+
+    var nh = res.hits.length, nm = res.misses.length, nf = res.fa.length, line;
+    if(nh===5 && nf===0)      line = tkeoOn ? 'Clean sweep — TKEO makes this easy across a wide range.' : 'A lucky threshold caught everything. Now raise the noise and watch it break.';
+    else if(nf>0 && nm>0)     line = 'Squeezed from both sides: too low for the noise, too high for the faint clicks.';
+    else if(nf>0)             line = 'All five caught — but noise slipped past the bar. Raise it, or switch on TKEO.';
+    else                      line = 'The bar is too high; the quietest clicks fell below it. Lower it, or use TKEO.';
+    if(verdict){
+      verdict.innerHTML = '✓ <b>'+nh+'/5</b> caught &nbsp;·&nbsp; ◌ <b>'+nm+'</b> missed &nbsp;·&nbsp; ⚠ <b>'+nf+'</b> false alarm'+(nf===1?'':'s')+
+        '<br><span style="color:#9fc6d2;font-weight:400">'+line+'</span>';
+    }
+  }
+
+  function setMode(){
+    if(modeBtn){
+      modeBtn.textContent = tkeoOn ? 'Detector: TKEO ψ[x] — tap for energy' : 'Detector: ENERGY |x|² — tap for TKEO';
+      modeBtn.classList.toggle('on', tkeoOn);
+    }
+  }
+
+  if(modeBtn) modeBtn.addEventListener('click', function(){ tkeoOn=!tkeoOn; setMode(); update(); });
+  if(regenBtn) regenBtn.addEventListener('click', function(){ baseSeed=(Date.now()&0x7fffffff)||12345; buildSignal(); update(); });
+  if(thrRange) thrRange.addEventListener('input', update);
+  if(nzRange) nzRange.addEventListener('input', function(){ buildSignal(); update(); });
+
+  setMode();
+  buildSignal();
+  update();
+})();
+</script>
+</body>
+</html>

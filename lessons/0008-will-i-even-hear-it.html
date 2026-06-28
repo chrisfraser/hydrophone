@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T7 · Will I Even Hear It?</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-T7-specific: the passive-sonar-equation calculator + RL-vs-range plot */
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; }
+  .calc .readout { background:#06202e; }
+  .calc .readout canvas { margin-bottom:.7rem; }
+  .termline { font-family:var(--mono); font-size:.92rem; color:#d8f1f5; line-height:1.55; }
+  .termline b { color:#ffd479; font-weight:600; }
+  .termline .n { color:#ffd479; font-variant-numeric:tabular-nums; }
+  .seline { margin-top:.5rem; font-family:var(--mono); }
+  .verdict { font-family:var(--sans); font-weight:700; font-size:1rem; padding:.5rem .7rem; border-radius:7px; margin-top:.55rem; }
+  .verdict.yes { background:#eef7ef; color:#245c30; border:1px solid #cfe6d3; }
+  .verdict.no  { background:#fdf0ec; color:#8d2f1a; border:1px solid #f0cfc4; }
+  .maxr { font-family:var(--sans); font-size:.82rem; color:#8fb9c6; margin-top:.6rem; }
+  .maxr b { color:#ffd479; }
+  .ctl-note { font-family:var(--sans); font-size:.74rem; color:var(--ink-faint); margin-top:.15rem; display:block; }
+  .termkey { display:grid; grid-template-columns:auto 1fr; gap:.25rem .8rem; font-family:var(--sans); font-size:.9rem; margin:.4rem 0 0; }
+  .termkey dt { font-family:var(--mono); font-weight:700; color:var(--ocean-deep); }
+  .termkey dd { margin:0; color:var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 1 · Theory · T7</p>
+  <h1 class="lesson-title">Will I Even Hear It? The Passive Sonar Equation</h1>
+  <p class="lesson-sub">One equation answers the question every deployment hinges on: at range R, does a clicking
+  whale rise above the sea's noise — or vanish into it? Let's assemble it, term by term.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~14 minutes</span><span class="sep">•</span>
+    <span>🧮 Balanced math — the central calculation</span><span class="sep">•</span>
+    <span class="tag math">Bring T3 decibels &amp; T1/T5 source level</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson</div>
+    <p>Back in <a href="0001-the-loudest-animal.html">T1</a> a toy calculator gave you a first, rough taste of
+    "how far can I hear a whale?" — a single loudness-minus-distance subtraction. That was training wheels. This
+    lesson does the calculation <strong>properly</strong>: the full <a href="../reference/glossary.html#sonar-equation">passive
+    sonar equation</a>, with the noise of the sea, your sensor's directivity, and a detection threshold all in
+    their right places. It is the <strong>feasibility check before any mooring goes in the water</strong>, and the
+    backbone of the array design we reach in <strong>T11</strong>.</p>
+  </div>
+
+  <h2><span class="num">1</span>The one equation — and why "passive" makes it simpler</h2>
+  <p>A sonar equation is just <strong>honest bookkeeping in decibels</strong>: start with how loud the source is,
+  subtract everything that works against you, add the few things that work for you, and see if anything is left
+  over. Because you only <em>listen</em> (you never <em>ping</em>), your version drops two complications that the
+  active, ping-and-listen equation has to carry.<span class="cite"><a href="#r-passive">2</a></span></p>
+
+  <div class="formula">
+SE <span class="op">=</span> ( <span class="var">SL</span> <span class="op">−</span> <span class="var">TL</span> ) <span class="op">−</span> ( <span class="var">NL</span> <span class="op">−</span> <span class="var">DI</span> ) <span class="op">−</span> <span class="var">DT</span>
+<small>Signal excess SE in dB. Detect the whale when <b>SE &gt; 0</b>. Every term is a level or a loss in decibels.</small>
+  </div>
+
+  <dl class="termkey">
+    <dt>SL</dt><dd><b>Source level</b> — how loud the click is, referred to 1 m from the whale (you already have this from T1/T5).</dd>
+    <dt>TL</dt><dd><b>Transmission loss</b> — how much the click weakens travelling range <i>R</i> to your hydrophone.</dd>
+    <dt>NL</dt><dd><b>Noise level</b> — the background hiss of the sea in the click's band, the floor a signal must beat.</dd>
+    <dt>DI</dt><dd><b>Directivity index</b> — how much a <i>directional</i> array suppresses noise off its look direction.</dd>
+    <dt>DT</dt><dd><b>Detection threshold</b> — the signal-to-noise margin your detector needs to call it a real click.</dd>
+  </dl>
+
+  <div class="callout note">
+    <div class="callout-label">⌗ Two things the active equation has that yours doesn't</div>
+    <p>An active sonar pings, the sound hits a target, and an echo comes back. So its equation carries a
+    <strong>target-strength term</strong> (how reflective the target is) and <strong>two-way transmission loss</strong>
+    (out <em>and</em> back, so <span class="inline-math">2·TL</span>). Passive listening has <em>neither</em>: the
+    whale is the source, not a reflector, and its sound makes the trip <strong>once</strong>. That is the whole
+    reason a thumb-sized hydrophone can hear a whale kilometres off — you spend your decibel budget on
+    <em>one</em> trip, not a round one.<span class="cite"><a href="#r-eq">1</a></span><span class="cite"><a href="#r-passive">2</a></span></p>
+  </div>
+
+  <h2><span class="num">2</span>SL and TL — the loud part, then the long swim</h2>
+  <p><strong>SL is the gift.</strong> A sperm whale's usual click leaves the source at roughly
+  <strong>230 dB re 1 µPa @ 1 m</strong> (on-axis levels up to ~236 dB have been measured) — the loudest sound made
+  by any animal.<span class="cite"><a href="#r-mohl">7</a></span> That enormous starting number is the budget you
+  get to spend on distance.</p>
+  <p><strong>TL is the bill.</strong> Sound spreads out from the whale like an expanding sphere; the same energy
+  smeared over a bigger and bigger surface means it gets quieter with range. Near the source the loss is
+  <em>spherical</em>:</p>
+
+  <div class="formula">
+<span class="var">TL</span> <span class="op">=</span> 20 <span class="op">·</span> log₁₀( r )   <span class="op">+</span>   α <span class="op">·</span> r<sub>km</sub>
+<small>r in metres. The 20·log₁₀ r term is <b>spherical spreading</b> — <b>≈ 6 dB lost per doubling of range</b>. The
+α·r term is <b>absorption</b>: seawater itself soaks up the high frequencies, ~1 dB per km near a click's ~15 kHz.</small>
+  </div>
+
+  <p>Far out — once the click is trapped between the sea surface and the seabed and can no longer spread downward —
+  spreading eases to <em>cylindrical</em>, <span class="inline-math">TL = 10·log₁₀ r</span>, only
+  <strong>≈ 3 dB per doubling</strong>.<span class="cite"><a href="#r-spread">3</a></span> For the few-kilometre
+  ranges we care about off Mauritius, spherical spreading plus a little absorption is the honest model, and it's
+  what the calculator below uses.<span class="cite"><a href="#r-absorb">9</a></span></p>
+
+  <h2><span class="num">3</span>NL, DI, DT — the floor you must clear</h2>
+  <p>Subtracting TL from SL gives the <a href="../reference/glossary.html#transmission-loss">received level</a>
+  (RL) at your hydrophone. But "received" isn't "heard" — the click has to out-shout the ocean.</p>
+  <p><strong>NL — the sea is never silent.</strong> Distant shipping rumbles at low frequencies; wind and breaking
+  waves hiss across the mid and high band; rain and snapping shrimp add their own texture. The standard summary is
+  the <a href="../reference/glossary.html#noise-level">Wenz curves</a>, which map noise level against frequency and
+  <strong>sea state</strong>.<span class="cite"><a href="#r-noise">5</a></span><span class="cite"><a href="#r-wenz">6</a></span>
+  A calm night might sit near 65 dB in the click band; a rough, ship-busy day pushes well past 85 dB. <em>Higher
+  sea state, smaller detection range</em> — the noise slider below is the single biggest day-to-day variable you
+  don't control.</p>
+  <p><strong>DI — what an array buys you.</strong> A single <em>omnidirectional</em> hydrophone listens equally in
+  all directions, so it can't tell the whale's sound from noise arriving elsewhere:
+  <strong>DI ≈ 0 dB</strong>. Point several hydrophones the same way (a steered array) and the noise from other
+  directions partially cancels, adding real gain — that's the prize T11 chases. For now, building one ear, leave
+  DI at zero.<span class="cite"><a href="#r-eq">1</a></span><span class="cite"><a href="#r-urick">11</a></span></p>
+  <p><strong>DT — how sure must you be?</strong> The detection threshold is the signal-to-noise margin your detector
+  demands before it's willing to say "click". A confident automatic detector typically wants the signal a handful
+  of decibels above the noise — say <strong>~10 dB</strong> for a clean single-click call.<span class="cite"><a href="#r-dt">4</a></span>
+  Lower DT catches fainter clicks but invents more false ones.</p>
+
+  <h2><span class="num">4</span>A worked example — a whale 10 km out</h2>
+  <p>Let's do it by hand, then let the calculator do it live. Pick a usual click (<span class="inline-math">SL = 230</span>),
+  put the whale 10 km away, a calm-ish sea (<span class="inline-math">NL = 70</span>), one omni hydrophone
+  (<span class="inline-math">DI = 0</span>), and a sensible detector (<span class="inline-math">DT = 10</span>).</p>
+
+  <div class="formula">
+<span class="op">TL</span> = 20·log₁₀(10 000) + 1·10 = 80 + 10 = <span class="var">90 dB</span>
+<span class="op">RL</span> = SL − TL = 230 − 90 = <span class="var">140 dB re 1 µPa</span>
+<span class="op">floor</span> = NL − DI + DT = 70 − 0 + 10 = <span class="var">80 dB</span>
+<span class="op">SE</span> = RL − floor = 140 − 80 = <span class="var">+60 dB</span>
+<small>SE = +60 dB is hugely positive — at 10 km, an on-axis usual click isn't just detectable, it's <b>thunderous</b>.
+Setting SE = 0 and solving for range gives an <b>ideal</b> maximum of roughly <b>55 km</b>. Hold that number lightly —
+the next callout explains why reality is far stingier.</small>
+  </div>
+
+  <p>Sixty decibels of headroom sounds too good to be true, and in a sense it is: this is the
+  <em>best-case ceiling</em>, the number you'd get if the whale aimed its click straight at you in calm, simple
+  water. It tells you the mission is <strong>comfortably feasible</strong> — but not that you'll hear every whale
+  at 55 km. Read the caveat, then play.</p>
+
+  <div class="callout key">
+    <div class="callout-label">★ The honest caveats (same spirit as T1)</div>
+    <p>The equation gives an <strong>upper bound</strong>, not a promise. Three things shrink it hard in the
+    field:</p>
+    <ul>
+      <li><strong>The click is a beam.</strong> A usual click is a tight forward-pointing searchlight; off to the
+      side it is <strong>20–30 dB quieter</strong>. A whale clicking <em>away</em> from you can lose more range than
+      any amount of noise.<span class="cite"><a href="#r-zimmer">8</a></span></li>
+      <li><strong>The water bends sound.</strong> Refraction and shadow zones mean the simple spreading curve is an
+      idealisation; real paths can skip right over your sensor.</li>
+      <li><strong>Detecting ≠ locating.</strong> One faint click is a detection; pinning a 3-D <em>position</em>
+      needs several clean clicks at several sensors. A real Mauritius-style observatory localises sperm whales out
+      to about <strong>7 km</strong> — that, not 55, is the number to design an array around.<span class="cite"><a href="#r-skar">10</a></span></li>
+    </ul>
+  </div>
+
+  <div class="calc">
+    <div class="calc-title">🧮 The passive sonar equation, live — RL vs range crossing your noise floor</div>
+    <div class="controls">
+      <div class="control">
+        <label>Click type — sets source level SL <output id="slOut">Usual · 230 dB</output></label>
+        <select id="slSel">
+          <option value="230" selected>Usual click — 230 dB</option>
+          <option value="205">Creak / buzz — 205 dB</option>
+          <option value="190">Slow click — 190 dB</option>
+          <option value="180">Coda — 180 dB</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>Range to the whale <output id="rOut">10.0 km</output></label>
+        <input type="range" id="rRange" min="0.2" max="40" step="0.1" value="10">
+      </div>
+      <div class="control">
+        <label>Noise level NL — sea state &amp; shipping <output id="nlOut">70 dB</output></label>
+        <input type="range" id="nlRange" min="50" max="95" step="1" value="70">
+        <small class="ctl-note">calm night ↔ rough seas &amp; busy shipping (Wenz curves, in-band)</small>
+      </div>
+      <div class="control">
+        <label>Directivity index DI <output id="diOut">0 dB</output></label>
+        <input type="range" id="diRange" min="0" max="20" step="1" value="0">
+        <small class="ctl-note">single omni hydrophone = 0 dB · an array adds gain (T11)</small>
+      </div>
+      <div class="control">
+        <label>Detection threshold DT — required SNR <output id="dtOut">10 dB</output></label>
+        <input type="range" id="dtRange" min="0" max="20" step="1" value="10">
+        <small class="ctl-note">lower catches fainter clicks but invents more false ones</small>
+      </div>
+    </div>
+    <div class="readout">
+      <canvas id="seCanvas" width="720" height="300" aria-label="Received level versus range, crossing the detection floor"></canvas>
+      <div class="termline">Transmission loss &nbsp;<b>TL</b> = <span class="n" id="tlVal">—</span> dB</div>
+      <div class="termline">Received level &nbsp;<b>RL = SL − TL</b> = <span class="n" id="rlVal">—</span> dB re 1 µPa</div>
+      <div class="termline">Detection floor &nbsp;<b>NL − DI + DT</b> = <span class="n" id="floorVal">—</span> dB</div>
+      <div class="seline">Signal excess <span class="big" id="seVal">—</span> <span class="unit">dB</span></div>
+      <div class="verdict yes" id="verdict">—</div>
+      <div class="maxr">Ideal max detection range ≈ <b id="maxR">—</b>
+        &nbsp;·&nbsp; on-axis click, spherical spreading + ~1 dB/km absorption</div>
+    </div>
+  </div>
+
+  <h2><span class="num">5</span>Check yourself</h2>
+  <p>No peeking — getting these out of your head is what makes them stick.</p>
+
+  <div class="quiz"
+       data-explain-right="Exactly — listening is a one-trip, no-reflector job."
+       data-explain-wrong="Re-read §1 on what 'passive' drops.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">Why is the passive sonar equation simpler than the active, ping-and-listen one?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Right. You listen to the whale (the source), so there's no target-strength term, and its sound travels to you once — one-way TL, not 2·TL.">No target-strength term, just one-way spreading</button>
+      <button class="opt" data-feedback="That describes the active equation — a ping reflects off a target (target strength) and travels out and back (two-way loss). Passive has neither.">Big target-strength term, plus two-way spreading</button>
+      <button class="opt" data-feedback="No target-strength term appears at all in passive listening — the whale is the source, not a reflector. And the loss is one-way.">Tiny target-strength term, with one-way spreading</button>
+      <button class="opt" data-feedback="Passive has zero target-strength terms and one-way loss. Two terms and round-trip loss belong to active sonar.">Two target-strength terms, and two-way spreading</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="Spherical spreading — the near-source rule."
+       data-explain-wrong="Look at the TL formula in §2 again.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">Close to the whale, each doubling of range adds how much transmission loss?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Spherical spreading: TL = 20·log₁₀ r, and 20·log₁₀(2) ≈ 6 dB. The 3 dB case is cylindrical — only once sound is ducted between surface and seabed.">About six decibels, the spherical case</button>
+      <button class="opt" data-feedback="That's cylindrical spreading (TL = 10·log₁₀ r), which only kicks in far out once the sound is trapped between surface and seabed. Near the source it's 6 dB.">About three decibels, the cylindrical case</button>
+      <button class="opt" data-feedback="Too steep. Spherical spreading costs about 6 dB per doubling of range, not 9.">About nine decibels, the spreading case</button>
+      <button class="opt" data-feedback="That's roughly absorption per kilometre, a separate term. Geometric spreading near the source costs ~6 dB per doubling.">About one decibel, the absorption case</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="One omni ear has no array gain to give."
+       data-explain-wrong="See the DI paragraph in §3.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">For a single omnidirectional hydrophone, the directivity index DI is about…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Zero. An omni listens equally everywhere, so it can't reject off-axis noise. Pointing several hydrophones together (an array, T11) is what earns positive DI.">Zero, giving it no array gain</button>
+      <button class="opt" data-feedback="Twenty decibels would be a large, well-steered array — not one omni element. A single omni gives DI ≈ 0.">Twenty, giving it big array gain</button>
+      <button class="opt" data-feedback="Even a few dB of gain requires multiple steered elements. One omnidirectional hydrophone gives DI ≈ 0.">Ten, giving it some array gain</button>
+      <button class="opt" data-feedback="Forty dB is far beyond a hobby array, let alone one element. A single omni hydrophone has DI ≈ 0.">Forty, giving it vast array gain</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now say</h3>
+    <ol>
+      <li>The <strong>passive sonar equation</strong> is <span class="inline-math">SE = (SL − TL) − (NL − DI) − DT</span>; you <strong>detect when SE &gt; 0</strong>.</li>
+      <li>Passive listening drops the <strong>target-strength term</strong> and uses <strong>one-way TL</strong> — that's why it's so forgiving.</li>
+      <li><strong>TL = 20·log₁₀ r</strong> (spherical, ~6 dB/doubling) plus ~1 dB/km absorption, easing to <strong>10·log₁₀ r</strong> when ducted.</li>
+      <li><strong>NL</strong> rises with sea state (Wenz); <strong>DI ≈ 0</strong> for one omni ear; <strong>DT</strong> is your required SNR.</li>
+      <li>The equation gives an <strong>upper bound</strong> — beam pattern, refraction and localization needs make real ranges far shorter (~7 km for fixes).</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · read this next</div>
+      <div class="title"><a href="https://dosits.org/science/advanced-topics/sonar-equation/sonar-equation-example-passive-sonar/" target="_blank" rel="noopener">DOSITS — “Sonar Equation Example: Passive Sonar”</a></div>
+      <div class="desc">A clean, worked passive example with the exact term placement we used here — signal excess from SL, TL, NL, DI and DT, no target strength, one-way loss. The companion <a href="https://dosits.org/science/advanced-topics/sonar-equation/" target="_blank" rel="noopener">SONAR Equation overview</a> defines every symbol. ~10-minute read.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>I'm your teacher — ask me anything.</b> Want to plug in your own sea state, work backward from a target
+    range to the noise floor you can tolerate, or see how much DI an array would have to add to reach a given whale?
+    Bring me your numbers in chat. Confused beats stuck.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#sonar-equation">passive sonar equation</a> ·
+    <a href="../reference/glossary.html#source-level">source level</a> ·
+    <a href="../reference/glossary.html#transmission-loss">transmission loss</a> ·
+    <a href="../reference/glossary.html#noise-level">ambient noise</a> ·
+    <a href="../reference/glossary.html#decibel">decibel</a>.
+    <b>Builds on →</b> <a href="0001-the-loudest-animal.html">T1</a> (the loudness budget) and T3 (decibels).
+    <b>Builds toward →</b> <b>T8</b> (detecting clicks) and <b>T11</b> (array design — where DI finally earns its keep).
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-eq">DOSITS — <a href="https://dosits.org/science/advanced-topics/sonar-equation/" target="_blank" rel="noopener">SONAR Equation</a>. Defines SL, TL, NL, DI, DT and signal excess; active vs passive forms.</li>
+    <li id="r-passive">DOSITS — <a href="https://dosits.org/science/advanced-topics/sonar-equation/sonar-equation-example-passive-sonar/" target="_blank" rel="noopener">Sonar Equation Example: Passive Sonar</a>. SE = SL − TL − (NL − DI) − DT; no target strength, one-way TL. <b>Primary source.</b></li>
+    <li id="r-spread">DOSITS — <a href="https://dosits.org/science/advanced-topics/cylindrical-vs-spherical-spreading/" target="_blank" rel="noopener">Cylindrical vs Spherical Spreading</a>. TL = 20·log₁₀ r (−6 dB/doubling) vs 10·log₁₀ r (−3 dB).</li>
+    <li id="r-dt">DOSITS — <a href="https://dosits.org/science/advanced-topics/detection-threshold-for-sonar/" target="_blank" rel="noopener">Detection Threshold for Sonar</a>. DT as the required SNR for a chosen probability of detection.</li>
+    <li id="r-noise">Dahl, Miller, Cato &amp; Andrew — <a href="https://acousticstoday.org/wp-content/uploads/2017/07/Article_3of4_from_ATCODK_3_1.pdf" target="_blank" rel="noopener">Underwater Ambient Noise</a> (Acoustics Today). Readable Wenz-framework review; noise rises with sea state/wind.</li>
+    <li id="r-wenz">Hildebrand et al. — <a href="https://pubs.aip.org/asa/jasa/article/157/5/R9/3346666/The-Wenz-curves-for-underwater-ambient-sound" target="_blank" rel="noopener">The Wenz curves for underwater ambient sound</a> (JASA 2025). Canonical ambient spectra, 1 Hz–100 kHz.</li>
+    <li id="r-mohl">Møhl, Wahlberg, Madsen et al. (2003) — <a href="https://www.marinebioacoustics.com/files/2003/Mohl_et_al_2003a.pdf" target="_blank" rel="noopener">The monopulsed nature of sperm whale clicks</a>. On-axis source levels up to ~236 dB re 1 µPa @ 1 m.</li>
+    <li id="r-zimmer">Zimmer et al. (2005) — <a href="https://marinebioacoustics.wordpress.com/wp-content/uploads/2018/04/zimmer_et_al_2005c.pdf" target="_blank" rel="noopener">Three-dimensional beam pattern of sperm whale clicks</a>. The usual click is a tight forward beam; off-axis levels drop steeply.</li>
+    <li id="r-absorb">NPL — <a href="http://resource.npl.co.uk/acoustics/techguides/seaabsorption/physics.html" target="_blank" rel="noopener">Calculation of absorption of sound in seawater</a> (Francois &amp; Garrison). Absorption ≈ 1 dB/km near ~15 kHz, the click band.</li>
+    <li id="r-skar">Skarsoulis et al. (2022) — <a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.873888/full" target="_blank" rel="noopener">Real-time sperm-whale localization observatory</a>. 3 moored hydrophones, 3-D TDOA fixes to ~7 km.</li>
+    <li id="r-urick">Urick — <a href="https://archive.org/details/principlesofunde00uric" target="_blank" rel="noopener">Principles of Underwater Sound</a>. The standard textbook treatment of the sonar equation, TL, noise and arrays.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0007-sampling-fast-enough.html">
+      <div class="dir">← Previous · T6</div>
+      <div class="ttl">Sampling Fast Enough</div>
+    </a>
+    <a class="next" href="0009-detecting-clicks.html">
+      <div class="dir">Next · T8</div>
+      <div class="ttl">Detecting Clicks →</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson T7 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Passive sonar equation calculator + RL-vs-range plot ============================ */
+(function(){
+  var slSel  = document.getElementById('slSel');
+  var rRange = document.getElementById('rRange');
+  var nlRange= document.getElementById('nlRange');
+  var diRange= document.getElementById('diRange');
+  var dtRange= document.getElementById('dtRange');
+  if(!slSel || !rRange || !nlRange || !diRange || !dtRange) return;
+
+  var slOut=document.getElementById('slOut'), rOut=document.getElementById('rOut'), nlOut=document.getElementById('nlOut');
+  var diOut=document.getElementById('diOut'), dtOut=document.getElementById('dtOut');
+  var tlVal=document.getElementById('tlVal'), rlVal=document.getElementById('rlVal'), floorVal=document.getElementById('floorVal');
+  var seVal=document.getElementById('seVal'), verdict=document.getElementById('verdict'), maxR=document.getElementById('maxR');
+  var canvas=document.getElementById('seCanvas'), ctx=canvas?canvas.getContext('2d'):null;
+
+  var ALPHA=1.0;                                   // dB/km absorption near ~15 kHz (approx, clearly labelled)
+  var typeName={230:'Usual',205:'Creak',190:'Slow click',180:'Coda'};
+  var rMin=0.1, rMax=100;                           // km, log axis
+  var yLo=20, yHi=200;                              // dB level axis
+  var W=canvas?canvas.width:720, H=canvas?canvas.height:300, padL=46, padR=16, padT=20, padB=34;
+
+  function tl(km){ var r=Math.max(km*1000,1); return 20*Math.log10(r) + ALPHA*km; }
+  function rl(sl,km){ return sl - tl(km); }
+  function maxRange(sl,floor){                       // smallest km where rl < floor
+    for(var km=rMin; km<=2000; km*=1.01){ if(rl(sl,km) < floor) return km; }
+    return 2000;
+  }
+
+  function xOf(km){ var k=Math.max(km,rMin); return padL + (Math.log10(k)-Math.log10(rMin))/(Math.log10(rMax)-Math.log10(rMin))*(W-padL-padR); }
+  function yOf(db){ var d=Math.max(yLo,Math.min(yHi,db)); return padT + (yHi-d)/(yHi-yLo)*(H-padT-padB); }
+
+  function draw(sl, kmNow, floor){
+    if(!ctx) return;
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#06202e'; ctx.fillRect(0,0,W,H);
+
+    // "lost in noise" band: below the detection floor
+    var yf=yOf(floor);
+    ctx.fillStyle='rgba(193,73,43,.14)'; ctx.fillRect(padL, yf, W-padL-padR, (H-padB)-yf);
+
+    // grid: range decades
+    ctx.font='10px Inter, system-ui'; ctx.textAlign='center';
+    [0.1,1,10,100].forEach(function(km){
+      var x=xOf(km); ctx.strokeStyle='rgba(143,185,198,.16)'; ctx.beginPath(); ctx.moveTo(x,padT); ctx.lineTo(x,H-padB); ctx.stroke();
+      ctx.fillStyle='#5b8593'; ctx.fillText(km<1?km+'':(km+' km'), x, H-padB+14);
+    });
+    // dB ticks
+    ctx.textAlign='right';
+    [40,80,120,160,200].forEach(function(db){
+      var y=yOf(db); ctx.strokeStyle='rgba(143,185,198,.10)'; ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+      ctx.fillStyle='#5b8593'; ctx.fillText(db+'', padL-5, y+3);
+    });
+
+    // detection floor line (NL − DI + DT)
+    ctx.strokeStyle='#ffd479'; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
+    ctx.beginPath(); ctx.moveTo(padL,yf); ctx.lineTo(W-padR,yf); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#ffd479'; ctx.textAlign='left'; ctx.font='bold 11px Inter, system-ui';
+    ctx.fillText('detection floor  NL − DI + DT = '+Math.round(floor)+' dB', padL+6, Math.max(yf-6, padT+12));
+
+    // RL-vs-range curve
+    ctx.strokeStyle='#2a9db0'; ctx.lineWidth=2.4; ctx.beginPath(); var first=true;
+    for(var px=padL; px<=W-padR; px++){
+      var frac=(px-padL)/(W-padL-padR);
+      var km=Math.pow(10, Math.log10(rMin)+frac*(Math.log10(rMax)-Math.log10(rMin)));
+      var y=yOf(rl(sl,km));
+      if(first){ctx.moveTo(px,y);first=false;} else ctx.lineTo(px,y);
+    }
+    ctx.stroke();
+
+    // current-range marker
+    var xN=xOf(kmNow), rlN=rl(sl,kmNow), yN=yOf(rlN), hit=(rlN>floor);
+    ctx.strokeStyle='rgba(255,255,255,.55)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(xN,padT); ctx.lineTo(xN,H-padB); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(xN,yN,5,0,Math.PI*2); ctx.fillStyle=hit?'#3fbf63':'#e0664a'; ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+
+    // axis titles
+    ctx.fillStyle='#8fb9c6'; ctx.font='11px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText('range  (log scale)  →', (padL+W-padR)/2, H-2);
+    ctx.save(); ctx.translate(13,(padT+H-padB)/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('received level  RL (dB re 1 µPa)  →', 0, 0); ctx.restore();
+  }
+
+  function update(){
+    var sl=parseFloat(slSel.value), km=parseFloat(rRange.value);
+    var nl=parseFloat(nlRange.value), di=parseFloat(diRange.value), dt=parseFloat(dtRange.value);
+
+    slOut.textContent = typeName[sl]+' · '+sl+' dB';
+    rOut.textContent  = km.toFixed(1)+' km';
+    nlOut.textContent = nl+' dB';
+    diOut.textContent = di+' dB';
+    dtOut.textContent = dt+' dB';
+
+    var TL=tl(km), RL=sl-TL, floor=nl-di+dt, SE=RL-floor;
+    tlVal.textContent    = TL.toFixed(0);
+    rlVal.textContent    = RL.toFixed(0);
+    floorVal.textContent = floor.toFixed(0);
+    seVal.textContent    = (SE>=0?'+':'')+SE.toFixed(0);
+
+    if(SE>0){ verdict.className='verdict yes'; verdict.textContent='✓ Detected — the click stands '+SE.toFixed(0)+' dB above the floor'; }
+    else    { verdict.className='verdict no';  verdict.textContent='✗ Lost in the noise — '+SE.toFixed(0)+' dB short of the floor'; }
+
+    var mr=maxRange(sl,floor);
+    maxR.textContent = (mr>=1999? '>2000 km' : mr.toFixed(1)+' km');
+
+    draw(sl, km, floor);
+  }
+
+  slSel.addEventListener('change', update);
+  [rRange,nlRange,diRange,dtRange].forEach(function(el){ el.addEventListener('input', update); });
+  update();
+})();
+</script>
+</body>
+</html>

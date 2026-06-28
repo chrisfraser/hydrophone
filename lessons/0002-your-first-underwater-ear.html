@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build B1 · Your First Underwater Ear</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-2-specific: the two canvas toys */
+  .toy { background:linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; }
+  .row { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .row select { font-family:var(--sans); font-size:.9rem; padding:.4rem .55rem; border:1.5px solid var(--rule); border-radius:7px; background:#fff; color:var(--ink); }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.95rem; padding:.6rem .8rem; border-radius:8px; margin-top:.8rem; background:#06202e; color:#d8f1f5; }
+  .toy .verdict b { color:#ffd479; }
+  .wp-detail { font-family:var(--sans); font-size:.86rem; margin-top:.8rem; padding:.85rem 1rem; border-radius:8px; background:var(--paper-2); border:1px solid var(--rule); line-height:1.5; }
+  .wp-detail .badge { font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; padding:.12rem .5rem; border-radius:999px; }
+  .badge.go { background:#eef7ef; color:var(--kelp); border:1px solid #cfe6d3; }
+  .badge.later { background:#fff7e6; color:#8a6d1e; border:1px solid #ecdcae; }
+  .spec-grid { display:grid; grid-template-columns:auto 1fr; gap:.2rem 1rem; margin:.5rem 0; font-size:.84rem; }
+  .spec-grid dt { color:var(--ink-faint); font-weight:600; }
+  .spec-grid dd { margin:0; color:var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 3 · Build the instrument · B1</p>
+  <h1 class="lesson-title">Your First Underwater Ear</h1>
+  <p class="lesson-sub">Solder a $5 piezo disc, waterproof it, drop it in the water — and actually hear the sea.
+  A real instrument you made, in an afternoon.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~1 afternoon</span><span class="sep">•</span>
+    <span>💲 ~$20–40</span><span class="sep">•</span>
+    <span>🔌 soldering iron required</span><span class="sep">•</span>
+    <span class="tag build">Hands-on build</span>
+  </div>
+
+  <div class="callout note">
+    <div class="callout-label">⤴ Before you start — this is a Phase 3 build</div>
+    <p>In the course path this comes <em>after</em> the <a href="../index.html#phase-1">Phase 1 theory</a> and
+    after you've ordered parts. You can read along any time, but to actually build you'll need
+    <a href="../reference/shopping-list.html#proj-a">Project A parts</a> on the bench — order them early, since
+    shipping is the slow part. Skimming this first to know what to buy is a perfectly good reason to be here.</p>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Today's win — and its honest limits</div>
+    <p>In one sitting you'll build a working hydrophone and hear boat props, rain, maybe the frying-bacon crackle
+    of snapping shrimp. But be clear: this cheap disc is a <strong>learning tool, not a science instrument</strong>.
+    It's <a href="../reference/glossary.html#sensitivity">resonant, uncalibrated and bass-rolled</a> — perfect for
+    practising the real skills (soldering fragile ceramic, sealing a leak-free cable entry, killing hum, the
+    impedance trick), useless for measuring a whale. Master it now and the
+    <a href="../index.html#track-b">serious $200 build</a> later will feel familiar.<span class="cite"><a href="#r-poff-choose">4</a></span></p>
+  </div>
+
+  <h2><span class="num">1</span>What you'll gather</h2>
+  <p>Everything here is cheap and substitutable. Buy a <em>multipack</em> of piezo discs — you will cook one or
+  two with the soldering iron while learning, and that should never end the session.<span class="cite"><a href="#r-ccrma">1</a></span>
+  Tap each item once you have it; the tally tracks what's left to buy.</p>
+
+  <div class="checklist-widget">
+    <ul class="checklist">
+      <li data-check data-cost="5"><span class="ck-name">Piezo disc multipack</span> <span class="ck-spec">— 27 mm brass-backed buzzer discs (×10). Ceramic centre = signal, brass rim = ground.</span> <span class="ck-cost">~$5</span></li>
+      <li data-check data-cost="8"><span class="ck-name">Shielded mono cable</span> <span class="ck-spec">— thin coax or mic cable (core + braid). Or cut an old mic lead in half — nearly free.</span> <span class="ck-cost">~$8</span></li>
+      <li data-check data-cost="2"><span class="ck-name">Connector to match your recorder</span> <span class="ck-spec">— 3.5 mm TS for mic-in, or <b>¼″ TS</b> for a Hi-Z instrument input (best bass).</span> <span class="ck-cost">~$2</span></li>
+      <li data-check data-cost="6"><span class="ck-name">Solder + flux</span> <span class="ck-spec">— thin rosin-core; low-wattage iron. Lead-free is kinder for a learning build. Usually already owned.</span> <span class="ck-cost">~$6</span></li>
+      <li data-check data-cost="10"><span class="ck-name">Waterproofing</span> <span class="ck-spec">— a can of Plasti Dip <em>or</em> a stick of two-part plumber's/marine epoxy putty.</span> <span class="ck-cost">~$10</span></li>
+      <li data-check data-cost="6"><span class="ck-name">Copper foil tape <span class="muted">(optional)</span></span> <span class="ck-spec">— shields the disc against mains hum. Cheap insurance.</span> <span class="ck-cost">~$6</span></li>
+      <li data-check data-cost="2"><span class="ck-name">Heat-shrink <span class="muted">(optional)</span></span> <span class="ck-spec">— adhesive-lined, for strain-relieving the cable entry.</span> <span class="ck-cost">~$2</span></li>
+    </ul>
+    <div class="checklist-bar">
+      <span data-checklist-progress></span>
+      <span data-checklist-cost></span>
+    </div>
+  </div>
+
+  <div class="callout note">
+    <div class="callout-label">⤳ The lazy shortcut (totally fine)</div>
+    <p>Want to <em>hear</em> good underwater audio today without soldering? The
+    <a href="https://www.aquarianaudio.com/h2a-hydrophone.html" target="_blank" rel="noopener">Aquarian H2a</a> (~$170)
+    or <a href="https://www.aquarianaudio.com/h2d-hydrophone.html" target="_blank" rel="noopener">H2d</a> (~$229) has a
+    built-in buffer and plugs straight into a recorder.<span class="cite"><a href="#r-aq">16</a></span> Buying one is
+    a legitimate way to learn what "good" sounds like while you practise building. But build at least one yourself —
+    the skills are the point.</p>
+  </div>
+
+  <h2><span class="num">2</span>Why a bare piezo sounds <em>thin</em> — and the one-move fix</h2>
+  <p>This is the single most important idea in the lesson, and the thing that confuses everyone. A piezo isn't a
+  simple voltage source — electrically it behaves like a tiny voltage source <em>in series with about 15 nF of
+  capacitance</em>.<span class="cite"><a href="#r-mudhar">3</a></span> That capacitor and your recorder's input
+  resistance form a <strong>high-pass filter</strong>: plug into a low-impedance input and the bass is simply
+  thrown away before it's recorded. Feed the same disc a <em>high</em>-impedance input and the lows survive.</p>
+  <p>Play with it. Pick where you plug in and watch the corner frequency move — everything to the <em>left</em> of
+  the line is being cut.</p>
+
+  <div class="toy">
+    <h3>🎚 Toy 1 — Why it sounds thin: the impedance high-pass</h3>
+    <p class="hint">A 27 mm disc ≈ 15 nF. The recorder's input resistance sets the corner frequency
+    <span class="inline-math">f<sub>c</sub> = 1 / (2π·R·C)</span>. Below f<sub>c</sub>, bass falls away. Watch what a
+    phone input does to your sound versus a Hi-Z instrument input.</p>
+    <canvas id="hpCanvas" width="720" height="320" aria-label="High-pass frequency response vs input impedance"></canvas>
+    <div class="row">
+      <label for="zSel">Plug the hydrophone into:</label>
+      <select id="zSel">
+        <option value="5000">Phone / camera mic input (~5 kΩ)</option>
+        <option value="50000">Consumer line input (~50 kΩ)</option>
+        <option value="1000000" selected>Hi-Z instrument / DI input (~1 MΩ)</option>
+        <option value="10000000">Buffer / preamp (~10 MΩ)</option>
+      </select>
+    </div>
+    <div class="verdict" id="hpVerdict">—</div>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-label">★ The cheat that needs no preamp</div>
+    <p>For your <em>first</em> recording you don't have to build anything: terminate in a <strong>¼″ plug and use a
+    Hi-Z "instrument" input</strong> (on a USB interface, a Zoom recorder, or a guitar amp). It's already
+    ~0.5–1 MΩ, so it "borrows" the impedance match and you get full, bass-present
+    sound.<span class="cite"><a href="#r-mudhar">3</a></span> The element <strong>never needs power</strong> — only
+    a <a href="../reference/glossary.html#preamp">preamp</a> does. We build the proper
+    <a href="../index.html#track-a">Alex Rice JFET preamp</a> in Lesson 6; today, just borrow a Hi-Z input.</p>
+  </div>
+
+  <h2><span class="num">3</span>Build it (solder first, seal second)</h2>
+  <p>The golden rule: <strong>get it working in air before you waterproof anything.</strong> Once it's sealed,
+  every fault is buried in rubber.</p>
+
+  <ol class="steps">
+    <li><div class="step-title">Strip &amp; prep the cable</div>
+      <div class="step-detail">Expose the inner core (signal) and twist the braid/foil shield into one lead (ground). Slip a piece of heat-shrink onto the cable now, ready for later.</div>
+      <div class="step-tip"><b>Tip:</b> keep the unshielded stub between cable and disc as short as possible — that bare run is where hum sneaks in.<span class="cite"><a href="#r-murkin">9</a></span></div></li>
+    <li><div class="step-title">Identify the terminals</div>
+      <div class="step-detail">On the disc, the <b>ceramic centre = signal</b>, the <b>brass rim = ground</b>. Tin both wires first so the iron touches the ceramic only briefly.</div>
+      <div class="step-tip"><b>Tip:</b> confirm before you solder — swapping these gives a non-working or hum-prone result.<span class="cite"><a href="#r-luke">2</a></span></div></li>
+    <li><div class="step-title">Solder the element — <em>fast</em></div>
+      <div class="step-detail">Core → ceramic centre; shield → brass rim. Use a low-wattage iron and be quick: too much heat <strong>depoles the ceramic and kills sensitivity</strong> (it burns off the ceramic's binder).</div>
+      <div class="step-tip"><b>Tip:</b> a dead disc after soldering was probably cooked — grab a fresh one and work faster. This is why you bought a multipack.<span class="cite"><a href="#r-ccrma">1</a></span></div></li>
+    <li><div class="step-title">Strain-relieve the joint</div>
+      <div class="step-detail">Anchor the wires to the rim with a dab of superglue or epoxy so the fragile solder joint never takes cable strain.</div>
+      <div class="step-tip"><b>Tip:</b> the joint should be electrically connected but mechanically <em>relieved</em> — the glue takes the pull, not the solder.<span class="cite"><a href="#r-murkin">9</a></span></div></li>
+    <li><div class="step-title">Shield against hum (optional, worth it)</div>
+      <div class="step-detail">Back the disc with copper foil tape and connect that foil to the cable shield/ground. This Faraday-cages the element against 50/60 Hz mains buzz.</div>
+      <div class="step-tip"><b>Tip:</b> an unshielded high-impedance disc is literally an antenna for mains hum.<span class="cite"><a href="#r-lom">11</a></span></div></li>
+    <li><div class="step-title">Terminate the connector</div>
+      <div class="step-detail">Other cable end → your plug: tip = signal (core), sleeve = shield/ground. (For a TRS plug used as mono, tie ring to sleeve.)</div>
+      <div class="step-tip"><b>Tip:</b> choose ¼″ TS to reach a Hi-Z input — that's your best no-preamp bass (Toy 1).</div></li>
+    <li><div class="step-title">BENCH-TEST in air — before sealing</div>
+      <div class="step-detail">Plug in, closed-back headphones, moderate gain. <b>Tap</b> the disc (loud thumps), <b>rub</b> it (scratchy roar), watch the meters jump. Listen for hum now, while it's still fixable.</div>
+      <div class="step-tip"><b>Tip:</b> thin-but-present on a tap is <em>not</em> a fault — that's the impedance high-pass. <em>Nothing</em> on a hard tap <em>is</em> a fault — fix the joint.</div></li>
+    <li><div class="step-title">Waterproof the head</div>
+      <div class="step-detail">Seal the cable entry with hot glue first, then apply your chosen waterproofing (Section 4) in <strong>thin</strong> coats. Overbuild the cable-entry seam; go thin everywhere else.</div>
+      <div class="step-tip"><b>Tip:</b> more coating = more waterproof but <em>less</em> sensitive. Resist piling it on — thin and pinhole-free wins.<span class="cite"><a href="#r-krien">7</a></span></div></li>
+    <li><div class="step-title">Re-test, then leak-test in a bucket</div>
+      <div class="step-detail">Re-run the tap test (it'll sound more muffled — expected). Then submerge for 10–20 min, watching for dropout or crackle. Add washers (isolated from the element) so it sinks and hangs straight.</div>
+      <div class="step-tip"><b>Tip:</b> hum only underwater → bad ground/shield joint. Level swells then dies → water reached the ceramic; dry a day, recoat the seam.</div></li>
+  </ol>
+
+  <h2><span class="num">4</span>Choose your waterproofing — the trade-off</h2>
+  <p>Every method trades <strong>acoustic transparency</strong> (does it pass sound cleanly, or deaden it?)
+  against <strong>how forgiving it is for a beginner</strong>. The gold-standard urethane potting is the most
+  transparent <em>and</em> the least forgiving — so it waits for the serious build. For a first ear, start in the
+  green zone. Tap a dot to see the method.</p>
+
+  <div class="toy">
+    <h3>🗺 Toy 2 — Waterproofing trade-off map</h3>
+    <p class="hint">Up = passes sound more faithfully. Right = more beginner-forgiving. The green band is where a
+    <em>first</em> build should live: good enough acoustics, hard to mess up.</p>
+    <canvas id="wpCanvas" width="720" height="380" aria-label="Waterproofing methods: acoustic transparency vs ease"></canvas>
+    <div class="wp-detail" id="wpDetail">Tap a method on the map to see how to do it, how it sounds, and where it's sourced.</div>
+  </div>
+
+  <div class="callout build">
+    <div class="callout-label">✓ Recommended for build #1</div>
+    <p><strong>Thin two-part epoxy, sealing mainly the wire entry</strong> (the Stanford CCRMA route) — minimal
+    deadening, abrasion-proof.<span class="cite"><a href="#r-ccrma">1</a></span> Or <strong>2–3 thin coats of
+    Plasti Dip</strong> — fastest and most forgiving, just keep coats thin so the disc isn't
+    muffled.<span class="cite"><a href="#r-krien">7</a></span> Save the acoustically-perfect
+    <a href="https://www.smooth-on.com/products/smooth-cast-65d/" target="_blank" rel="noopener">Smooth-Cast 65D
+    urethane</a> (density ≈ water) for the real instrument — its 2.5-minute pot life is no place to
+    learn.<span class="cite"><a href="#r-65d">8</a></span></p>
+  </div>
+
+  <h2><span class="num">5</span>Get the signal in — and the one rule that protects your gear</h2>
+  <p>Recorder options, easiest match first:</p>
+  <table>
+    <thead><tr><th>Record into…</th><th>How &amp; why</th></tr></thead>
+    <tbody>
+      <tr><td><b>USB interface w/ Hi-Z input</b><br><small>Scarlett Solo/2i2, Behringer UM2</small></td><td>The recommended cheap rig. Plug ¼″ into the <em>instrument</em> input, set to instrument (not mic/phantom), raise gain. Highest impedance → best bass, no phantom risk.</td></tr>
+      <tr><td><b>Zoom H-series handheld</b><br><small>H1n, H4n, H5/H6</small></td><td>Use 3.5 mm plug-in-power for a <em>buffered</em> hydrophone, or TRS/instrument input. Battery power also kills ground-loop hum.</td></tr>
+      <tr><td><b>Phone</b> + TRRS/USB-C adapter</td><td>Quick first sounds, but phone mic-ins are low-impedance → a bare disc sounds thin. Best with a buffer.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warning">
+    <div class="callout-label">⚠ The one rule: never feed +48 V phantom to a bare piezo</div>
+    <p>Phantom power pushes +48 V DC down an XLR expecting a <em>balanced</em> load. A bare, unbalanced piezo takes
+    that DC asymmetrically — it can <strong>stress or burn out the element</strong>, and at best dumps a big DC
+    offset on it. Phantom does <em>nothing useful</em> for a bare piezo
+    anyway.<span class="cite"><a href="#r-maaheli">6</a></span> Two consequences:</p>
+    <ul>
+      <li>For a bare disc, use a <strong>TRS / instrument / Hi-Z input</strong> — phantom only ever rides on XLR, so this sidesteps the hazard entirely.<span class="cite"><a href="#r-prohive">18</a></span></li>
+      <li>Only ever apply phantom to a buffer <em>designed</em> for it (the Alex Rice preamp, the
+        <a href="https://www.jlielectronics.com/diy-accessories/p48-hi-z-piezo-buffer/" target="_blank" rel="noopener">$35 JLI P48</a>,
+        or Aquarian PA6) — and such buffers include DC-blocking caps, without which a phantom-charged piezo floats
+        at ~25 V and discharges with a speaker-and-ear-damaging <em>bang</em>.<span class="cite"><a href="#r-rice">5</a></span></li>
+    </ul>
+  </div>
+
+  <h2><span class="num">6</span>What you'll actually hear</h2>
+  <p>Manage expectations and you'll be delighted instead of disappointed. The <em>loudest</em> thing you record is
+  almost always <strong>yourself</strong> — a hydrophone is essentially a contact mic, so cable handling and the
+  unit knocking the bucket boom hugely. Hold still, tie down the cable, and A/B against total stillness to find the
+  real waterborne sound.</p>
+  <div class="grid-2">
+    <div class="frame"><b>You'll likely hear</b>
+      <ul>
+        <li><b>Air bubbles</b> — instant confidence it hears through water.</li>
+        <li><b>Boat engines &amp; props</b> — a low throb that rises and falls; the first truly satisfying "real" sound.</li>
+        <li><b>Rain on the surface</b> — a broadband sizzle; raindrop sizes sound wildly different (NASA uses this to gauge rainfall).<span class="cite"><a href="#r-nasa">12</a></span></li>
+        <li><b>Snapping shrimp</b> (coastal) — a frying-fat crackle; one snap hits ~220 dB and lasts ~1/10,000 s.<span class="cite"><a href="#r-whoi">13</a></span></li>
+      </ul>
+    </div>
+    <div class="frame"><b>You won't get (yet)</b>
+      <ul>
+        <li><b>Guaranteed whales/dolphins</b> — location-dependent; don't expect them in a harbour test.</li>
+        <li><b>Flat, calibrated response</b> — the disc <a href="../reference/glossary.html#sensitivity">rings and rolls off</a>; great for listening, useless for measuring levels.<span class="cite"><a href="#r-poff-choose">4</a></span></li>
+        <li><b>Deep deployment</b> — shallow only (bucket → bath → pool → harbour at a few metres).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2><span class="num">7</span>When it misbehaves</h2>
+  <p>Tap to expand the symptom you're seeing.</p>
+
+  <details class="panel"><summary>No signal at all — meters dead even on a hard tap <span class="sym-tag">dead</span></summary>
+    <div class="panel-body"><b>Likely cause:</b> cold/broken solder joint, snapped conductor, swapped/open connector, a heat-killed cracked ceramic, or the recorder on the wrong/unpowered input.<br>
+    <b>Fix:</b> continuity-check the cable and joints end to end; reflow quickly; confirm core→centre and shield→rim; verify the input is enabled. A fresh disc that <em>still</em> gives nothing on tap was likely cooked while soldering — start with a new one and work fast.</div></details>
+
+  <details class="panel"><summary>Loud hum / buzz — a 50/60 Hz tone or rasp <span class="sym-tag">hum</span></summary>
+    <div class="panel-body"><b>Likely cause:</b> the high-impedance piezo and its lead act as an antenna — missing/unconnected shield, a long unshielded stub, ungrounded foil, or a ground loop.<br>
+    <b>Fix:</b> wrap the element in grounded copper foil tied to the cable shield; use proper shielded cable and keep the bare stub short; run the recorder on <em>battery</em>; move away from mains wiring, chargers, dimmers and LED supplies. A balanced preamp cures it on long runs.</div></details>
+
+  <details class="panel"><summary>Very thin / quiet / tinny — no bass <span class="sym-tag">thin</span></summary>
+    <div class="panel-body"><b>Likely cause:</b> impedance mismatch (Toy 1). The ~15 nF disc into a low-impedance input is a high-pass filter that strips the lows.<br>
+    <b>Fix:</b> drive a <strong>high</strong> impedance (~1 MΩ+): a Hi-Z/instrument input or a buffer. Keep the cable short. EQ can't fully recover it — boosting the missing bass also boosts hum.</div></details>
+
+  <details class="panel"><summary>Distortion / clipping — crunchy on loud events <span class="sym-tag">clip</span></summary>
+    <div class="panel-body"><b>Likely cause:</b> gain too high. Piezos put out surprisingly <em>hot</em> transients — a tap or a nearby snap overloads the input.<br>
+    <b>Fix:</b> turn down gain/level, engage a pad if available, back off from the loud source. A piezo usually needs <em>less</em> gain than a normal mic, not more.</div></details>
+
+  <details class="panel"><summary>Fades / crackles during a soak — water ingress <span class="sym-tag">leak</span></summary>
+    <div class="panel-body"><b>Likely cause:</b> a pinhole or thin spot, or (most often) the cable-entry seam wicking water in to short the ceramic.<br>
+    <b>Fix:</b> dry thoroughly for a day+, add a coat over the seam and thin areas, reinforce the cable entry with hot glue/epoxy under the coating. Re-tap-test, then re-soak before the field. Permanently weak after a flood → corroded disc; rebuild with a fresh element.</div></details>
+
+  <h2><span class="num">8</span>Stay safe</h2>
+  <div class="callout warning">
+    <div class="callout-label">⚠ Three things that actually matter</div>
+    <ul>
+      <li><strong>Lead — ingestion is the real risk.</strong> Leaded solder and PZT ceramic (&gt;60% lead oxide) are dangerous if they reach your mouth. Don't eat/drink/smoke at the bench; wash hands and arms after; never grind bare PZT. Keep away from children and pregnant people; prefer lead-free solder.<span class="cite"><a href="#r-unc">14</a></span><span class="cite"><a href="#r-pbo">15</a></span></li>
+      <li><strong>Fumes.</strong> Rosin-flux smoke and epoxy/urethane vapours irritate lungs and skin and can sensitise you permanently — ventilate, use a small fume extractor, wear gloves and eye protection.<span class="cite"><a href="#r-proset">17</a></span></li>
+      <li><strong>Phantom &amp; water.</strong> See the §5 warning. And remember the preamp/connectors are <em>not</em> waterproof even when the element is — keep them dry, especially in seawater.</li>
+    </ul>
+  </div>
+
+  <h2><span class="num">9</span>Check yourself</h2>
+  <div class="quiz" data-explain-right="Correct." data-explain-wrong="Re-read the build steps.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">Wiring a 27 mm piezo disc to your shielded cable — which lead goes where?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Core/signal → ceramic centre, shield/ground → brass rim. Consistent across every DIY guide.">Core → ceramic centre, shield → brass rim</button>
+      <button class="opt" data-feedback="Reversed. The ceramic centre is the signal terminal; the brass rim is ground.">Core → brass rim, shield → ceramic centre</button>
+      <button class="opt" data-feedback="No signal path. Each electrode needs its own lead — centre for signal, rim for ground.">Core and shield both → ceramic centre</button>
+      <button class="opt" data-feedback="No signal path. Each electrode needs its own lead — centre for signal, rim for ground.">Core and shield both → the brass rim</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="The impedance high-pass." data-explain-wrong="See Toy 1.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">Your bare disc sounds thin and bass-less even on a hard tap. Cause, and best fix?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="The ~15 nF disc into a low-impedance input is a high-pass filter. Feed a Hi-Z (~1 MΩ) input or a buffer and the bass returns.">Impedance mismatch — feed it a Hi-Z input</button>
+      <button class="opt" data-feedback="A dead/cracked element gives nothing on a tap, not a thin tone. It's responding, so it's alive.">Dead cracked ceramic — fit a fresh disc</button>
+      <button class="opt" data-feedback="Coating only deadens further — it never adds bass. The problem is electrical, not the seal.">Too few coats — add thick Plasti-Dip</button>
+      <button class="opt" data-feedback="Phantom does nothing useful for a bare piezo and can burn it out. Never the fix.">Too little phantom — switch on 48 V</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="Protect the element." data-explain-wrong="See the §5 warning.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">Your recorder's XLR inputs carry +48 V phantom. Your bare piezo — what do you do?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Phantom expects a balanced load; a bare piezo takes the DC asymmetrically and can burn out. Use a TRS/Hi-Z input, or a buffer that absorbs the 48 V.">Keep phantom off it; use Hi-Z or a buffer</button>
+      <button class="opt" data-feedback="That's the exact thing that can damage the element — and phantom does nothing useful for it anyway.">Phantom on; plug the bare piezo straight in</button>
+      <button class="opt" data-feedback="Hot-plugging an XLR arcs and can damage gear; brief exposure is still the wrong move.">Phantom on; hot-plug it only briefly</button>
+      <button class="opt" data-feedback="Rubber is acoustic waterproofing, not electrical protection from the feed voltage. No.">Phantom on; let rubber coating insulate it</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now do</h3>
+    <ol>
+      <li><strong>Build</strong> a working piezo-disc hydrophone — solder centre→signal, rim→ground, <em>fast</em>, then seal.</li>
+      <li>Explain <strong>why a bare piezo sounds thin</strong> (15 nF + low-Z = high-pass) and fix it with a <strong>Hi-Z input</strong>.</li>
+      <li>Pick a <strong>waterproofing</strong> method by its ease/transparency trade-off — and keep coats thin.</li>
+      <li><strong>Never</strong> feed +48 V phantom to a bare piezo; route it to a buffer instead.</li>
+      <li>Know what's real (boats, rain, shrimp) vs what this disc <em>can't</em> do (calibrated, deep, guaranteed whales).</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · build along with this</div>
+      <div class="title"><a href="https://ccrma.stanford.edu/courses/220a/static/BuildYourOwnHydrophone.pdf" target="_blank" rel="noopener">Stanford CCRMA — “Build Your Own Hydrophone” (PDF)</a></div>
+      <div class="desc">A university step-by-step for exactly this piezo-disc build: solder signal to ceramic and ground to brass, test before sealing, seal the wire entry with kneaded epoxy — including the warning to solder fast so you don't burn the ceramic's binder.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>Stuck mid-build? Ask me.</b> Send a photo of your solder joint, tell me what your tap test sounds like,
+    or paste your recorder's input specs and I'll tell you if it's Hi-Z enough. Debugging a real build is exactly
+    what I'm here for.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#piezo">piezo element</a> ·
+    <a href="../reference/glossary.html#preamp">preamp</a> ·
+    <a href="../reference/glossary.html#sensitivity">sensitivity</a>.
+    <b>Builds toward →</b> Lesson 3 (how the piezo turns pressure into voltage), Lesson 6 (the Alex Rice preamp),
+    Lesson 7 (the serious PZT-cylinder build), Lesson 8 (calibration).
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-ccrma">Stanford CCRMA — <a href="https://ccrma.stanford.edu/courses/220a/static/BuildYourOwnHydrophone.pdf" target="_blank" rel="noopener">Build Your Own Hydrophone</a>. Wiring, solder-fast warning, seal the wire entry.</li>
+    <li id="r-luke">Luke Miller — <a href="https://www.lukemiller.org/journal/2009/11/simple-hydrophone.html" target="_blank" rel="noopener">A simple hydrophone</a>. Core→centre, shield→rim wiring.</li>
+    <li id="r-mudhar">Richard Mudhar — <a href="https://www.richardmudhar.com/blog/using-piezo-contact-mics-right/" target="_blank" rel="noopener">Using piezo contact mics right</a>. The ~15 nF source and the high-pass corner frequencies.</li>
+    <li id="r-poff-choose">Zach Poff — <a href="https://zachpoff.com/resources/choosing-a-hydrophone-for-field-recording/" target="_blank" rel="noopener">Choosing a Hydrophone</a>. Piezos need impedance matching; DIY discs are resonant/coloured.</li>
+    <li id="r-rice">Zach Poff — <a href="https://zachpoff.com/resources/alex-rice-piezo-preamplifier/" target="_blank" rel="noopener">Alex Rice Piezo Preamplifier</a>. DC-blocking; ~25 V phantom-discharge bang.</li>
+    <li id="r-maaheli">John Grzinich — <a href="https://maaheli.ee/main/building-contact-microphones/" target="_blank" rel="noopener">Building contact microphones</a>. Phantom can burn out a bare piezo.</li>
+    <li id="r-krien">Max Krien — <a href="https://maxkrien.com/diy-hydrophones" target="_blank" rel="noopener">DIY Hydrophones</a>. Plasti-Dip muffles; urethane 65D ≈ 2× the frequency response.</li>
+    <li id="r-65d">Smooth-On — <a href="https://www.smooth-on.com/products/smooth-cast-65d/" target="_blank" rel="noopener">Smooth-Cast 65D</a>. SG 1.05 (≈ water); 2.5-min pot life.</li>
+    <li id="r-murkin">Andy Murkin — <a href="https://andymurkin.wordpress.com/2018/06/09/piezos-pt-7-hydrophones/" target="_blank" rel="noopener">Piezos Pt 7: Hydrophones</a>. Strain-relief at the rim; Plasti-Dip method.</li>
+    <li id="r-felix">Felix Blume — <a href="https://felixblume.com/hydrophone/" target="_blank" rel="noopener">DIY Hydrophone</a>. Full build walkthrough.</li>
+    <li id="r-lom">LOM — <a href="https://knowledge.lom.audio/research/contact_mics" target="_blank" rel="noopener">DIY contact mics</a>. Copper-foil shielding against EMI.</li>
+    <li id="r-nasa">NASA GPM — <a href="https://gpm.nasa.gov/education/websites/listening-water-using-underwater-microphones-measure-ocean-rainfall" target="_blank" rel="noopener">Listening to Water</a>. Rain underwater; bubble physics.</li>
+    <li id="r-whoi">WHOI Oceanus — <a href="https://www.whoi.edu/oceanus/feature/snap-chat-eavesdropping-on-snapping-shrimp-communication/" target="_blank" rel="noopener">Snapping shrimp</a>. ~220 dB snap, ~1/10,000 s.</li>
+    <li id="r-unc">UNC EHS — <a href="https://ehs.unc.edu/topics/soldering-safety/" target="_blank" rel="noopener">Soldering Safety</a>. Lead ingestion is the main route.</li>
+    <li id="r-pbo">He-Shuai — <a href="https://www.he-shuai.com/what-is-lead-free-piezoelectric-ceramics/" target="_blank" rel="noopener">Lead-free piezo ceramics</a>. PZT is &gt;60–70% lead oxide.</li>
+    <li id="r-aq">Aquarian Audio — <a href="https://www.aquarianaudio.com/h2a-hydrophone.html" target="_blank" rel="noopener">H2a</a> / <a href="https://www.aquarianaudio.com/h2d-hydrophone.html" target="_blank" rel="noopener">H2d</a>. Buffered buy-instead-of-build benchmark.</li>
+    <li id="r-proset">PRO-SET — <a href="https://www.prosetepoxy.com/us/epoxy-safety/" target="_blank" rel="noopener">Epoxy Safety</a>. Resins/hardeners are skin sensitizers.</li>
+    <li id="r-prohive">Producer Hive — <a href="https://producerhive.com/ask-the-hive/can-phantom-power-damage-equipment/" target="_blank" rel="noopener">Can phantom power damage equipment?</a> Phantom rides only on XLR; use TRS to avoid it.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="../index.html#phase-1">
+      <div class="dir">← Course map</div>
+      <div class="ttl">Do the Phase 1 theory first</div>
+    </a>
+    <a class="next" href="0014-adding-a-preamp.html">
+      <div class="dir">Next · B2</div>
+      <div class="ttl">Adding a Preamp →</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson 2 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Toy 1 — impedance high-pass ============================ */
+(function(){
+  var canvas=document.getElementById('hpCanvas'); if(!canvas) return;
+  var ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+  var padL=52, padR=18, padT=22, padB=40;
+  var fLo=10, fHi=20000, dbLo=-42, dbHi=4;
+  var C=15e-9;
+  var zSel=document.getElementById('zSel'), verdict=document.getElementById('hpVerdict');
+
+  function xOf(f){ return padL + (Math.log10(f)-Math.log10(fLo))/(Math.log10(fHi)-Math.log10(fLo))*(W-padL-padR); }
+  function yOf(db){ return padT + (dbHi-db)/(dbHi-dbLo)*(H-padT-padB); }
+
+  function draw(R){
+    var fc = 1/(2*Math.PI*R*C);
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#06202e'; ctx.fillRect(0,0,W,H);
+
+    // shade the "cut" region (below fc)
+    ctx.fillStyle='rgba(193,73,43,.16)';
+    ctx.fillRect(padL, padT, xOf(fc)-padL, H-padT-padB);
+
+    // grid: decade lines + labels
+    ctx.font='10px Inter, system-ui'; ctx.textAlign='center';
+    [10,100,1000,10000].forEach(function(f){
+      var x=xOf(f); ctx.strokeStyle='rgba(143,185,198,.18)'; ctx.beginPath(); ctx.moveTo(x,padT); ctx.lineTo(x,H-padB); ctx.stroke();
+      ctx.fillStyle='#5b8593'; ctx.fillText(f>=1000?(f/1000)+'k':f+'', x, H-padB+14);
+    });
+    // also minor
+    ctx.fillStyle='#5b8593'; ctx.fillText('Hz', W-padR-6, H-padB+14);
+    // dB ticks
+    ctx.textAlign='right';
+    [0,-10,-20,-30,-40].forEach(function(db){
+      var y=yOf(db); ctx.strokeStyle='rgba(143,185,198,.12)'; ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+      ctx.fillStyle='#5b8593'; ctx.fillText(db+' dB', padL-6, y+3);
+    });
+
+    // the response curve  |H| = (f/fc)/sqrt(1+(f/fc)^2)
+    ctx.strokeStyle='#2a9db0'; ctx.lineWidth=2.4; ctx.beginPath();
+    var first=true;
+    for(var px=padL; px<=W-padR; px++){
+      var frac=(px-padL)/(W-padL-padR);
+      var f=Math.pow(10, Math.log10(fLo)+frac*(Math.log10(fHi)-Math.log10(fLo)));
+      var r=f/fc, mag=r/Math.sqrt(1+r*r), db=20*Math.log10(mag);
+      if(db<dbLo)db=dbLo;
+      var y=yOf(db);
+      if(first){ctx.moveTo(px,y);first=false;} else ctx.lineTo(px,y);
+    }
+    ctx.stroke();
+
+    // corner line + label
+    var xc=xOf(Math.max(fc,fLo));
+    ctx.strokeStyle='#ffd479'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(xc,padT); ctx.lineTo(xc,H-padB); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#ffd479'; ctx.textAlign='left'; ctx.font='bold 11px Inter, system-ui';
+    var label='fc ≈ '+(fc>=1000?(fc/1000).toFixed(1)+' kHz':Math.round(fc)+' Hz');
+    ctx.fillText(label, Math.min(xc+6, W-padR-90), padT+14);
+
+    // axis titles
+    ctx.fillStyle='#8fb9c6'; ctx.textAlign='center'; ctx.font='11px Inter, system-ui';
+    ctx.fillText('← bass cut          frequency          treble kept →', (padL+W-padR)/2, padT-8);
+
+    // verdict text
+    var v;
+    if(fc>=1500) v='Into this input, everything below <b>'+Math.round(fc)+' Hz</b> is fading away. The recording sounds <b>thin and honky</b> — most of the body is gone.';
+    else if(fc>=120) v='Better, but bass below <b>'+Math.round(fc)+' Hz</b> is still being trimmed. Usable, not full.';
+    else v='The corner sits at <b>'+(fc<10?fc.toFixed(1):Math.round(fc))+' Hz</b> — below hearing. <b>Full, bass-present sound.</b> This is what you want.';
+    verdict.innerHTML = v;
+  }
+  zSel.addEventListener('change', function(){ draw(parseFloat(zSel.value)); });
+  draw(parseFloat(zSel.value));
+})();
+
+/* ============================ Toy 2 — waterproofing trade-off scatter ============================ */
+(function(){
+  var canvas=document.getElementById('wpCanvas'); if(!canvas) return;
+  var ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+  var padL=58, padR=20, padT=40, padB=46;
+  var detail=document.getElementById('wpDetail');
+
+  // ease = beginner-forgiveness (x), acoustics = transparency (y)
+  var M=[
+    {name:'Plasti Dip', ease:.90, ac:.45, rec:true,  diff:'Very easy', dur:'Shallow freshwater; peels over time', cost:'~$8–15 a can',
+      how:'Dip the disc + joints slowly, withdraw slowly, cure ~30 min, repeat 2–3 THIN coats.', ac_txt:'Waterproof but deadens — thick coats lose highs. Keep it thin.', src:'https://maxkrien.com/diy-hydrophones'},
+    {name:'Thin epoxy (CCRMA)', ease:.74, ac:.56, rec:true, diff:'Easy–moderate', dur:'Excellent abrasion resistance; modest depth', cost:'~$5–10',
+      how:'Seal mainly the wire entry with kneaded plumber’s epoxy; a thin uniform layer over the disc also works.', ac_txt:'Sealing only the wire entry barely deadens — the cleanest cheap option.', src:'https://ccrma.stanford.edu/courses/220a/static/BuildYourOwnHydrophone.pdf'},
+    {name:'Heat-shrink (seam)', ease:.85, ac:.30, rec:false, diff:'Easy', dur:'Strain relief / splash only', cost:'~$1–3',
+      how:'Adhesive-lined shrink over the cable entry for strain relief — NOT over the active face.', ac_txt:'Over the disc face it traps air and deadens. Use only as a supporting seal.', src:'https://felixblume.com/hydrophone/'},
+    {name:'Silicone / Sugru', ease:.78, ac:.50, rec:false, diff:'Easy', dur:'Flexible; peels under shear; use NEUTRAL-cure', cost:'$3–10',
+      how:'Press a thin even skin of neutral-cure RTV/Sugru over disc + wire entry; cure 24 h.', ac_txt:'Softer than epoxy, gentler acoustically, but hobby silicone still damps a little.', src:'https://www.lukemiller.org/journal/2009/11/simple-hydrophone.html'},
+    {name:'Polyurethane 65D', ease:.30, ac:.95, rec:false, gold:true, diff:'Moderate (2.5-min pot life!)', dur:'Rigid, robust, real depth when void-free', cost:'~$100 / unit',
+      how:'Pour Smooth-Cast 65D into a mold in one fast go; degas bubbles; cure. The serious-build standard.', ac_txt:'Density ≈ water → acoustically transparent, &gt;2× the response. The gold standard — but unforgiving.', src:'https://www.smooth-on.com/products/smooth-cast-65d/'},
+    {name:'Oil-filled membrane', ease:.34, ac:.92, rec:false, gold:true, diff:'Moderate–fiddly', dur:'Pressure-compensating; membrane is fragile', cost:'~$1–5',
+      how:'Seal the piezo inside an oil-filled membrane; squeeze out ALL air; band it tight.', ac_txt:'Near-water oil, no stiff layer → very transparent. But any bubble or puncture kills it.', src:'https://zachpoff.com/resources/hydrophone-experiments/'}
+  ];
+
+  function xOf(e){ return padL + e*(W-padL-padR); }
+  function yOf(a){ return padT + (1-a)*(H-padT-padB); }
+  var pts=[], selected=null;
+
+  function draw(){
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#06202e'; ctx.fillRect(0,0,W,H);
+
+    // "start here" green zone: ease>0.6 & acoustics>0.4
+    ctx.fillStyle='rgba(63,125,78,.20)';
+    ctx.fillRect(xOf(.6), padT, xOf(1)-xOf(.6), yOf(.4)-padT);
+    ctx.fillStyle='#7fc08e'; ctx.font='bold 11px Inter, system-ui'; ctx.textAlign='right';
+    ctx.fillText('START HERE', xOf(1)-8, padT+16);
+
+    // axes
+    ctx.strokeStyle='rgba(143,185,198,.35)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,H-padB); ctx.lineTo(W-padR,H-padB); ctx.stroke();
+    ctx.fillStyle='#8fb9c6'; ctx.font='11px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText('more beginner-forgiving  →', (padL+W-padR)/2, H-padB+28);
+    ctx.save(); ctx.translate(16,(padT+H-padB)/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('passes sound more faithfully  →', 0, 0); ctx.restore();
+
+    // points
+    pts=[];
+    M.forEach(function(m){
+      var x=xOf(m.ease), y=yOf(m.ac);
+      pts.push({x:x,y:y,m:m});
+      var col = m.rec ? '#3fbf63' : (m.gold ? '#ffd479' : '#7f97a1');
+      var on = selected===m;
+      ctx.beginPath(); ctx.arc(x,y, on?10:7, 0, Math.PI*2);
+      ctx.fillStyle=col; ctx.fill();
+      if(on){ ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke(); }
+      ctx.fillStyle='#dff1f5'; ctx.font=(on?'bold ':'')+'11px Inter, system-ui'; ctx.textAlign='left';
+      var lx=x+12, ly=y+4;
+      if(lx>W-padR-110){ ctx.textAlign='right'; lx=x-12; }
+      ctx.fillText(m.name, lx, ly);
+    });
+
+    // legend
+    ctx.textAlign='left'; ctx.font='10px Inter, system-ui';
+    var lg=[['#3fbf63','recommended for build #1'],['#ffd479','gold standard (later build)'],['#7f97a1','supporting / situational']];
+    lg.forEach(function(item,i){ var x=padL+i*0 , y=padT-22; });
+    // simple legend row at top-left
+    var lx=padL+2, ly=padT-24;
+    lg.forEach(function(item){
+      ctx.fillStyle=item[0]; ctx.beginPath(); ctx.arc(lx+4,ly-3,4,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#8fb9c6'; ctx.fillText(item[1], lx+12, ly);
+      lx += ctx.measureText(item[1]).width + 34;
+    });
+  }
+
+  function select(m){
+    selected=m;
+    var badge = m.rec ? '<span class="badge go">Recommended</span>' : (m.gold ? '<span class="badge later">Gold standard · later</span>' : '');
+    detail.innerHTML =
+      '<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem"><b style="font-size:.98rem;color:var(--abyss)">'+m.name+'</b> '+badge+'</div>'+
+      '<p style="margin:.2rem 0">'+m.how+'</p>'+
+      '<dl class="spec-grid"><dt>Acoustics</dt><dd>'+m.ac_txt+'</dd>'+
+      '<dt>Durability</dt><dd>'+m.dur+'</dd>'+
+      '<dt>Difficulty</dt><dd>'+m.diff+'</dd>'+
+      '<dt>Cost</dt><dd>'+m.cost+'</dd></dl>'+
+      '<a href="'+m.src+'" target="_blank" rel="noopener" style="font-size:.82rem">source ↗</a>';
+    draw();
+  }
+
+  canvas.addEventListener('click', function(e){
+    var r=canvas.getBoundingClientRect();
+    var sx=canvas.width/r.width, sy=canvas.height/r.height;
+    var mx=(e.clientX-r.left)*sx, my=(e.clientY-r.top)*sy;
+    var best=null, bd=1e9;
+    pts.forEach(function(p){ var d=(p.x-mx)*(p.x-mx)+(p.y-my)*(p.y-my); if(d<bd){bd=d;best=p;} });
+    if(best && bd < 30*30) select(best.m);
+  });
+
+  draw();
+})();
+</script>
+</body>
+</html>

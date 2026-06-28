@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T12 · Tracking, the Law &amp; the Community</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-13-specific: two canvas toys (track stitcher + Mauritius zone map) */
+  .toy { background:linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; touch-action:none; cursor:grab; }
+  canvas:active { cursor:grabbing; }
+  .row { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .row .btn { cursor:pointer; border:1.5px solid var(--ocean); background:var(--ocean); color:#fff; font-weight:700; padding:.5rem .9rem; border-radius:8px; font-size:.85rem; }
+  .row .btn:hover { background:var(--ocean-deep); border-color:var(--ocean-deep); }
+  .row .btn.ghost { background:#fff; color:var(--ocean-deep); }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.95rem; padding:.6rem .8rem; border-radius:8px; margin-top:.8rem; background:#06202e; color:#d8f1f5; line-height:1.5; }
+  .toy .verdict b { color:#ffd479; }
+  .legend { font-family:var(--sans); font-size:.8rem; color:var(--ink-faint); display:grid; grid-template-columns:1fr 1fr; gap:.25rem 1rem; margin-top:.7rem; }
+  .legend span b { color:var(--ocean-deep); }
+  .swatch { display:inline-block; width:.7rem; height:.7rem; border-radius:3px; margin-right:.35rem; vertical-align:baseline; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 1 · Theory · T12</p>
+  <h1 class="lesson-title">Tracking, the Law &amp; the Community</h1>
+  <p class="lesson-sub">You can pin a whale to a place. This closes the loop: turn one-off fixes into a track,
+  do it legally from outside the circle, and plug into the people who already study these animals.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~10 minutes</span><span class="sep">•</span>
+    <span>🎓 The Phase&nbsp;1 finale — no build</span><span class="sep">•</span>
+    <span class="tag ocean">Mission: fix → track</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson — closing the loop</div>
+    <p>In <a href="0012-arrays-and-hyperbolic-localization.html">T11</a> you turned a time-difference into a
+    place — one <a class="xref" href="../reference/glossary.html#tdoa">TDOA</a> fix, one dot on the chart. But a
+    dot is not a track, and a <strong>track of a <em>named</em> Mauritius whale</strong> is the real prize. This
+    last theory lesson finishes the climb three ways: <strong>(1)</strong> stitch successive fixes into a path
+    over time, <strong>(2)</strong> do it legally and ethically from outside the 100&nbsp;m circle, and
+    <strong>(3)</strong> hand your data to the small community already watching these whales.<span class="cite"><a href="#r-sarano">4</a></span></p>
+  </div>
+
+  <h2><span class="num">1</span>From a fix to a track</h2>
+  <p>One fix is a snapshot. But a sperm whale swims, turns, and dives for ~45 minutes at a time — so a useful
+  result is a <strong>track</strong>: many fixes, in order, joined into a path. Getting there needs two moves,
+  and the first is the hard one.</p>
+  <p><strong>Move 1 — click-train association.</strong> A single foraging whale clicks roughly once a second; a
+  group of 28 clicks at once, and the raw <a class="xref" href="../reference/glossary.html#spectrogram">spectrogram</a>
+  becomes a thicket of vertical lines. Before you can track <em>a</em> whale you must decide which clicks are
+  <em>whose</em>. You group the stream into per-animal <strong>click trains</strong> using continuity (a train's
+  bearing and <a class="xref" href="../reference/glossary.html#ici">ICI</a> drift smoothly, not in jumps) plus
+  the whale's own fingerprints — its <a class="xref" href="../reference/glossary.html#ipi">IPI</a>-derived
+  <strong>body length</strong> and its <a class="xref" href="../reference/glossary.html#coda">coda</a> dialect.
+  PAMGuard's Click Train Detector automates exactly this grouping.<span class="cite"><a href="#r-pamct">2</a></span></p>
+  <p><strong>Move 2 — join the fixes in time.</strong> Once each train is one animal, you localize each click (or
+  short batch) and connect the resulting positions chronologically. As fixes accumulate — or as your boat/array
+  drifts and views the whale from changing angles — <strong>target-motion analysis</strong> (TMA) tightens the
+  range and smooths the path into a real trajectory.<span class="cite"><a href="#r-pamtma">1</a></span> A moored
+  three-hydrophone observatory off a slope like Mauritius does this in 3-D out to ~7&nbsp;km.<span class="cite"><a href="#r-skar">3</a></span></p>
+
+  <div class="toy">
+    <h3>🧵 Toy 1 — Stitch a tangle of fixes into two tracks</h3>
+    <p class="hint">Twelve position fixes from a 30-minute window — two whales, criss-crossing. Raw, they're an
+    ambiguous cloud. Press <b>associate</b> and the click-train fingerprints (each whale's IPI/body length) sort
+    the dots into two clean tracks. This is the move that turns dots into a path.</p>
+    <canvas id="trackCanvas" width="720" height="360" aria-label="Position fixes from two whales, stitched into tracks"></canvas>
+    <div class="row">
+      <button class="btn" id="assocBtn">▶ Associate by click train</button>
+      <button class="btn ghost" id="trackReset">↺ Back to raw fixes</button>
+    </div>
+    <div class="legend">
+      <span><span class="swatch" style="background:#ffd479"></span><b>Whale A</b> — IPI 5.2&nbsp;ms ≈ 12.3&nbsp;m</span>
+      <span><span class="swatch" style="background:#2a9db0"></span><b>Whale B</b> — IPI 3.1&nbsp;ms ≈ 9.6&nbsp;m</span>
+    </div>
+    <div class="verdict" id="trackVerdict">Raw fixes — you can see twelve dots, but not <b>which whale is which</b>. Associate them to find out.</div>
+  </div>
+
+  <div class="callout note">
+    <div class="callout-label">⌗ Association is the bottleneck, not geometry</div>
+    <p>The hyperbolic math from T11 is exact — but it assumes you already know the <em>same</em> click hit each
+    hydrophone. In a chorusing group that assumption is the whole problem. The
+    <a class="xref" href="../reference/glossary.html#ipi">IPI</a> body-length ruler and the
+    <a class="xref" href="../reference/glossary.html#coda">coda</a> dialect are what let you say
+    <em>"these clicks are Irène, those are her calf"</em> — turning one tangled recording into named, trackable
+    individuals.<span class="cite"><a href="#r-sarano">4</a></span></p>
+  </div>
+
+  <h2><span class="num">2</span>The law — and why a hydrophone is the ethical tool</h2>
+  <p>Mauritius protects its resident whales with <strong>two concentric rings</strong>, set out in the Tourism
+  Authority (Dolphin &amp; Whale Watching) Regulations 2012.<span class="cite"><a href="#r-law">5</a></span> Know
+  them cold; they shape every legal way of getting near a whale:</p>
+  <ul>
+    <li><strong>Inside 100&nbsp;m — the prohibited zone.</strong> No vessel may enter. Full stop.</li>
+    <li><strong>100–200&nbsp;m — the regulated zone.</strong> <em>Wakeless</em> speed, approach <em>parallel</em>
+    from the side (never head-on or from behind), engine in neutral when stationary, and <strong>only one
+    boat</strong> near a group at a time.</li>
+    <li><strong>Since 3 March 2020 — no swimming or diving with whales</strong>, even with a guide. It is an
+    offence; scientific research permits are the only exception.<span class="cite"><a href="#r-epco">6</a></span><span class="cite"><a href="#r-ta">7</a></span></li>
+  </ul>
+  <p>Here is the quiet point that justifies this whole course: <strong>a hydrophone studies a whale from outside
+  the circle entirely.</strong> Drop it at 300&nbsp;m, sit still, touch nothing — and you can detect, size and
+  track an animal you never disturb. The law isn't a hurdle to your mission; <em>listening</em> is the design the
+  law was practically written for. Drag the boat below and watch the zones bite.</p>
+
+  <div class="toy">
+    <h3>🛥 Toy 2 — The Mauritius approach zones</h3>
+    <p class="hint">The whale sits at centre with its 100&nbsp;m prohibited ring (red) and 100–200&nbsp;m
+    regulated ring (amber). <b>Drag the boat.</b> It turns red inside 100&nbsp;m, amber in the regulated band,
+    green in free water. The fixed diamond is your hydrophone — already legal, already listening.</p>
+    <canvas id="zoneCanvas" width="720" height="480" aria-label="Draggable boat around a whale showing the 100 m and 200 m legal zones"></canvas>
+    <div class="row">
+      <button class="btn ghost" id="zoneReset">↺ Reset the boat</button>
+      <span class="muted" id="zoneDist" style="font-family:var(--sans)">Boat is ~291 m from the whale</span>
+    </div>
+    <div class="verdict" id="zoneVerdict">—</div>
+    <div class="legend">
+      <span><span class="swatch" style="background:#c1492b"></span><b>&lt; 100 m</b> — prohibited, keep out</span>
+      <span><span class="swatch" style="background:#ffd479"></span><b>100–200 m</b> — wakeless, parallel, one boat</span>
+      <span><span class="swatch" style="background:#3fbf63"></span><b>&gt; 200 m</b> — free water; deploy here</span>
+      <span><span class="swatch" style="background:#bfe9f2"></span><b>◆ hydrophone</b> — studies from outside</span>
+    </div>
+  </div>
+
+  <div class="callout warning">
+    <div class="callout-label">⚠ The watching rules are the floor, not a loophole</div>
+    <p>Those distances govern <em>watching</em>. Deploying gear, or approaching a whale deliberately <em>for
+    science</em>, sits under a separate <strong>research-permit</strong> process (via the Albion Fisheries
+    Research Centre / Tourism Authority).<span class="cite"><a href="#r-ta">7</a></span> Passive listening from
+    well outside 200&nbsp;m is the cleanest path; if your plan creeps closer, talk to the locals
+    (§3) <em>before</em> you launch, not after.</p>
+  </div>
+
+  <h2><span class="num">3</span>The community — where to take this</h2>
+  <p>You are not the first person to point a hydrophone at these whales — and that is good news. Real feedback,
+  and possibly real collaboration, lives in five places. Start local, then widen out.</p>
+  <table>
+    <caption>Where to get feedback, sanity-checks, and possibly collaborate — roughly nearest-mission first.</caption>
+    <thead><tr><th>Who</th><th>What they are — and what to ask</th></tr></thead>
+    <tbody>
+      <tr><td><b>MMCO / Maubydick</b><br><small>Mauritius</small></td><td>The <strong>local lead</strong>: monitoring the resident whales since 2011 and holding the photo-ID catalogue of named individuals. Your most likely collaborator — and the people who can tell you <em>which</em> whale you just heard.<span class="cite"><a href="#r-mmco">8</a></span></td></tr>
+      <tr><td><b>Longitude 181</b><br><small>Sarano · France/Mauritius</small></td><td>Run <em>La Voix des Cachalots</em>, the long-running study of the Irène clan off western Mauritius. The deep context for the codas and family structure you'll be matching.<span class="cite"><a href="#r-long">9</a></span></td></tr>
+      <tr><td><b>WILDLABS — Acoustics</b><br><small>global</small></td><td>The big, active conservation-tech PAM community. <strong>First stop</strong> for hardware/build feedback: "is my preamp noise normal?", "which recorder?".<span class="cite"><a href="#r-wildlabs">10</a></span></td></tr>
+      <tr><td><b>PAMGuard user list</b><br><small>email list</small></td><td>For detection / classification / localization questions — click trains, TMA, array geometry. Email the list or <code>support@pamguard.org</code> (the old web forum is dead).<span class="cite"><a href="#r-pamuser">11</a></span></td></tr>
+      <tr><td><b>MARMAM</b><br><small>research listserv</small></td><td>The standard marine-mammal research listserv (6,000+). Papers, methods, researchers — most useful <em>once you're past the hobby stage</em> with results to show.<span class="cite"><a href="#r-marmam">12</a></span></td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="num">4</span>Check yourself</h2>
+  <p>Three quick ones — the last retrieval of Phase 1. No peeking.</p>
+
+  <div class="quiz"
+       data-explain-right="The two rings, exactly."
+       data-explain-wrong="Re-read the two-ring rule in §2.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">Around a <em>whale</em> off Mauritius, what two zones does the law set?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Prohibited inside 100 m, regulated 100–200 m. The 50 m / 50–150 m pair is the rule for dolphins, not whales.">Prohibited inside 100 m, regulated from 100 to 200 m</button>
+      <button class="opt" data-feedback="Those are the dolphin distances. For whales it's a 100 m prohibited ring and a 100–200 m regulated band.">Prohibited inside 50 m, regulated from 50 to 150 m</button>
+      <button class="opt" data-feedback="Too wide. The whale rings are 100 m (prohibited) and 100–200 m (regulated), not 200 m / 200–400 m.">Prohibited inside 200 m, regulated from 200 to 400 m</button>
+      <button class="opt" data-feedback="Too tight. The statutory whale zones are 100 m prohibited and a 100–200 m regulated band.">Prohibited inside 25 m, regulated from 25 to 100 m</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="Association first."
+       data-explain-wrong="See Move 1 in §1.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">To stitch a tangle of fixes into one whale's track, your <em>first</em> step is to…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Click-train association: group clicks by continuity plus the whale's IPI body length and coda dialect, so each train is one animal.">match clicks to one whale by their click train</button>
+      <button class="opt" data-feedback="Merging everything blends two whales into one smear — you lose the very tracks you're trying to draw.">merge all clicks in the area into one track</button>
+      <button class="opt" data-feedback="Loudness picks the nearest or most on-axis click, not a single animal. It won't separate whales.">amplify the loudest click and mute every other one</button>
+      <button class="opt" data-feedback="That's the opposite of association — a continuous train is one animal, not a new whale per click.">treat every single click as a brand new whale</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="Banned since March 2020."
+       data-explain-wrong="See the 2020 rule in §2.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">Since 3 March 2020, swimming or diving with whales in Mauritius is…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="An offence since March 2020, even with a guide — scientific research permits are the only exception. A hydrophone sidesteps it entirely.">banned outright, allowed only on a scientific permit</button>
+      <button class="opt" data-feedback="Not so — in-water contact was made an offence in 2020. Distance alone doesn't make it legal.">allowed freely, provided you keep a respectful distance</button>
+      <button class="opt" data-feedback="No — a guide doesn't exempt you. The 2020 ban applies even when a professional is present.">permitted daily, if a licensed guide accompanies you</button>
+      <button class="opt" data-feedback="The opposite of the law. Swimming with whales is prohibited regardless of how calm they seem.">encouraged openly, since the whales are quite gentle</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="callout build">
+    <div class="callout-label">✓ You've finished the theory — now go build</div>
+    <p>That's Phase&nbsp;1 done. You can now read a whale's clicks, know how loud it is and how far it carries,
+    sample it without aliasing, size it from one click, and turn time-differences into a tracked position —
+    legally. The next step isn't more reading: it's <strong>hardware</strong>. Head to
+    <a href="../reference/shopping-list.html">Phase&nbsp;2 — the Shopping List</a> to order parts (shipping is the
+    slow part, so do it now), then start the <a href="../index.html#phase-3">Phase&nbsp;3 builds</a> with
+    <a href="0002-your-first-underwater-ear.html">Your First Underwater Ear</a>.</p>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now say</h3>
+    <ol>
+      <li>A single fix is a dot; a <strong>track</strong> needs many fixes joined in time.</li>
+      <li><strong>Click-train association</strong> comes first — group clicks per animal by continuity, IPI body length and coda dialect; then <strong>target-motion analysis</strong> smooths the path.</li>
+      <li>Mauritius law: <strong>100 m prohibited</strong>, <strong>100–200 m regulated</strong> (wakeless, parallel, one boat), and <strong>no swimming/diving with whales since 2020</strong>.</li>
+      <li>A hydrophone is the <strong>ethical tool</strong> — it studies the whale from outside the circle, disturbing nothing.</li>
+      <li>You don't work alone: <strong>MMCO</strong>, Longitude&nbsp;181, WILDLABS, the PAMGuard list and MARMAM are where feedback and collaboration live.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · reach out next</div>
+      <div class="title"><a href="https://www.mmco.mu/" target="_blank" rel="noopener">MMCO / Maubydick — Mauritius Marine Conservation Organisation</a></div>
+      <div class="desc">The local team that has catalogued and studied this exact resident sperm-whale population since 2011 — your closest match in mission and place, and the people most likely to recognise the whale you record. Read their work, then introduce yourself.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>Finished Phase 1? Tell me your plan.</b> Want help drafting a first email to MMCO, sanity-checking a
+    deployment spot against the 200&nbsp;m line, or deciding whether your fixes are clean enough to call a track?
+    Ask in chat — that's exactly the leap from theory to fieldwork I'm here for.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#tdoa">TDOA</a> ·
+    <a href="../reference/glossary.html#hyperbolic">hyperbolic localization</a> ·
+    <a href="../reference/glossary.html#ipi">IPI</a> ·
+    <a href="../reference/glossary.html#coda">coda</a>.
+    <b>Builds on →</b> T11 (a single position fix). <b>Leads to →</b> <a href="../reference/shopping-list.html">Phase 2 (parts)</a>
+    and the Phase 3 builds.
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-pamtma">PAMGuard — <a href="https://www.pamguard.org/olhelp/localisation/docs/localisation_overview.html" target="_blank" rel="noopener">Localisation Overview</a>. Bearing, crossed-bearing, hyperbolic/TDOA, target-motion analysis and 3-D localizers.</li>
+    <li id="r-pamct">PAMGuard — <a href="https://github.com/PAMGuard/PAMGuard/blob/main/src/clickTrainDetector/click_train_help.md" target="_blank" rel="noopener">Click Train Detector</a>. Groups a stream of clicks into per-animal trains.</li>
+    <li id="r-skar">Skarsoulis et al. (2022) — <a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.873888/full" target="_blank" rel="noopener">Real-time sperm-whale localization observatory</a>. 3 moored hydrophones, 3-D fixes/tracks to ~7 km.</li>
+    <li id="r-sarano">Sarano et al. — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8074673/" target="_blank" rel="noopener">Social units &amp; vocal clans in Mauritius</a>. The resident, year-round, individually-named "Irène's group".</li>
+    <li id="r-law">Govt. of Mauritius — <a href="https://faolex.fao.org/docs/pdf/mat116851.pdf" target="_blank" rel="noopener">Tourism Authority (Dolphin &amp; Whale Watching) Regulations 2012 (GN 154)</a>. 100 m prohibited / 100–200 m regulated zones; parallel, wakeless approach; one boat.</li>
+    <li id="r-epco">EPCO — <a href="https://epco.ngo/swimming-with-large-cetaceans/" target="_blank" rel="noopener">Swimming with large cetaceans</a>. Swim/dive with whales forbidden since 3 March 2020; 100 m boat rule.</li>
+    <li id="r-ta">Tourism Authority — <a href="https://www.tourismauthority.mu/communique-dolphin-and-whale-watching/" target="_blank" rel="noopener">Dolphin &amp; Whale Watching communiqué</a>. Current enforced position; in-water contact is an offence.</li>
+    <li id="r-mmco">MMCO / Maubydick — <a href="https://www.mmco.mu/" target="_blank" rel="noopener">Mauritius Marine Conservation Organisation</a>. Local lead; resident population studied and catalogued since 2011.</li>
+    <li id="r-long">Longitude 181 — <a href="https://www.longitude181.org/programme-cetaces-cachalots/" target="_blank" rel="noopener">La Voix des Cachalots</a>. Sarano's annual Mauritius (Irène-clan) programme.</li>
+    <li id="r-wildlabs">WILDLABS — <a href="https://wildlabs.net/groups/acoustics" target="_blank" rel="noopener">Acoustics group</a>. Active conservation-tech / PAM community; first stop for build feedback.</li>
+    <li id="r-pamuser">PAMGuard — <a href="https://sourceforge.net/p/pamguard/mailman/pamguard-user/" target="_blank" rel="noopener"><code>pamguard-user</code> mailing list</a>. Detection / classification / localization help.</li>
+    <li id="r-marmam">MARMAM — <a href="https://lists.uvic.ca/mailman/listinfo/marmam" target="_blank" rel="noopener">marine-mammal research listserv</a>. The standard 6,000+ research list.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0012-arrays-and-hyperbolic-localization.html">
+      <div class="dir">← T11 · Arrays &amp; Hyperbolic Localization</div>
+      <div class="ttl">Back to the summit</div>
+    </a>
+    <a class="next" href="../reference/shopping-list.html">
+      <div class="dir">Next · Phase 2 · The Shopping List →</div>
+      <div class="ttl">Order parts — shipping is the slow part</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson 13 of the Hydrophone course · the Phase&nbsp;1 finale ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Toy 1 — track stitcher ============================ */
+(function(){
+  var canvas=document.getElementById('trackCanvas'); if(!canvas) return;
+  var ctx=canvas.getContext('2d'); if(!ctx) return;
+  var W=canvas.width, H=canvas.height;
+  var verdict=document.getElementById('trackVerdict');
+  var associated=false;
+
+  // Two crossing tracks of position fixes (canvas px), in chronological order.
+  var A={col:'#ffd479', label:'A · 12.3 m', pts:[[90,110],[180,140],[290,160],[400,150],[520,170],[630,200]]};
+  var B={col:'#2a9db0', label:'B · 9.6 m',  pts:[[110,285],[210,250],[300,210],[420,200],[540,160],[650,118]]};
+
+  function dot(p, col, r){
+    ctx.beginPath(); ctx.arc(p[0],p[1],r,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.fill();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#06202e'; ctx.fillRect(0,0,W,H);
+
+    // subtle frame label
+    ctx.font='12px Inter, system-ui, sans-serif'; ctx.fillStyle='#8fb9c6'; ctx.textAlign='left';
+    ctx.fillText('30-minute window  ·  east →   north ↑', 16, 22);
+
+    if(!associated){
+      // raw: neutral open dots with a "?"
+      [A,B].forEach(function(wh){
+        wh.pts.forEach(function(p){
+          ctx.beginPath(); ctx.arc(p[0],p[1],7,0,Math.PI*2);
+          ctx.fillStyle='#0d2c3a'; ctx.fill();
+          ctx.lineWidth=2; ctx.strokeStyle='#7f97a1'; ctx.stroke();
+          ctx.fillStyle='#7f97a1'; ctx.font='bold 10px Inter, system-ui'; ctx.textAlign='center';
+          ctx.fillText('?', p[0], p[1]+3.5);
+        });
+      });
+      return;
+    }
+
+    // associated: coloured tracks with connecting lines + start labels
+    [A,B].forEach(function(wh){
+      ctx.strokeStyle=wh.col; ctx.lineWidth=2.4; ctx.beginPath();
+      wh.pts.forEach(function(p,i){ if(i===0)ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); });
+      ctx.stroke();
+      wh.pts.forEach(function(p,i){
+        dot(p, wh.col, i===0?6.5:5);
+        if(i===wh.pts.length-1){ // arrowhead-ish end marker
+          ctx.strokeStyle='#fff'; ctx.lineWidth=1.5;
+          ctx.beginPath(); ctx.arc(p[0],p[1],7.5,0,Math.PI*2); ctx.stroke();
+        }
+      });
+      var s=wh.pts[0];
+      ctx.fillStyle=wh.col; ctx.font='bold 11px Inter, system-ui'; ctx.textAlign='left';
+      ctx.fillText('Whale '+wh.label, s[0]+10, s[1]-8);
+    });
+  }
+
+  function setVerdict(){
+    if(associated){
+      verdict.innerHTML='Two clean tracks. The IPI body-length fingerprint (and coda dialect) sorted the dots — '+
+        '<b>12.3 m whale A</b> and <b>9.6 m whale B</b> — so each path follows <b>one</b> animal in time.';
+    } else {
+      verdict.innerHTML='Raw fixes — you can see twelve dots, but not <b>which whale is which</b>. Associate them to find out.';
+    }
+  }
+
+  var aBtn=document.getElementById('assocBtn'), rBtn=document.getElementById('trackReset');
+  if(aBtn) aBtn.addEventListener('click', function(){ associated=true; draw(); setVerdict(); });
+  if(rBtn) rBtn.addEventListener('click', function(){ associated=false; draw(); setVerdict(); });
+
+  draw(); setVerdict();
+})();
+
+/* ============================ Toy 2 — Mauritius approach zones ============================ */
+(function(){
+  var canvas=document.getElementById('zoneCanvas'); if(!canvas) return;
+  var ctx=canvas.getContext('2d'); if(!ctx) return;
+  var W=canvas.width, H=canvas.height, cx=W/2, cy=H/2;
+  var PXM=0.9;                        // pixels per metre  (200 m = 180 px)
+  var verdict=document.getElementById('zoneVerdict');
+  var distOut=document.getElementById('zoneDist');
+
+  var HOME={x:250, y:150};            // boat start, metres (east, north)
+  var boat={x:HOME.x, y:HOME.y};
+  var hydro={x:-260, y:-160};         // fixed hydrophone, metres
+  var dragging=false;
+
+  function toPx(m){ return {x:cx+m.x*PXM, y:cy-m.y*PXM}; }
+  function dist(m){ return Math.sqrt(m.x*m.x+m.y*m.y); }
+
+  function zoneOf(d){
+    if(d<100) return {key:'red',  col:'#c1492b'};
+    if(d<200) return {key:'amber',col:'#ffd479'};
+    return            {key:'green',col:'#3fbf63'};
+  }
+
+  function ring(rM, fill, stroke){
+    ctx.beginPath(); ctx.arc(cx,cy,rM*PXM,0,Math.PI*2);
+    if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+    if(stroke){ ctx.lineWidth=1.5; ctx.setLineDash([5,4]); ctx.strokeStyle=stroke; ctx.stroke(); ctx.setLineDash([]); }
+  }
+
+  function whale(){
+    // simple stylised whale at centre
+    ctx.fillStyle='#bfe9f2';
+    ctx.beginPath();
+    ctx.ellipse(cx,cy,16,7,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); // tail flukes
+    ctx.moveTo(cx+14,cy); ctx.lineTo(cx+24,cy-7); ctx.lineTo(cx+24,cy+7); ctx.closePath(); ctx.fill();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#06202e'; ctx.fillRect(0,0,W,H);
+
+    // zone fills (outer first)
+    ring(200, 'rgba(255,212,121,.13)', null);
+    ring(100, 'rgba(193,73,43,.26)', null);
+    ring(200, null, 'rgba(255,212,121,.6)');
+    ring(100, null, 'rgba(241,140,120,.85)');
+
+    // ring labels
+    ctx.font='11px Inter, system-ui, sans-serif'; ctx.textAlign='center';
+    ctx.fillStyle='#f3b0a0'; ctx.fillText('100 m', cx, cy-100*PXM+14);
+    ctx.fillStyle='#ffd479'; ctx.fillText('200 m', cx, cy-200*PXM+14);
+
+    whale();
+    ctx.fillStyle='#8fb9c6'; ctx.font='11px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText('whale', cx, cy+22);
+
+    // hydrophone (fixed, outside) + listening line
+    var hp=toPx(hydro);
+    ctx.strokeStyle='rgba(191,233,242,.45)'; ctx.lineWidth=1.2; ctx.setLineDash([3,4]);
+    ctx.beginPath(); ctx.moveTo(hp.x,hp.y); ctx.lineTo(cx,cy); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#bfe9f2';
+    ctx.beginPath(); ctx.moveTo(hp.x,hp.y-7); ctx.lineTo(hp.x+7,hp.y); ctx.lineTo(hp.x,hp.y+7); ctx.lineTo(hp.x-7,hp.y); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#bfe9f2'; ctx.font='10px Inter, system-ui'; ctx.textAlign='left';
+    ctx.fillText('your hydrophone', hp.x+11, hp.y+3);
+
+    // boat
+    var d=dist(boat), z=zoneOf(d), bp=toPx(boat);
+    // radial line whale→boat
+    ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(bp.x,bp.y); ctx.stroke();
+    // boat hull
+    ctx.fillStyle=z.col;
+    ctx.beginPath();
+    ctx.moveTo(bp.x-12,bp.y-4); ctx.lineTo(bp.x+12,bp.y-4);
+    ctx.lineTo(bp.x+7,bp.y+7); ctx.lineTo(bp.x-7,bp.y+7); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+    // distance tag
+    ctx.fillStyle='#fff'; ctx.font='bold 11px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText(Math.round(d)+' m', bp.x, bp.y-12);
+
+    setVerdict(d, z);
+  }
+
+  function setVerdict(d, z){
+    if(distOut) distOut.textContent='Boat is ~'+Math.round(d)+' m from the whale';
+    if(!verdict) return;
+    if(z.key==='red'){
+      verdict.style.color='#ffd0c6';
+      verdict.innerHTML='✗ <b>PROHIBITED ZONE</b> — inside 100 m. No vessel may enter; this is an offence. Back off.';
+    } else if(z.key==='amber'){
+      verdict.style.color='#ffe6ad';
+      verdict.innerHTML='△ <b>Regulated zone (100–200 m)</b> — wakeless speed, approach <b>parallel</b> from the side, engine neutral when stopped, <b>one boat</b> only.';
+    } else {
+      verdict.style.color='#cdeccd';
+      verdict.innerHTML='✓ <b>Free water (beyond 200 m)</b> — legal to sit here. This is exactly where a hydrophone does its work, disturbing nothing.';
+    }
+  }
+
+  function evtToM(e){
+    var r=canvas.getBoundingClientRect();
+    var sx=canvas.width/r.width, sy=canvas.height/r.height;
+    var px=(e.clientX-r.left)*sx, py=(e.clientY-r.top)*sy;
+    return {x:(px-cx)/PXM, y:-(py-cy)/PXM, px:px, py:py};
+  }
+  function nearBoat(m){
+    var bp=toPx(boat), dx=m.px-bp.x, dy=m.py-bp.y;
+    return (dx*dx+dy*dy) < 26*26;
+  }
+
+  canvas.addEventListener('pointerdown', function(e){
+    var m=evtToM(e);
+    if(nearBoat(m)){ dragging=true; canvas.setPointerCapture(e.pointerId); }
+  });
+  canvas.addEventListener('pointermove', function(e){
+    if(!dragging) return;
+    var m=evtToM(e);
+    // keep boat on canvas
+    var maxX=(W/2-14)/PXM, maxY=(H/2-14)/PXM;
+    boat.x=Math.max(-maxX,Math.min(maxX,m.x));
+    boat.y=Math.max(-maxY,Math.min(maxY,m.y));
+    draw();
+  });
+  function endDrag(e){ dragging=false; }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+
+  var zReset=document.getElementById('zoneReset');
+  if(zReset) zReset.addEventListener('click', function(){ boat.x=HOME.x; boat.y=HOME.y; draw(); });
+
+  draw();
+})();
+</script>
+</body>
+</html>

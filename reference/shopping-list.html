@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shopping List · Hydrophone Course</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Reference-specific: jump nav + project blocks + lead-time chips */
+  .jump { position:sticky; top:0; z-index:5; background:rgba(251,250,245,.94); backdrop-filter:blur(6px); border-bottom:1px solid var(--rule); padding:.55rem 0; margin-bottom:1rem; }
+  .jump .wrap { display:flex; flex-wrap:wrap; gap:.25rem .4rem; font-family:var(--sans); font-size:.8rem; padding-inline:0; }
+  .jump a { text-decoration:none; padding:.12rem .45rem; border-radius:5px; color:var(--ocean-deep); }
+  .jump a:hover { background:var(--paper-2); }
+  .project { scroll-margin-top:4rem; border:1px solid var(--rule); border-radius:var(--radius); padding:1.1rem 1.25rem 1.3rem; margin:1.6rem 0; background:#fff; box-shadow:var(--shadow); border-top:4px solid var(--ocean); }
+  .project > h3 { margin-top:.1rem; display:flex; align-items:baseline; gap:.6rem; flex-wrap:wrap; }
+  .project .price-tag { font-family:var(--sans); font-weight:800; color:var(--ocean-deep); font-size:1.05rem; margin-left:auto; }
+  .project .blurb { font-family:var(--sans); font-size:.86rem; color:var(--ink-soft); margin:.1rem 0 .7rem; }
+  .lead { display:inline-block; font-family:var(--sans); font-size:.64rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:.1rem .45rem; border-radius:999px; }
+  .lead.long { background:#fdf0ec; color:var(--coral); border:1px solid #f0cfc4; }
+  .lead.med  { background:#fff7e6; color:#8a6d1e; border:1px solid #ecdcae; }
+  .lead.fast { background:#eef7ef; color:var(--kelp); border:1px solid #cfe6d3; }
+  .ck-lead { margin-left:.4rem; }
+  .planner td, .planner th { vertical-align:top; }
+  .planner .pick { font-weight:700; color:var(--ocean-deep); }
+  .alt { font-family:var(--sans); font-size:.85rem; background:var(--paper-2); border-radius:8px; padding:.7rem .9rem; margin:.7rem 0 0; }
+  .alt b { color:var(--abyss); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="glossary.html">Glossary</a>
+      <a href="shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Reference · Procurement</p>
+  <h1 class="lesson-title">Shopping List</h1>
+  <p class="lesson-sub">What to buy, per project — so the slow-shipping hardware is already on your bench by the
+  time the build lessons arrive. Order the long-lead items <em>now</em>, learn the theory while you wait.</p>
+
+  <div class="callout warning">
+    <div class="callout-label">⚠ Read first — prices are approximate</div>
+    <p>Every price here is a rough, <strong>verify-at-checkout</strong> figure drawn from this course's sourced
+    research; currencies, stock and listings drift. <strong>Shipping to Mauritius and import duty are extra</strong>
+    and can rival the part cost — see <a href="#mauritius">Mauritius notes</a>. Treat the tallies as planning aids,
+    not quotes. Ask me to run a live price-check when you're ready to actually buy.</p>
+  </div>
+
+  <nav class="jump" aria-label="Jump to section">
+    <div class="wrap">
+      <a href="#buy-first">Buy first</a>
+      <a href="#plan">Up-front plan</a>
+      <a href="#software">Software (free)</a>
+      <a href="#tools">Tools</a>
+      <a href="#proj-a">A · Starter ear</a>
+      <a href="#proj-b">B · Preamp</a>
+      <a href="#proj-c">C · Serious build</a>
+      <a href="#proj-d">D · Array</a>
+      <a href="#recorders">Recorders</a>
+      <a href="#mauritius">Mauritius</a>
+    </div>
+  </nav>
+
+  <!-- ============================== BUY FIRST ============================== -->
+  <h2 id="buy-first"><span class="num">⏱</span>Buy these first — the long-lead items</h2>
+  <p>Shipping, not money, is the bottleneck. These take longest to arrive (specialist suppliers, overseas), so
+  order them at the <em>start</em> of the theory phase and they'll be waiting when you reach the builds:</p>
+  <ul>
+    <li><span class="lead long">long lead</span> <strong>PZT cylinder element(s)</strong> — Steminc / APC ship from the US/overseas (Project C &amp; D).</li>
+    <li><span class="lead long">long lead</span> <strong>Polyurethane potting resin</strong> — Smooth-Cast 65D (Smooth-On), hazmat-restricted shipping (Project C).</li>
+    <li><span class="lead long">long lead</span> <strong>Multi-channel recorder</strong> — Zoom F6 / HydroMoth etc.; big-ticket, worth choosing early (Project D, but used everywhere).</li>
+    <li><span class="lead med">order early</span> <strong>Piezo disc multipack &amp; connectors</strong> — cheap but often from overseas marketplaces (Project A).</li>
+    <li><span class="lead med">order early</span> <strong>Preamp board or buffer</strong> — JLI P48 / Gladys kit / Aquarian PA6 (Project B &amp; C).</li>
+  </ul>
+  <div class="callout build">
+    <div class="callout-label">✓ The one-line strategy</div>
+    <p>Do <a href="#plan">the up-front purchase plan</a> below to your budget on day one. Install the
+    <a href="#software">free software</a> immediately and practise on public whale recordings during the theory
+    phase. By the time the parts land, you'll know exactly what to do with them.</p>
+  </div>
+
+  <!-- ============================== PLAN ============================== -->
+  <h2 id="plan"><span class="num">▤</span>Up-front purchase plan</h2>
+  <p>Three sensible starting points, mapped to the mission's ~US$200–600 first-build budget. Pick one now; you can
+  always add later.</p>
+  <table class="planner">
+    <thead><tr><th>Tier</th><th class="num">Spend now</th><th>You get</th><th>Order</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="pick">Toe in the water</td>
+        <td class="num">~$40</td>
+        <td>Build the cheap piezo ear and hear the sea. Pure learning.</td>
+        <td>Project A + free software</td>
+      </tr>
+      <tr>
+        <td class="pick">Recommended</td>
+        <td class="num">~$300–400</td>
+        <td>Everything for a real, usable single hydrophone: cheap ear to learn on, a serious PZT-cylinder build, and a proper recorder you'll keep using.</td>
+        <td>Projects A + B + C, <em>or</em> A + a turnkey Aquarian + a recorder</td>
+      </tr>
+      <tr>
+        <td class="pick">Toward the array</td>
+        <td class="num">~$550–700+</td>
+        <td>The above, plus the start of a localization array — multiple elements and a multi-channel recorder.</td>
+        <td>Projects A–C + begin Project D (recorder + extra elements)</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="muted" style="font-family:var(--sans);font-size:.84rem">The "Recommended" tier is the sweet spot: it
+  keeps you inside budget while giving you a hydrophone good enough to actually record clicks. The array is the
+  summit — start it once the localization lessons have fixed the geometry.</p>
+
+  <!-- ============================== SOFTWARE ============================== -->
+  <h2 id="software"><span class="num">⌨</span>Software &amp; data — free, get it now</h2>
+  <p>Costs nothing, needs no hardware, and powers the whole theory phase. Install these on day one and practise on
+  public recordings before your own gear arrives.</p>
+  <table>
+    <thead><tr><th>Tool</th><th>For</th></tr></thead>
+    <tbody>
+      <tr><td><a href="https://www.audacityteam.org/" target="_blank" rel="noopener">Audacity</a></td><td>Free recorder + spectrogram viewer — your first look at clicks-as-vertical-lines.</td></tr>
+      <tr><td><a href="https://www.ravensoundsoftware.com/software/raven-lite/" target="_blank" rel="noopener">Raven Lite</a> (Cornell)</td><td>Free spectrogram/annotation built for bioacoustics; reads WAV/FLAC, multi-channel.</td></tr>
+      <tr><td><a href="https://www.pamguard.org/" target="_blank" rel="noopener">PAMGuard</a></td><td>Free, open-source detection / classification / localization — the field-standard click tool.</td></tr>
+      <tr><td><a href="https://python-soundfile.readthedocs.io/" target="_blank" rel="noopener">Python</a> + scipy / librosa / soundfile</td><td>Free DIY signal-processing stack for custom spectrograms, detectors and TDOA.</td></tr>
+    </tbody>
+  </table>
+  <div class="alt"><b>Free practice recordings:</b> the <a href="https://www.watkins-marinemammalsounddatabase.org/" target="_blank" rel="noopener">Watkins Marine Mammal Sound Database</a> and the <a href="https://www.thespermwhaleproject.org/" target="_blank" rel="noopener">Dominica Sperm Whale Project</a> are good sources of real sperm-whale clicks to cut your teeth on during the theory phase — no hydrophone needed.</div>
+
+  <!-- ============================== TOOLS ============================== -->
+  <h2 id="tools"><span class="num">🛠</span>Tools — one-time, reused for every build</h2>
+  <p>Standard maker kit. You may own much of it. Buy once; it serves Projects A through D.</p>
+  <div class="checklist-widget">
+    <ul class="checklist">
+      <li data-check data-cost="35"><span class="ck-name">Temperature-controlled soldering iron</span> <span class="ck-spec">— low-wattage; a fine tip for the fragile ceramic.</span> <span class="ck-cost">~$25–50</span></li>
+      <li data-check data-cost="10"><span class="ck-name">Solder + flux pen</span> <span class="ck-spec">— thin rosin-core; lead-free recommended for a home bench.</span> <span class="ck-cost">~$10</span></li>
+      <li data-check data-cost="22"><span class="ck-name">Multimeter</span> <span class="ck-spec">— continuity test is the #1 build debugger.</span> <span class="ck-cost">~$15–30</span></li>
+      <li data-check data-cost="12"><span class="ck-name">Wire strippers + flush cutters</span> <span class="ck-cost">~$10–15</span></li>
+      <li data-check data-cost="10"><span class="ck-name">Helping-hands / PCB clamp</span> <span class="ck-cost">~$10</span></li>
+      <li data-check data-cost="20"><span class="ck-name">Heat gun</span> <span class="ck-spec">— for adhesive heat-shrink.</span> <span class="ck-cost">~$15–25</span></li>
+      <li data-check data-cost="40"><span class="ck-name">Safety: glasses, nitrile gloves, fume extractor/fan</span> <span class="ck-spec">— non-negotiable for solder/epoxy fumes &amp; lead.</span> <span class="ck-cost">~$20–60</span></li>
+    </ul>
+    <div class="checklist-bar"><span data-checklist-progress></span><span data-checklist-cost></span></div>
+  </div>
+
+  <!-- ============================== PROJECT A ============================== -->
+  <h2><span class="num">A–D</span>The projects</h2>
+  <p>Each build lesson maps to a project below. Tap items you already have; the tally shows what's left to buy.</p>
+
+  <div class="project" id="proj-a">
+    <h3>Project A · Starter piezo-disc hydrophone <span class="price-tag">~$25–40</span></h3>
+    <p class="blurb">The cheap learning ear from <a href="../lessons/0002-your-first-underwater-ear.html">the build lesson</a>. Buy a multipack of discs — you'll cook one or two while learning.</p>
+    <div class="checklist-widget">
+      <ul class="checklist">
+        <li data-check data-cost="5"><span class="ck-name">27 mm piezo disc multipack (×10)</span> <span class="ck-spec">— e.g. <a href="https://www.digikey.com/en/products/detail/murata-electronics/7BB-27-4/4358153" target="_blank" rel="noopener">Murata 7BB-27-4 / PUI AB2746B</a>, ~$1.30 each.</span> <span class="lead fast ck-lead">fast/local</span> <span class="ck-cost">~$5</span></li>
+        <li data-check data-cost="8"><span class="ck-name">Shielded mono cable</span> <span class="ck-spec">— thin coax/mic cable, or cut an old mic lead (≈ free).</span> <span class="lead fast ck-lead">fast/local</span> <span class="ck-cost">~$8</span></li>
+        <li data-check data-cost="2"><span class="ck-name">¼″ or 3.5 mm TS connector</span> <span class="ck-spec">— e.g. <a href="https://www.showmecables.com/3-5mm-mono-male-solder-connector-plastic" target="_blank" rel="noopener">ShowMeCables mono plug</a>, ~$2.</span> <span class="lead med ck-lead">order early</span> <span class="ck-cost">~$2</span></li>
+        <li data-check data-cost="10"><span class="ck-name">Plasti Dip <em>or</em> epoxy putty</span> <span class="ck-spec">— waterproofing (thin coats!).</span> <span class="lead fast ck-lead">fast/local</span> <span class="ck-cost">~$10</span></li>
+        <li data-check data-cost="8"><span class="ck-name">Optional: copper foil tape + heat-shrink</span> <span class="ck-spec">— hum shielding + strain relief.</span> <span class="lead fast ck-lead">fast/local</span> <span class="ck-cost">~$8</span></li>
+      </ul>
+      <div class="checklist-bar"><span data-checklist-progress></span><span data-checklist-cost></span></div>
+    </div>
+  </div>
+
+  <!-- ============================== PROJECT B ============================== -->
+  <div class="project" id="proj-b">
+    <h3>Project B · Preamp upgrade <span class="price-tag">~$35–60</span></h3>
+    <p class="blurb">Fixes the thin/bass-light sound for good and lets the hydrophone drive long cables. The DIY
+    classic is the Alex Rice JFET preamp; the no-soldering shortcut is a ready buffer.</p>
+    <div class="checklist-widget">
+      <ul class="checklist">
+        <li data-check data-cost="35"><span class="ck-name">JLI P48 Hi-Z Piezo Buffer</span> <span class="ck-spec">— <a href="https://www.jlielectronics.com/diy-accessories/p48-hi-z-piezo-buffer/" target="_blank" rel="noopener">phantom-powered, no battery</a>, ~$35. The safe, simple path.</span> <span class="lead med ck-lead">order early</span> <span class="ck-cost">~$35</span></li>
+        <li data-check data-cost="12"><span class="ck-name">Balanced XLR cable</span> <span class="ck-spec">— to carry the buffered signal to your recorder.</span> <span class="lead fast ck-lead">fast/local</span> <span class="ck-cost">~$12</span></li>
+      </ul>
+      <div class="checklist-bar"><span data-checklist-progress></span><span data-checklist-cost></span></div>
+    </div>
+    <div class="alt"><b>DIY alternative (~$25–40):</b> build the <a href="https://zachpoff.com/resources/alex-rice-piezo-preamplifier/" target="_blank" rel="noopener">Alex Rice piezo preamp</a> yourself — a low-noise JFET front-end (2SK170-class JFET, op-amp, passives, XLR). More soldering, more learning, less money. Covered in the preamp build lesson.</div>
+  </div>
+
+  <!-- ============================== PROJECT C ============================== -->
+  <div class="project" id="proj-c">
+    <h3>Project C · Serious single hydrophone <span class="price-tag">~$150–300</span></h3>
+    <p class="blurb">The instrument the mission rests on: a PZT cylinder element + preamp + acoustically-transparent
+    potting. Order the cylinder and resin <em>first</em> — they're the slowest to arrive.</p>
+    <div class="checklist-widget">
+      <ul class="checklist">
+        <li data-check data-cost="50"><span class="ck-name">PZT cylinder element</span> <span class="ck-spec">— <a href="https://www.steminc.com/PZT/en/piezo-cylinder" target="_blank" rel="noopener">Steminc</a> 25×22×12 mm ~$49, or 51×45×14 mm ~$55. Omnidirectional, sensitive.</span> <span class="lead long ck-lead">long lead</span> <span class="ck-cost">~$49</span></li>
+        <li data-check data-cost="35"><span class="ck-name">Preamp / buffer</span> <span class="ck-spec">— P48 (Project B), Alex Rice DIY, or <a href="https://www.aquarianaudio.com/pa6.html" target="_blank" rel="noopener">Aquarian PA6</a>.</span> <span class="lead med ck-lead">order early</span> <span class="ck-cost">~$35</span></li>
+        <li data-check data-cost="40"><span class="ck-name">Smooth-Cast 65D polyurethane</span> <span class="ck-spec">— <a href="https://www.smooth-on.com/products/smooth-cast-65d/" target="_blank" rel="noopener">density ≈ water</a>, acoustically transparent. Trial unit + mold.</span> <span class="lead long ck-lead">long lead</span> <span class="ck-cost">~$40</span></li>
+        <li data-check data-cost="20"><span class="ck-name">Shielded cable + XLR + housing bits</span> <span class="ck-spec">— longer run for in-water deployment.</span> <span class="lead med ck-lead">order early</span> <span class="ck-cost">~$20</span></li>
+      </ul>
+      <div class="checklist-bar"><span data-checklist-progress></span><span data-checklist-cost></span></div>
+    </div>
+    <div class="alt"><b>Two buy-instead shortcuts:</b>
+      <b>(1)</b> the all-in-one <a href="https://www.jlielectronics.com/diy-microphone-kits/gladys-hydrophone-kit/" target="_blank" rel="noopener">Gladys Hydrophone Kit</a> (element + preamp + potting in one box — check current price); or
+      <b>(2)</b> a turnkey <a href="https://www.aquarianaudio.com/h2a-hydrophone.html" target="_blank" rel="noopener">Aquarian H2a</a> (~$170) / <a href="https://www.aquarianaudio.com/h2d-hydrophone.html" target="_blank" rel="noopener">H2d</a> (~$229) — calibrated, ready to record, and a known-good reference to compare your DIY build against.</div>
+  </div>
+
+  <!-- ============================== PROJECT D ============================== -->
+  <div class="project" id="proj-d" style="border-top-color:var(--sand)">
+    <h3>Project D · Localization array <span class="price-tag">outline only</span></h3>
+    <p class="blurb">The summit: multiple synchronized hydrophones + a multi-channel recorder, to fix a whale's
+    position by <a href="glossary.html#tdoa">time-difference-of-arrival</a>. <strong>Don't buy this yet</strong> —
+    the localization lessons decide the geometry (how many elements, how far apart). This is the shape of it:</p>
+    <ul>
+      <li><b>3–4+ matched hydrophones</b> — replicate Project C, or buy multiple Aquarians. (≥4 well-spread for a true 3-D fix.)</li>
+      <li><b>Multi-channel recorder</b> — see <a href="#recorders">Recorders</a>; must sample ≥96 kHz on all channels at once.</li>
+      <li><b>Time synchronization</b> — <span class="lead med">open question</span> the hard part if elements aren't on one cabled recorder (GPS/PPS or clock-drift correction). We'll design this in the array lesson.</li>
+      <li><b>Deployment hardware</b> — floats, weights, mooring line, waterproof connectors, a way to log positions.</li>
+    </ul>
+    <div class="alt"><b>Two architectures to weigh later:</b> one <b>cabled multi-channel</b> rig (all elements → a Zoom F6-class recorder; sync is automatic, range limited by cable) vs. several <b>autonomous nodes</b> (HydroMoth-class recorders spread wide; cheaper to spread out, but you must time-align them afterward).</div>
+  </div>
+
+  <!-- ============================== RECORDERS ============================== -->
+  <h2 id="recorders"><span class="num">⏺</span>Recorders — the cross-cutting big decision</h2>
+  <p>The recorder serves every project, so choose it early. The hard requirement: <strong>≥96 kHz sampling</strong>
+  to capture sperm-whale click energy (<a href="glossary.html#nyquist">why</a>), and enough inputs for your array.</p>
+  <table>
+    <thead><tr><th>Recorder</th><th class="num">~Price</th><th>Why / when</th></tr></thead>
+    <tbody>
+      <tr><td><b>USB interface</b> (Scarlett Solo/2i2)</td><td class="num">~$120–200</td><td>Cheapest way into a laptop with a Hi-Z input. Great for bench &amp; Project A/B.</td></tr>
+      <tr><td><a href="https://www.openacousticdevices.info/audiomoth" target="_blank" rel="noopener"><b>HydroMoth</b></a></td><td class="num">~$135</td><td>Tiny autonomous recorder, up to 384 kHz, rated 60 m. Ideal for distributed array nodes. <span class="lead long">long lead</span></td></tr>
+      <tr><td><a href="https://zoomcorp.com/en/us/field-recorders/field-recorders/f6/" target="_blank" rel="noopener"><b>Zoom F6</b></a></td><td class="num">~$350–500</td><td>6 XLR, 192 kHz, 32-bit float, per-channel phantom. The value pick for a cabled phantom-powered array.</td></tr>
+      <tr><td><a href="https://www.sounddevices.com/mixpre-6-ii-specifications/" target="_blank" rel="noopener"><b>Sound Devices MixPre-6 II</b></a></td><td class="num">~$900</td><td>Premium, ultra-low-noise, 10 Hz–80 kHz. If budget allows and noise floor matters.</td></tr>
+      <tr><td><a href="https://www.orcasound.net/2018/04/27/orcasounds-new-live-audio-solution-from-hydrophone-to-headphone-with-a-raspberry-pi-computer-and-hls-dash-streaming-software/" target="_blank" rel="noopener"><b>Raspberry Pi + Pisound</b></a></td><td class="num">~$800 (full node)</td><td>Open-source live-streaming node, 192 kHz, 2-ch. For a cabled real-time station.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============================== MAURITIUS ============================== -->
+  <h2 id="mauritius"><span class="num">⚓</span>Buying into Mauritius — practical notes</h2>
+  <div class="callout note">
+    <div class="callout-label">⌁ Plan around shipping &amp; duty</div>
+    <ul>
+      <li><strong>Consolidate orders</strong> to cut per-parcel shipping and customs handling — buy a project's worth at once, not piece by piece.</li>
+      <li><strong>Budget for import duty + VAT</strong> on electronics; it can add 15%+ on top of shipping. Factor it into the tiers above.</li>
+      <li><strong>Hazmat items ship slowly</strong> — resins (Smooth-Cast), some adhesives and batteries face air-freight restrictions; order earliest.</li>
+      <li><strong>Source locally where you can</strong> — soldering tools, epoxy putty, cable, weights and floats are often available on-island faster and cheaper than importing.</li>
+      <li><strong>Talk to the locals.</strong> <a href="https://www.mmco.mu/" target="_blank" rel="noopener">MMCO</a> and others (see <a href="https://github.com/chrisfraser/hydrophone/blob/main/RESOURCES.md">Resources → Communities</a>) already run gear in these waters — they may know suppliers, or have kit to point you at.</li>
+    </ul>
+  </div>
+
+  <div class="crosslinks">
+    <b>See also:</b> <a href="../index.html">the lesson map</a> ·
+    <a href="glossary.html">glossary</a> ·
+    <a href="https://github.com/chrisfraser/hydrophone/blob/main/RESOURCES.md">full resource list</a> (every supplier &amp; component has a sourced entry there).
+    Buying decisions feel premature? They're meant to be — order now, understand later; the theory lessons explain
+    every choice.
+  </div>
+
+  <p class="pagefoot">Hydrophone course · Shopping List · prices approximate, verify before buying ·
+  <a href="https://github.com/chrisfraser/hydrophone">github.com/chrisfraser/hydrophone</a></p>
+</main>
+</body>
+</html>

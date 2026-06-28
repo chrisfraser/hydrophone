@@ -1,0 +1,15 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Scratch / local
+.scratch/
+*.log
+node_modules/
+
+# Audio captures (keep the repo light — store recordings elsewhere)
+*.wav
+*.flac
+*.aiff

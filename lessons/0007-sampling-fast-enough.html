@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T6 · Sampling Fast Enough</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-7-specific: the aliasing canvas + its controls */
+  .toy { background:linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; }
+  .toy label { font-family:var(--sans); font-size:.82rem; font-weight:600; color:var(--ink-soft); display:flex; justify-content:space-between; margin:.7rem 0 .25rem; }
+  .toy label output { font-variant-numeric:tabular-nums; color:var(--ocean-deep); font-weight:700; }
+  .toy input[type=range] { width:100%; accent-color:var(--ocean); }
+  .row { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.9rem; }
+  .chip { cursor:pointer; border:1.5px solid var(--rule); background:#fff; border-radius:999px; padding:.32rem .7rem; font-weight:600; color:var(--ink-soft); }
+  .chip.on { border-color:var(--ocean); background:#e7f5f7; color:var(--ocean-deep); }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.95rem; padding:.65rem .85rem; border-radius:8px; margin-top:.95rem; background:#06202e; color:#d8f1f5; line-height:1.5; }
+  .toy .verdict b { color:#ffd479; }
+  .toy .verdict.ok  { background:#0c2e1e; color:#c7f0d6; }
+  .toy .verdict.bad { background:#3a1410; color:#ffc9bf; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 1 · Theory · T6</p>
+  <h1 class="lesson-title">Sampling Fast Enough: Nyquist &amp; the Click Problem</h1>
+  <p class="lesson-sub">A digital recorder only takes snapshots. Take them too slowly and a sperm whale's
+  click doesn't just blur — it turns into a different sound entirely, and nothing can change it back.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~10 minutes</span><span class="sep">•</span>
+    <span>🧮 Light math, one hard rule</span><span class="sep">•</span>
+    <span class="tag ocean">Decides which recorder you buy</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson</div>
+    <p>You can already read a <a href="../reference/glossary.html#spectrogram">spectrogram</a> (T4) and you know a
+    sperm-whale click is <strong>broadband</strong> — energy smeared across a huge band of frequencies (T5). Now meet
+    the hardware wall that all of that runs into. A single number on a recorder's spec sheet — its
+    <strong>sample rate</strong> — decides whether you ever capture a click at all. Get it wrong and the loudest
+    animal on Earth arrives as mush, <em>irreversibly</em>. This one rule is why we can pick your recorder before you
+    spend a cent.</p>
+  </div>
+
+  <h2><span class="num">1</span>The one rule: sample more than twice as fast</h2>
+  <p>A hydrophone gives you a smooth, continuous voltage. To store it, the recorder takes <strong>samples</strong> —
+  instantaneous snapshots of that voltage, <span class="inline-math">f<sub>s</sub></span> of them every second. The
+  question Nyquist answers is brutal and exact: <em>how many snapshots per second do you need so the original wave can
+  be rebuilt without ambiguity?</em></p>
+  <p>The answer is the <a href="../reference/glossary.html#nyquist">Nyquist rate</a>: you must sample at
+  <strong>more than twice the highest frequency you care about</strong>.<span class="cite"><a href="#r-dosits">1</a></span>
+  Two samples per cycle is the bare floor; below it, a wave can wear a disguise. Flip it around and the same rule names
+  the highest frequency a given recorder can honestly capture — the <strong>Nyquist frequency</strong>, exactly half
+  the sample rate:</p>
+
+  <div class="formula">
+    <span class="var">f</span><sub class="op">s</sub> <span class="op">&gt;</span> 2 <span class="op">×</span> <span class="var">f</span><sub class="op">max</sub>
+    &nbsp;&nbsp;&nbsp;⇔&nbsp;&nbsp;&nbsp;
+    Nyquist frequency <span class="op">=</span> <span class="var">f</span><sub class="op">s</sub> <span class="op">/</span> 2
+    <small>Everything below f<sub>s</sub>/2 survives intact. Everything above it is trouble — see §2.</small>
+  </div>
+
+  <p>So the arithmetic is short. Want to keep every wiggle up to <strong>30 kHz</strong>? You need
+  <span class="inline-math">f<sub>s</sub> &gt; 60 kHz</span>. A 96 kHz recorder gives you a Nyquist frequency of
+  <strong>48 kHz</strong> — comfortably clear. A 48 kHz video recorder gives you only 24 kHz, and quietly throws the
+  rest away.</p>
+
+  <h2><span class="num">2</span>Aliasing: the ghost that can't be exorcised</h2>
+  <p>Here's the part that bites. When you undersample, a too-high frequency doesn't politely vanish. It
+  <strong>folds back</strong> down and reappears as a <em>false, lower</em> frequency — an alias — sitting right on top
+  of your real data.<span class="cite"><a href="#r-dosits">1</a></span> Sample a 24 kHz tone at 32 kHz (Nyquist =
+  16 kHz) and it comes back as an <strong>8 kHz ghost</strong>. You've recorded a sound the whale never made.</p>
+  <p>You have seen this: a car's wheels appear to spin backwards on film because the camera's frame rate undersamples
+  the spokes. Same trap. And it is <strong>irreversible</strong> — once two different frequencies land on the very same
+  string of sample dots, the file simply cannot tell them apart. The information is destroyed <em>before it is
+  written</em>, so no equaliser, no clever software, no AI gets it back. The only fix is to sample fast enough in the
+  first place.</p>
+
+  <div class="toy">
+    <h3>🎛 Aliasing demo — drag the sample rate down and watch a ghost appear</h3>
+    <p class="hint">The faint line is the <b>true</b> wave (the frequency you want). The gold dots are the recorder's
+    <b>samples</b>. The bold line is what those samples actually reconstruct. While the sample rate stays above twice
+    the signal, the bold line tracks the truth. Drop it below and the bold line collapses into a slow
+    <b>false frequency</b> that still passes through every dot.</p>
+    <canvas id="aliasCanvas" width="720" height="300" aria-label="A true sine wave, its sample dots, and the reconstructed aliased wave"></canvas>
+    <label>Highest frequency you want to keep <output id="fSigOut">24 kHz</output></label>
+    <input type="range" id="fSig" min="2" max="48" step="1" value="24">
+    <label>Your recorder's sample rate <output id="fsOut">96 kHz</output></label>
+    <input type="range" id="fsRate" min="8" max="200" step="1" value="96">
+    <div class="row">
+      <span>Jump to a real recorder:</span>
+      <span class="chip" data-fs="44">Phone / CD · 44</span>
+      <span class="chip" data-fs="48">Video · 48</span>
+      <span class="chip on" data-fs="96">PAM · 96</span>
+      <span class="chip" data-fs="192">Wideband · 192</span>
+    </div>
+    <div class="verdict ok" id="aliasVerdict">—</div>
+  </div>
+
+  <div class="callout note">
+    <div class="callout-label">⌗ "But doesn't a filter stop this?"</div>
+    <p>Good real recorders put an <strong>anti-alias low-pass filter</strong> in front of the converter, which throws
+    away everything above the Nyquist frequency <em>before</em> sampling — so the ghost never forms. That protects the
+    rest of your recording, but notice what it costs: the high part of the click is <strong>gone either way</strong>.
+    Filtering trades a false signal for no signal. The only way to actually <em>keep</em> the click's high frequencies
+    is the honest one — sample faster.</p>
+  </div>
+
+  <h2><span class="num">3</span>So how fast for a sperm-whale click?</h2>
+  <p>Now point the rule at your quarry. A usual click is broadband: its energy runs from a few hundred hertz up into
+  the <strong>tens of kilohertz</strong>, with the bulk centred around 5–15 kHz and useful content reaching roughly
+  <strong>30 kHz</strong>.<span class="cite"><a href="#r-wna">2</a></span> To keep all of that, your Nyquist frequency
+  has to sit above ~30 kHz — which means <span class="inline-math">f<sub>s</sub> &gt; ~60 kHz</span>.</p>
+  <p>That is exactly why the field has converged on <strong>≥96 kHz as the working standard</strong> for click work.
+  Wideband arrays built to study these animals run flat to well past human hearing and sample at
+  96 kHz;<span class="cite"><a href="#r-wideband">3</a></span> a real passive-acoustic survey in the Atlantic recorded
+  its hydrophones at <strong>192 kHz — and two of them at 500 kHz</strong> — then decimated down to 96 kHz for click
+  analysis.<span class="cite"><a href="#r-wna">2</a></span> Published PAM guidance simply lists a minimum sample rate
+  per species so a system is defensible.<span class="cite"><a href="#r-vanparijs">4</a></span></p>
+
+  <table>
+    <caption>What each sample rate can honestly capture. The Nyquist frequency is the verdict line.</caption>
+    <thead><tr><th>Sample rate <span class="num">f<sub>s</sub></span></th><th class="num">Nyquist (f<sub>s</sub>/2)</th><th>Verdict for a sperm-whale click</th></tr></thead>
+    <tbody>
+      <tr><td>44.1 kHz <small>(phone / CD)</small></td><td class="num">~22 kHz</td><td>✗ Cuts the click — top end aliases or is filtered off.</td></tr>
+      <tr><td>48 kHz <small>(video / field rec.)</small></td><td class="num">24 kHz</td><td>✗ Still too slow; loses the high energy of the click.</td></tr>
+      <tr><td><b>96 kHz</b> <small>(PAM standard)</small></td><td class="num">48 kHz</td><td>✓ The safe minimum — keeps the click with margin.</td></tr>
+      <tr><td>192 kHz <small>(high-detail)</small></td><td class="num">96 kHz</td><td>✓ Captures fine structure; common in research.</td></tr>
+      <tr><td>500 kHz <small>(specialist)</small></td><td class="num">250 kHz</td><td>✓ Overkill for clicks; for ultrasonic work.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout key">
+    <div class="callout-label">★ The buying rule — carry this to the Shopping List</div>
+    <p>When you reach the recorder aisle in the <a href="../reference/shopping-list.html">Shopping List</a> (the build
+    phase), the <strong>first filter you apply is sample rate</strong>: anything below <strong>96 kHz cannot honestly
+    record a sperm-whale click</strong>, full stop, no matter how good its preamps or how cheap its price. That is why
+    every recorder we recommend for the array — the AudioMoth/HydroMoth, the Zoom F6, the MixPre — clears 96 kHz and
+    most reach 192 kHz. This single rule has just shortened your shopping list for you.</p>
+  </div>
+
+  <h2><span class="num">4</span>Check yourself</h2>
+  <p>No peeking — pulling these out of your head is what makes them stick.</p>
+
+  <div class="quiz"
+       data-explain-right="Exactly — Nyquist is half the sample rate."
+       data-explain-wrong="Re-read §1: the Nyquist frequency is f_s / 2.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">A recorder samples at 96 kHz. The highest frequency it can faithfully capture is…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Right — the Nyquist frequency is exactly half the sample rate: 96 / 2 = 48 kHz. Everything below that survives.">48 kilohertz</button>
+      <button class="opt" data-feedback="That's the sample rate itself, not the limit. You can only faithfully keep up to half of it — 48 kHz.">96 kilohertz</button>
+      <button class="opt" data-feedback="Too low — that would be the Nyquist frequency of a 48 kHz recorder. At 96 kHz the limit is 48 kHz.">24 kilohertz</button>
+      <button class="opt" data-feedback="That's twice the sample rate — impossible. The honest ceiling is half the rate, 48 kHz.">192 kilohertz</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="Aliasing — and it's permanent."
+       data-explain-wrong="See §2 and the demo: undersampling folds it into a false low frequency.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">You sampled a 40 kHz part of a click at only 48 kHz. What became of it?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Yes — 40 kHz is above the 24 kHz Nyquist, so it folds down to a false 8 kHz tone sitting on your real data. No software undoes it.">It returned as a false lower frequency</button>
+      <button class="opt" data-feedback="No — 40 kHz is above the 24 kHz Nyquist, so it could not be captured cleanly. It aliased into a false low tone.">It was captured with full clean detail</button>
+      <button class="opt" data-feedback="Only if an anti-alias filter sat in front. With none, it aliases into a false low tone instead of being removed.">It was filtered out before any sampling</button>
+      <button class="opt" data-feedback="It didn't merely dim — it changed identity, reappearing as a false lower frequency. That's aliasing, and it's irreversible.">It merely lost some faint high energy</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="The only rate that clears the click."
+       data-explain-wrong="A click reaches ~30 kHz, so you need a Nyquist above 30 kHz — f_s above ~60 kHz.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">A click holds energy up to ~30 kHz. Which recorder sample rate is the safe minimum?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Correct — only 96 kHz puts the Nyquist frequency (48 kHz) safely above the click's 30 kHz top end.">96 kilohertz</button>
+      <button class="opt" data-feedback="Nyquist would be just 24 kHz — below the click's 30 kHz top. The high end aliases. Too slow.">48 kilohertz</button>
+      <button class="opt" data-feedback="Nyquist would be ~22 kHz — well under 30 kHz. This is the phone/CD rate, and it cuts the click.">44 kilohertz</button>
+      <button class="opt" data-feedback="Nyquist would be only 16 kHz — it mangles most of the click into ghosts. Far too slow.">32 kilohertz</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now say</h3>
+    <ol>
+      <li>To capture a frequency faithfully you must sample at <strong>more than twice</strong> it — the Nyquist rate.</li>
+      <li>The <strong>Nyquist frequency = f<sub>s</sub>/2</strong> is the honest ceiling of any recorder.</li>
+      <li>Undersampling causes <strong>aliasing</strong>: a high frequency folds into a false low one, and it is <strong>irreversible</strong>.</li>
+      <li>Sperm-whale clicks reach <strong>~30 kHz</strong>, so f<sub>s</sub> must exceed ~60 kHz — making <strong>≥96 kHz the working standard</strong>.</li>
+      <li>Sample rate is the <strong>first filter</strong> on your recorder shortlist: under 96 kHz can't record a click.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · read this next</div>
+      <div class="title"><a href="https://dosits.org/science/advanced-topics/nyquist-sampling/" target="_blank" rel="noopener">DOSITS — “Nyquist Sampling”</a></div>
+      <div class="desc">The clearest short explainer of the &gt;2× rule, the Nyquist frequency, and why undersampling
+      aliases high frequencies into false low ones — written for ocean-sound people, not DSP engineers. ~5-minute read.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>I'm your teacher — ask me anything.</b> Want to see the alias arithmetic worked for a specific tone, unsure why
+    two samples per cycle isn't quite enough, or wondering what "32-bit float" and "decimation" mean on a recorder's spec
+    sheet? Just ask in chat. Confused beats stuck.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#nyquist">Nyquist rate</a> ·
+    <a href="../reference/glossary.html#spectrogram">spectrogram</a> ·
+    <a href="../reference/glossary.html#regular-click">regular click</a>.
+    <b>Builds toward →</b> T7 (whether you'll even hear it over the noise) and the
+    <a href="../reference/shopping-list.html">Shopping List</a>, where this rule picks your recorder.
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-dosits">DOSITS — <a href="https://dosits.org/science/advanced-topics/nyquist-sampling/" target="_blank" rel="noopener">Nyquist Sampling</a>. Sample &gt; 2× the highest frequency; the Nyquist frequency = f<sub>s</sub>/2; undersampling aliases high frequencies into false low ones.</li>
+    <li id="r-wna">Stanton et al. (2022), <em>Scientific Reports</em> — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9546825/" target="_blank" rel="noopener">Acoustic abundance &amp; dive behaviour of W. N. Atlantic sperm whales</a>. HTI-96-Min hydrophones flat 1–30 kHz; recorded at 192 kHz (two at 500 kHz), decimated to 96 kHz; click centroid 5–15 kHz.</li>
+    <li id="r-wideband">Pavan et al. — <a href="https://www.sciencedirect.com/science/article/abs/pii/S0967063706003268" target="_blank" rel="noopener">Wideband fibre-optic array recordings of sperm whales</a>, <em>Deep-Sea Research</em>. Flat 10 Hz–170 kHz, sampled at 96 kHz — evidence ≥96 kHz is the working standard.</li>
+    <li id="r-vanparijs">Van Parijs et al. (2021), <em>Frontiers in Marine Science</em> — <a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2021.760840/full" target="_blank" rel="noopener">Minimum PAM recommendations</a>. Sensitivity, bandwidth and minimum sample rate by species for a defensible system.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0006-clicks-codas-and-the-clan.html">
+      <div class="dir">← T5 · Clicks, Codas &amp; the Clan</div>
+      <div class="ttl">What a click is made of</div>
+    </a>
+    <a class="next" href="0008-will-i-even-hear-it.html">
+      <div class="dir">Next · T7 · Will I Even Hear It? →</div>
+      <div class="ttl">Signal vs the sea's noise</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson 7 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Aliasing demo ============================ */
+(function(){
+  var canvas = document.getElementById('aliasCanvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if(!ctx) return;
+  var W = canvas.width, H = canvas.height;
+  var padL = 46, padR = 16, padT = 30, padB = 30;
+  var fSig = document.getElementById('fSig');
+  var fsRate = document.getElementById('fsRate');
+  var fSigOut = document.getElementById('fSigOut');
+  var fsOut = document.getElementById('fsOut');
+  var verdict = document.getElementById('aliasVerdict');
+  if(!fSig || !fsRate) return;
+
+  var midY = (padT + (H - padB)) / 2;
+  var amp = (H - padT - padB) / 2 - 8;
+
+  function signedAlias(f, fs){ var m = Math.round(f / fs); return f - m * fs; }   // folded freq, signed
+  function aliasFreq(f, fs){ return Math.abs(signedAlias(f, fs)); }                // folded freq in [0, fs/2]
+  function fmt(v){ return (Math.round(v * 10) / 10).toString(); }
+
+  function draw(){
+    var f  = parseFloat(fSig.value);    // kHz  (so 1/f is in ms)
+    var fs = parseFloat(fsRate.value);  // kHz
+    if(!(f > 0) || !(fs > 0)) return;
+    var nyq = fs / 2;
+    var aliased = f > nyq + 1e-9;
+
+    // time window: ~8 cycles of the true wave, but cap the dot count so it stays legible
+    var win = 8 / f;                    // ms
+    if(win * fs > 72) win = 72 / fs;    // never draw more than ~72 sample dots
+
+    var plotW = W - padL - padR;
+    function xOf(t){ return padL + (t / win) * plotW; }
+    function yOf(v){ return midY - v * amp; }
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#06202e'; ctx.fillRect(0, 0, W, H);
+
+    // zero line
+    ctx.strokeStyle = 'rgba(143,185,198,.25)';
+    ctx.beginPath(); ctx.moveTo(padL, midY); ctx.lineTo(W - padR, midY); ctx.stroke();
+
+    // panel labels
+    ctx.font = '12px Inter, system-ui, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(143,185,198,.85)';
+    ctx.fillText('faint = true wave (' + fmt(f) + ' kHz)', padL, 16);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = aliased ? '#ff8a7e' : '#7fe0a0';
+    ctx.fillText('bold = what you record (' + fmt(aliasFreq(f, fs)) + ' kHz)', W - padR, 16);
+    ctx.textAlign = 'left';
+
+    // true signal — faint
+    ctx.strokeStyle = 'rgba(143,185,198,.55)'; ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    for(var px = 0; px <= plotW; px++){
+      var t = (px / plotW) * win, v = Math.sin(2 * Math.PI * f * t);
+      var x = padL + px, y = yOf(v);
+      if(px === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // reconstructed signal — bold, passes through every sample dot
+    var fS = signedAlias(f, fs);
+    ctx.strokeStyle = aliased ? '#ff6b5e' : '#3fbf63'; ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    for(var px2 = 0; px2 <= plotW; px2++){
+      var t2 = (px2 / plotW) * win, v2 = Math.sin(2 * Math.PI * fS * t2);
+      var x2 = padL + px2, y2 = yOf(v2);
+      if(px2 === 0) ctx.moveTo(x2, y2); else ctx.lineTo(x2, y2);
+    }
+    ctx.stroke();
+
+    // sample dots + stems
+    var dt = 1 / fs; // ms
+    for(var t3 = 0; t3 <= win + 1e-9; t3 += dt){
+      var v3 = Math.sin(2 * Math.PI * f * t3);
+      var x3 = xOf(t3), y3 = yOf(v3);
+      ctx.strokeStyle = 'rgba(255,212,121,.3)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x3, midY); ctx.lineTo(x3, y3); ctx.stroke();
+      ctx.fillStyle = '#ffd479';
+      ctx.beginPath(); ctx.arc(x3, y3, 3.1, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // time axis hint
+    ctx.fillStyle = '#5b8593'; ctx.font = '10px Inter, system-ui'; ctx.textAlign = 'right';
+    ctx.fillText('time → (' + fmt(win) + ' ms window)', W - padR, H - 8);
+    ctx.textAlign = 'left';
+  }
+
+  function update(){
+    var f  = parseFloat(fSig.value);
+    var fs = parseFloat(fsRate.value);
+    var nyq = fs / 2;
+    if(fSigOut) fSigOut.textContent = fmt(f) + ' kHz';
+    if(fsOut)   fsOut.textContent   = fmt(fs) + ' kHz';
+
+    // sync recorder chips
+    document.querySelectorAll('.toy .chip').forEach(function(c){
+      c.classList.toggle('on', parseFloat(c.getAttribute('data-fs')) === fs);
+    });
+
+    if(verdict){
+      if(f <= nyq + 1e-9){
+        verdict.className = 'verdict ok';
+        verdict.innerHTML = '✓ <b>Captured faithfully.</b> Nyquist = f<sub>s</sub>/2 = <b>' + fmt(nyq) +
+          ' kHz</b>, above your ' + fmt(f) + ' kHz signal — every wiggle survives.';
+      } else {
+        var ghost = aliasFreq(f, fs);
+        verdict.className = 'verdict bad';
+        verdict.innerHTML = '✗ <b>ALIASED.</b> Nyquist = <b>' + fmt(nyq) + ' kHz</b> sits below your ' + fmt(f) +
+          ' kHz signal, so it returns as a false <b>' + fmt(ghost) + ' kHz</b> ghost — and no software can undo it.';
+      }
+    }
+    draw();
+  }
+
+  fSig.addEventListener('input', update);
+  fsRate.addEventListener('input', update);
+  document.querySelectorAll('.toy .chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      var v = parseFloat(chip.getAttribute('data-fs'));
+      if(!(v > 0)) return;
+      fsRate.value = v;
+      update();
+    });
+  });
+
+  update();
+})();
+</script>
+</body>
+</html>

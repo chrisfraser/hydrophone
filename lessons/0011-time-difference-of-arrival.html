@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T10 · Time Difference of Arrival</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-T10-specific: the TDOA canvas toy */
+  .toy { background:linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; cursor:crosshair; touch-action:none; }
+  .row { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .row .btn { cursor:pointer; border:1.5px solid var(--ocean); background:var(--ocean); color:#fff; font-weight:700; padding:.5rem .9rem; border-radius:8px; font-size:.85rem; }
+  .row .btn.ghost { background:#fff; color:var(--ocean-deep); }
+  .toy .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.6rem; margin-top:.8rem; }
+  .toy .stat { background:#06202e; border-radius:8px; padding:.6rem .7rem; font-family:var(--sans); }
+  .toy .stat .k { font-size:.66rem; text-transform:uppercase; letter-spacing:.08em; color:#8fb9c6; }
+  .toy .stat .v { font-family:var(--mono); font-size:1.25rem; font-weight:700; color:#ffd479; line-height:1.3; }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.92rem; padding:.6rem .8rem; border-radius:8px; margin-top:.8rem; background:#06202e; color:#d8f1f5; line-height:1.5; }
+  .toy .verdict b { color:#ffd479; }
+  @media (max-width:34rem){ .toy .stats { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 1 · Theory · T10</p>
+  <h1 class="lesson-title">Time Difference of Arrival: Cross-Correlation &amp; Bearings</h1>
+  <p class="lesson-sub">One click, two hydrophones, two slightly different arrival times. That tiny gap is the
+  single measurement every position fix is built from — here is what it is, how you read it, and what it can and
+  can't tell you.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~14 minutes</span><span class="sep">•</span>
+    <span>🧮 Balanced math + one toy</span><span class="sep">•</span>
+    <span class="tag math">Mission: two ears → a compass</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson</div>
+    <p>By now you can <strong>detect</strong> a sperm-whale click on a single channel (T8). Detection answers
+    <em>"is a whale clicking?"</em> — it says nothing about <em>where</em>. Localization is just detection plus one
+    extra ingredient: <strong>timing</strong>. This lesson introduces the measurement the entire summit of the
+    course rests on — the <a href="../reference/glossary.html#tdoa">time difference of arrival</a> between two
+    hydrophones — and turns your pair of ears into a compass that <strong>points at a clicking Mauritius
+    whale</strong>.</p>
+  </div>
+
+  <h2><span class="num">1</span>The clock, not the loudness</h2>
+  <p>The same click leaves the whale once, but it does not reach two separated hydrophones at the same instant. If
+  the whale is a little closer to hydrophone&nbsp;1, the sound arrives there <em>first</em>; the second hydrophone
+  hears the identical click a fraction of a millisecond later. That sliver of delay is the
+  <strong>time difference of arrival (TDOA)</strong> — written <span class="inline-math">Δt</span>.</p>
+  <p>TDOA is powerful because it converts cleanly into <em>geometry</em>. Sound travels at a known speed
+  <span class="inline-math">c</span> (~1500 m/s in seawater). So the extra time is just extra distance: multiply
+  the delay by <span class="inline-math">c</span> and you get the <strong>difference in path length</strong> from
+  the source to the two hydrophones.<span class="cite"><a href="#r-pamtdoa">1</a></span></p>
+
+  <div class="formula">
+    <span class="var">Δd</span> <span class="op">=</span> <span class="var">c</span> <span class="op">·</span> <span class="var">Δt</span>
+    <small>Δd = path-length difference (m) · c = sound speed (~1500 m/s) · Δt = time difference of arrival (s)</small>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-label">★ A worked example — burn this in</div>
+    <p>Suppose the click hits hydrophone&nbsp;1 exactly <strong>0.4 ms</strong> before hydrophone&nbsp;2. Convert
+    the delay to a distance:</p>
+    <p style="text-align:center"><span class="inline-math">Δd = 1500 m/s × 0.0004 s = <b>0.6 m</b></span></p>
+    <p>The source is <strong>0.6 m farther</strong> from hydrophone&nbsp;2 than from hydrophone&nbsp;1 — no more,
+    no less. Notice what you <em>don't</em> get: not the range, not the position. One TDOA fixes a
+    <em>difference</em> of distances, and "all points whose distance to two fixed points differs by a constant" is
+    the textbook definition of a <strong><a href="../reference/glossary.html#hyperbolic">hyperbola</a></strong>.
+    Your source lies somewhere on that curve.</p>
+  </div>
+
+  <h2><span class="num">2</span>How you actually measure Δt — cross-correlation</h2>
+  <p>You can't eyeball the delay; a click is a few hundred microseconds long and buried in noise. The standard
+  tool is <strong>cross-correlation</strong>: slide one channel's waveform across the other and, at each lag,
+  multiply-and-sum to score how well they overlap. The lag that scores highest is the delay. As PAMGuard puts it,
+  TDOA is "most often made by finding the peak in the cross correlation function of the signal waveform recorded at
+  each hydrophone."<span class="cite"><a href="#r-pamtdoa">1</a></span></p>
+  <p>Raw correlation works, but in a noisy, echoey ocean the peak can smear into a broad, ambiguous lump. The fix
+  is <strong><a href="../reference/glossary.html#gcc-phat">GCC-PHAT</a></strong> — Generalized Cross-Correlation
+  with Phase Transform. Before correlating, it <strong>phase-whitens</strong> both signals: it divides each
+  frequency by its own magnitude, throwing away <em>how loud</em> each frequency is and keeping only <em>when</em>
+  it arrived (its phase).<span class="cite"><a href="#r-gccphat">2</a></span> Whitening flattens the spectrum so
+  every frequency votes equally on the timing, collapsing the correlation into a single sharp spike — close to a
+  Dirac delta — right at the true delay, even under reverberation and noise.<span class="cite"><a href="#r-gccphat">2</a></span>
+  The method dates to Knapp &amp; Carter (1976) and is still the workhorse of acoustic time-delay
+  estimation.<span class="cite"><a href="#r-knapp">3</a></span><span class="cite"><a href="#r-anguera">4</a></span></p>
+
+  <div class="callout note">
+    <div class="callout-label">⌗ Why "whiten"?</div>
+    <p>A loud, low-frequency rumble can dominate plain correlation and drag the peak around. Phase-whitening
+    removes the amplitude bias so a faint broadband click and a loud tonal both contribute the same timing
+    information. The trade: PHAT is brilliant for <em>timing</em> but discards level — which is exactly why we use
+    it for TDOA and a different tool for measuring loudness.</p>
+  </div>
+
+  <h2><span class="num">3</span>Two ears give a direction, not a place</h2>
+  <p>Here is the humbling part. A single TDOA pins the whale to a whole hyperbola, and far from the array that
+  hyperbola straightens into a <strong>ray</strong> — a <strong>bearing</strong>. The bearing angle
+  <span class="inline-math">θ</span>, measured from the line perpendicular to your two-hydrophone baseline
+  (<em>broadside</em>), follows directly from the path difference and the spacing
+  <span class="inline-math">B</span>:</p>
+
+  <div class="formula">
+    <span class="op">sin</span> <span class="var">θ</span> <span class="op">=</span> <span class="var">Δd</span> <span class="op">/</span> <span class="var">B</span> <span class="op">=</span> <span class="var">c·Δt</span> <span class="op">/</span> <span class="var">B</span>
+    <small>θ = bearing off broadside · Δd = path difference · B = hydrophone spacing (baseline)</small>
+  </div>
+
+  <p>But a direction is not a position, and worse, it is a <em>doubly</em> ambiguous direction. With only two
+  hydrophones you measure one number, so you can resolve only one dimension — PAMGuard is blunt about it: two
+  sensors give "a bearing, but it will be ambiguous."<span class="cite"><a href="#r-pamarray">5</a></span> A source
+  on one side of the baseline and its mirror-image twin on the other side are exactly the same distance from each
+  hydrophone, so they produce the <strong>identical TDOA</strong>. Two ears cannot tell them apart — the famous
+  <em>left/right ambiguity</em>. Play with it below: drag the whale and watch the mirror twin track it, both giving
+  one TDOA, while the correlation peak slides to match.</p>
+
+  <div class="toy">
+    <h3>🧭 Toy — Two hydrophones, one TDOA, a bearing with a twin</h3>
+    <p class="hint">Drag the gold whale anywhere in the ocean panel. The two teal hydrophones each hear the click;
+    the <b>gold hyperbola</b> is every position giving the same delay, and the dashed rays are the far-field
+    bearing. The faded <b>mirror twin</b> across the baseline gives an identical TDOA — that's the left/right
+    ambiguity. The right panel shows the cross-correlation peak sliding to the measured lag.</p>
+    <canvas id="tdoaCanvas" width="720" height="380" aria-label="Interactive: two hydrophones, a draggable source, its TDOA, hyperbola, bearing, mirror twin, and a cross-correlation peak"></canvas>
+    <div class="stats">
+      <div class="stat"><div class="k">TDOA (Δt)</div><div class="v" id="tdT">—</div></div>
+      <div class="stat"><div class="k">Path diff (Δd = c·Δt)</div><div class="v" id="tdD">—</div></div>
+      <div class="stat"><div class="k">Bearing off broadside</div><div class="v" id="tdB">—</div></div>
+    </div>
+    <div class="verdict" id="tdV">—</div>
+    <div class="row">
+      <button class="btn ghost" id="tdReset">↺ Reset the whale</button>
+      <span class="muted" style="font-family:var(--sans)">Baseline B = 120 m · c = 1500 m/s · 1 grid square ≈ 100 m</span>
+    </div>
+  </div>
+
+  <div class="callout warning">
+    <div class="callout-label">⚠ Don't over-claim from a pair</div>
+    <p>A two-hydrophone bearing is genuinely useful — it tells you <em>which way to point the boat</em> — but it is
+    not a fix. You don't know how far, and you can't yet say left or right of the line. Resolving that needs more
+    sensors: three break the left/right tie in a plane, and <strong>five well-spread hydrophones</strong> give an
+    unambiguous 3-D position.<span class="cite"><a href="#r-pamarray">5</a></span> That is precisely what
+    <strong>T11</strong> builds — crossing several bearings/hyperbolas into a single
+    point.<span class="cite"><a href="#r-pamoverview">8</a></span></p>
+  </div>
+
+  <h2><span class="num">4</span>Sound speed: the conversion factor — and the main error</h2>
+  <p>Every step above multiplied by <span class="inline-math">c</span>. That single number is the bridge from
+  <em>time</em> (which you measure beautifully) to <em>distance</em> (which you actually want) — so any error in
+  <span class="inline-math">c</span> propagates straight into your geometry. And <span class="inline-math">c</span>
+  is <strong>not</strong> a constant. In the ocean it runs roughly <strong>1450–1570 m/s</strong>, rising with
+  temperature (~+4 m/s per °C), salinity (~+1.3 m/s per psu) and pressure
+  (~+1.7 m/s per 100 m of depth).<span class="cite"><a href="#r-ssp">6</a></span> Because warm surface water is
+  faster than the cold deep, sound rays <em>bend</em> — and that bending, captured in the
+  <a href="../reference/glossary.html#ssp">sound-speed profile (SSP)</a>, is the dominant source of localization
+  error.<span class="cite"><a href="#r-ssp">6</a></span></p>
+  <p>For a first cut you'll use <span class="inline-math">c ≈ 1500 m/s</span> and accept a few-percent wobble. To
+  do better you measure (or model) the SSP for the western Mauritius slope and ray-trace — a refinement we revisit
+  once the array is up.</p>
+
+  <h2><span class="num">5</span>Check yourself</h2>
+  <p>No peeking — pulling these out of your own head is what makes them stick.</p>
+
+  <div class="quiz"
+       data-explain-right="Exactly."
+       data-explain-wrong="Re-read Section 1.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">TDOA multiplied by sound speed c gives you…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Δd = c·Δt. The delay times the speed is the extra path length — a difference of distances, which traces a hyperbola.">The difference in path length to source</button>
+      <button class="opt" data-feedback="No single absolute range falls out of one TDOA — only the difference between the two paths. You'd need range to one phone separately.">The straight slant range to one phone</button>
+      <button class="opt" data-feedback="Bearing comes later, from sin θ = Δd / B. The raw product c·Δt is a distance, not an angle.">The source bearing in degrees off broadside</button>
+      <button class="opt" data-feedback="Depth needs vertical geometry and more sensors. A single horizontal-pair TDOA gives a path-length difference only.">The diving depth of the foraging whale</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="Phase-whitening for a sharp peak."
+       data-explain-wrong="See Section 2.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">Why reach for GCC-PHAT instead of plain cross-correlation?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="PHAT divides each frequency by its magnitude — phase-whitening — so the spectrum flattens and the correlation collapses to one sharp spike at the true delay, robust to noise and reverb.">It phase-whitens the signals for a sharper peak</button>
+      <button class="opt" data-feedback="PHAT does the opposite — it discards amplitude entirely, keeping only phase/timing. It is not about gain.">It boosts the louder channel for extra gain</button>
+      <button class="opt" data-feedback="You still need synchronized clocks on both channels to trust the lag. PHAT sharpens the peak, it doesn't replace timing.">It removes any need for clock time sync</button>
+      <button class="opt" data-feedback="Counting animals is the click-train detector's job. GCC-PHAT just estimates one delay between two channels.">It counts the total number of clicking whales</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="A bearing with a mirror twin."
+       data-explain-wrong="See Section 3.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">Two hydrophones and one TDOA give you only…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="One measurement resolves one dimension: a bearing, ambiguous left/right of the baseline. Its mirror twin gives the identical TDOA.">a direction with a left/right twin</button>
+      <button class="opt" data-feedback="A full fix needs more sensors — five well-spread for unambiguous 3-D. A pair can't pin a point.">an exact fixed position in water</button>
+      <button class="opt" data-feedback="One TDOA fixes a path-length difference, never an absolute range to the source. Range needs crossed geometry.">a precise slant range to source</button>
+      <button class="opt" data-feedback="Depth falls out of 3-D geometry with several hydrophones, not from a single horizontal-pair delay.">a measured depth under the surface</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now say</h3>
+    <ol>
+      <li>The same click reaches two hydrophones at slightly different times — the <strong>TDOA</strong>, the atom of localization.</li>
+      <li><strong>Δd = c · Δt</strong>: delay × sound speed = path-length difference, which constrains the source to a <strong>hyperbola</strong>.</li>
+      <li>You measure Δt by the <strong>peak of the cross-correlation</strong>; <strong>GCC-PHAT</strong> phase-whitens to make that peak sharp under noise and reverb.</li>
+      <li>Two hydrophones give a <strong>bearing</strong> (sin θ = Δd / B), not a position — and it carries a <strong>left/right ambiguity</strong>.</li>
+      <li><strong>Sound speed (~1500 m/s)</strong> is the time→distance converter and the <strong>main error source</strong>; it varies with temperature, salinity and depth.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · read this next</div>
+      <div class="title"><a href="https://www.pamguard.org/olhelp/localisation/docs/localisation_tdoa.html" target="_blank" rel="noopener">PAMGuard — Time Difference of Arrival localization</a></div>
+      <div class="desc">The reference implementation working acousticians actually use: how TDOA is estimated from the cross-correlation peak, how detectors feed it, and why two hydrophones give an ambiguous bearing while more sensors give a position. This is the page T11 builds on.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>I'm your teacher — ask me anything.</b> Want the cross-correlation written out as an equation, curious how
+    up-sampling sharpens Δt below one sample, or unsure how baseline B trades bearing precision against ambiguity?
+    Ask in chat. Confused beats stuck.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#tdoa">TDOA</a> ·
+    <a href="../reference/glossary.html#gcc-phat">GCC-PHAT</a> ·
+    <a href="../reference/glossary.html#hyperbolic">hyperbolic localization</a> ·
+    <a href="../reference/glossary.html#ssp">sound-speed profile</a>.
+    <b>Builds toward →</b> T11 (arrays &amp; hyperbolic localization — crossing TDOAs into a 3-D fix).
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-pamtdoa">PAMGuard — <a href="https://www.pamguard.org/olhelp/localisation/docs/localisation_tdoa.html" target="_blank" rel="noopener">TDOA localization</a>. TDOA "made by finding the peak in the cross correlation function" of each hydrophone's waveform.</li>
+    <li id="r-gccphat">MATLAB — <a href="https://www.mathworks.com/help/phased/ref/gccphat.html" target="_blank" rel="noopener">gccphat</a>. Phase Transform normalizes spectral density by spectrum magnitude (whitening) → a Dirac-like peak at the true delay.</li>
+    <li id="r-knapp">Knapp &amp; Carter (1976) — <em>The Generalized Correlation Method for Estimation of Time Delay</em>, IEEE Trans. ASSP-24(4). The foundational GCC/PHAT paper.</li>
+    <li id="r-anguera">X. Anguera — <a href="https://xavieranguera.com/phdthesis/node92.html" target="_blank" rel="noopener">GCC-PHAT tutorial</a>. Concise derivation of generalized cross-correlation with the phase transform weighting.</li>
+    <li id="r-pamarray">PAMGuard — <a href="https://www.pamguard.org/olhelp/localisation/docs/localisation_arrays.html" target="_blank" rel="noopener">Types of array</a>. 2 hydrophones → "a bearing, but it will be ambiguous"; 5 → unambiguous 3-D.</li>
+    <li id="r-ssp">DOSITS — <a href="https://dosits.org/decision-makers/tutorials/science/sound-speed/" target="_blank" rel="noopener">Sound speed</a>. ~1500 m/s nominal (≈1450–1570); varies with temperature, salinity, pressure; bends rays → main localization error.</li>
+    <li id="r-skar">Skarsoulis et al. (2022) — <a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2022.873888/full" target="_blank" rel="noopener">Real-time sperm-whale localization observatory</a>. 3 moored hydrophones, TDOA + surface reflections, 3-D fixes to ~7 km — the array blueprint.</li>
+    <li id="r-pamoverview">PAMGuard — <a href="https://www.pamguard.org/olhelp/localisation/docs/localisation_overview.html" target="_blank" rel="noopener">Localization overview</a>. Bearing, crossed bearings, hyperbolic/TDOA and 3-D localizers — the menu T11 draws from.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0010-sizing-a-whale.html">
+      <div class="dir">← T9 · Sizing a Whale from One Click</div>
+      <div class="ttl">Previous</div>
+    </a>
+    <a class="next" href="0012-arrays-and-hyperbolic-localization.html">
+      <div class="dir">Next · T11 · Arrays &amp; Hyperbolic Localization</div>
+      <div class="ttl">Cross bearings into a position →</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson T10 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Toy — 2-hydrophone TDOA ============================ */
+(function(){
+  var canvas = document.getElementById('tdoaCanvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if(!ctx) return;
+  var W = canvas.width, H = canvas.height;
+
+  var C = 1500;                 // sound speed, m/s
+  var B = 120;                  // baseline (hydrophone spacing), metres
+
+  // --- map region (left) and correlation panel (right) ---
+  var mx0=10, my0=28, mapW=452, mapH=H-my0-12;       // ocean map
+  var cx = mx0 + mapW/2, cy = my0 + mapH/2;          // array centre (origin), px
+  var SCALE = 0.5;                                    // px per metre  (mapW ≈ 904 m)
+  var px0 = 478, pW = W - px0 - 10;                   // correlation panel
+
+  // hydrophones in metre coords (origin at array centre, +x right, +y up)
+  var H1 = {xm:-B/2, ym:0}, H2 = {xm:B/2, ym:0};
+  var DEFAULT = {xm:150, ym:170};
+  var src = {xm:DEFAULT.xm, ym:DEFAULT.ym};
+
+  // metre <-> pixel
+  function pxX(xm){ return cx + xm*SCALE; }
+  function pxY(ym){ return cy - ym*SCALE; }
+  function mX(px){ return (px-cx)/SCALE; }
+  function mY(py){ return (cy-py)/SCALE; }
+
+  var tdT=document.getElementById('tdT'), tdD=document.getElementById('tdD'),
+      tdB=document.getElementById('tdB'), tdV=document.getElementById('tdV');
+
+  function compute(){
+    var d1 = Math.hypot(src.xm-H1.xm, src.ym-H1.ym);
+    var d2 = Math.hypot(src.xm-H2.xm, src.ym-H2.ym);
+    var dd = d1 - d2;                       // path difference, m  (>0 → closer to H2)
+    var dt = dd / C;                        // seconds
+    var sinB = Math.max(-1, Math.min(1, dd / B));
+    var bearing = Math.asin(sinB) * 180/Math.PI;
+    return {d1:d1,d2:d2,dd:dd,dt:dt,bearing:bearing};
+  }
+
+  function gridAndAxes(){
+    // grid every 100 m
+    ctx.strokeStyle='rgba(143,185,198,.10)'; ctx.lineWidth=1;
+    var step=100*SCALE;
+    for(var gx=cx%step; gx<mx0+mapW; gx+=step){ if(gx<mx0)continue; ctx.beginPath(); ctx.moveTo(gx,my0); ctx.lineTo(gx,my0+mapH); ctx.stroke(); }
+    for(var gy=cy%step; gy<my0+mapH; gy+=step){ if(gy<my0)continue; ctx.beginPath(); ctx.moveTo(mx0,gy); ctx.lineTo(mx0+mapW,gy); ctx.stroke(); }
+  }
+
+  function drawHyperbola(dd){
+    // locus where (dist to H1) - (dist to H2) = dd ; foci at (±B/2, 0)
+    var cf = B/2, a = Math.abs(dd)/2;
+    ctx.strokeStyle='rgba(255,212,121,.85)'; ctx.lineWidth=2.2;
+    if(a < 0.5){ // ~perpendicular bisector (vertical line x=0)
+      ctx.beginPath(); ctx.moveTo(pxX(0),my0); ctx.lineTo(pxX(0),my0+mapH); ctx.stroke(); return;
+    }
+    a = Math.min(a, cf-0.001);
+    var b = Math.sqrt(cf*cf - a*a);
+    var sgn = dd>0 ? 1 : -1;               // branch on source's x-side
+    ctx.beginPath(); var first=true;
+    for(var t=-3.2; t<=3.2; t+=0.04){
+      var xm = sgn*a*Math.cosh(t), ym = b*Math.sinh(t);
+      var X=pxX(xm), Y=pxY(ym);
+      if(first){ctx.moveTo(X,Y); first=false;} else ctx.lineTo(X,Y);
+    }
+    ctx.stroke();
+  }
+
+  function drawBearingRays(dd){
+    // far-field asymptotes through centre: slope ±b/a, on source's x-side
+    var cf=B/2, a=Math.abs(dd)/2;
+    if(a < 0.5){ // broadside: rays straight up/down
+      ctx.save(); ctx.setLineDash([5,5]); ctx.strokeStyle='rgba(143,185,198,.55)'; ctx.lineWidth=1.4;
+      ctx.beginPath(); ctx.moveTo(pxX(0),pxY(0)); ctx.lineTo(pxX(0),my0);
+      ctx.moveTo(pxX(0),pxY(0)); ctx.lineTo(pxX(0),my0+mapH); ctx.stroke(); ctx.restore(); return;
+    }
+    a=Math.min(a,cf-0.001); var b=Math.sqrt(cf*cf-a*a); var sgn=dd>0?1:-1;
+    var L=900; // metres out
+    ctx.save(); ctx.setLineDash([5,5]); ctx.strokeStyle='rgba(143,185,198,.55)'; ctx.lineWidth=1.4;
+    [1,-1].forEach(function(s){
+      var dx=sgn*a, dy=s*b, n=Math.hypot(dx,dy);
+      ctx.beginPath(); ctx.moveTo(pxX(0),pxY(0));
+      ctx.lineTo(pxX(dx/n*L), pxY(dy/n*L)); ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawSource(xm,ym,ghost){
+    var X=pxX(xm), Y=pxY(ym);
+    if(ghost){
+      ctx.save(); ctx.setLineDash([4,3]);
+      ctx.strokeStyle='rgba(255,212,121,.6)'; ctx.lineWidth=1.6;
+      ctx.beginPath(); ctx.arc(X,Y,7,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle='rgba(255,212,121,.35)'; ctx.fill();
+      ctx.restore();
+      ctx.fillStyle='rgba(143,185,198,.85)'; ctx.font='10px Inter, system-ui'; ctx.textAlign='center';
+      ctx.fillText('mirror twin', X, Y-12);
+      return;
+    }
+    // emanating click rings
+    ctx.strokeStyle='rgba(255,212,121,.22)'; ctx.lineWidth=1.4;
+    [14,24].forEach(function(r){ ctx.beginPath(); ctx.arc(X,Y,r,0,Math.PI*2); ctx.stroke(); });
+    ctx.beginPath(); ctx.arc(X,Y,8,0,Math.PI*2);
+    ctx.fillStyle='#ffd479'; ctx.fill();
+    ctx.strokeStyle='#06202e'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#ffd479'; ctx.font='bold 10px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText('whale', X, Y-13);
+  }
+
+  function drawHydrophone(h,label){
+    var X=pxX(h.xm), Y=pxY(h.ym);
+    ctx.beginPath(); ctx.arc(X,Y,6,0,Math.PI*2);
+    ctx.fillStyle='#2a9db0'; ctx.fill();
+    ctx.strokeStyle='#bfe9f2'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='#bfe9f2'; ctx.font='bold 11px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText(label, X, Y+20);
+  }
+
+  function drawCorr(dt,leadH1){
+    // panel frame
+    ctx.fillStyle='#031824'; ctx.fillRect(px0,my0,pW,mapH);
+    ctx.strokeStyle='rgba(143,185,198,.25)'; ctx.lineWidth=1; ctx.strokeRect(px0+.5,my0+.5,pW-1,mapH-1);
+    ctx.fillStyle='#8fb9c6'; ctx.font='10px Inter, system-ui'; ctx.textAlign='left';
+    ctx.fillText('CROSS-CORRELATION', px0+10, my0+16);
+
+    var midX = px0+pW/2;
+    var Lmax = (B/C)*1000;                       // ms, max possible |lag|
+    var dtms = Math.max(-Lmax, Math.min(Lmax, dt*1000));
+
+    // --- two channel waveforms (top) ---
+    var yA=my0+44, yB=my0+86;
+    var shift = (dtms/Lmax) * (pW*0.30);         // px offset between channels
+    function packet(x0,y,col){
+      ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.beginPath();
+      for(var i=-26;i<=26;i++){ var p=i/9, env=Math.exp(-p*p*0.5), a=Math.cos(p*3.4)*env*15;
+        var xx=x0+i, yy=y-a; if(i===-26)ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy);} ctx.stroke();
+    }
+    ctx.fillStyle='#8fb9c6'; ctx.font='9px Inter, system-ui'; ctx.textAlign='left';
+    ctx.fillText('H1', px0+8, yA-18); ctx.fillText('H2', px0+8, yB-18);
+    // H1 leads → its packet sits earlier (left). dd>0 → closer to H2 → H2 leads.
+    packet(midX - shift/2, yA, '#2a9db0');
+    packet(midX + shift/2, yB, '#bfe9f2');
+
+    // --- correlation curve (bottom) ---
+    var axY=my0+mapH-34, amp=46, x0=px0+14, x1=px0+pW-14;
+    ctx.strokeStyle='rgba(143,185,198,.30)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(x0,axY); ctx.lineTo(x1,axY); ctx.stroke();   // lag axis
+    // zero-lag tick
+    ctx.strokeStyle='rgba(143,185,198,.30)'; ctx.beginPath(); ctx.moveTo(midX,axY-amp-6); ctx.lineTo(midX,axY+6); ctx.stroke();
+    ctx.fillStyle='#5b8593'; ctx.font='9px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText('0', midX, axY+16);
+    ctx.fillText('lag (ms)  −', x0+24, axY+16); ctx.fillText('+', x1-6, axY+16);
+
+    function lag2px(L){ return midX + (L/Lmax)*((pW/2)-16); }
+    var peakX = lag2px(dtms);
+    // the GCC-PHAT-style sharp peak at lag = dtms
+    ctx.strokeStyle='#ffd479'; ctx.lineWidth=2; ctx.beginPath(); var first=true;
+    for(var px=x0; px<=x1; px++){
+      var L = ((px-midX)/((pW/2)-16))*Lmax;        // ms at this px
+      var u = (L-dtms);
+      var R = Math.exp(-(u*u)/(2*6*6)) * Math.cos(u*0.9);
+      var Y = axY - R*amp;
+      if(first){ctx.moveTo(px,Y); first=false;} else ctx.lineTo(px,Y);
+    }
+    ctx.stroke();
+    // peak marker
+    ctx.strokeStyle='rgba(255,212,121,.5)'; ctx.setLineDash([3,3]); ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(peakX,axY-amp-6); ctx.lineTo(peakX,axY); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(peakX,axY-amp,4,0,Math.PI*2); ctx.fillStyle='#ffd479'; ctx.fill();
+    ctx.fillStyle='#ffd479'; ctx.font='bold 10px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText('τ = '+dtms.toFixed(2)+' ms', peakX, axY-amp-12);
+  }
+
+  function draw(){
+    var r = compute();
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='#06202e'; ctx.fillRect(0,0,W,H);
+
+    // ---- map ----
+    ctx.save();
+    ctx.beginPath(); ctx.rect(mx0,my0,mapW,mapH); ctx.clip();
+    ctx.fillStyle='#06202e'; ctx.fillRect(mx0,my0,mapW,mapH);
+    gridAndAxes();
+    drawBearingRays(r.dd);
+    drawHyperbola(r.dd);
+    // baseline
+    ctx.strokeStyle='rgba(191,233,242,.35)'; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.moveTo(pxX(H1.xm),pxY(0)); ctx.lineTo(pxX(H2.xm),pxY(0)); ctx.stroke();
+    drawSource(src.xm, -src.ym, true);     // mirror twin (across baseline)
+    drawHydrophone(H1,'H1'); drawHydrophone(H2,'H2');
+    drawSource(src.xm, src.ym, false);
+    ctx.restore();
+    // map border + label
+    ctx.strokeStyle='rgba(143,185,198,.25)'; ctx.lineWidth=1; ctx.strokeRect(mx0+.5,my0+.5,mapW-1,mapH-1);
+    ctx.fillStyle='#8fb9c6'; ctx.font='10px Inter, system-ui'; ctx.textAlign='left';
+    ctx.fillText('OCEAN — drag the whale', mx0+10, my0+16);
+
+    // ---- correlation panel ----
+    drawCorr(r.dt, r.dd<0);
+
+    // ---- numeric readouts ----
+    if(tdT) tdT.textContent = (r.dt*1000).toFixed(2)+' ms';
+    if(tdD) tdD.textContent = r.dd.toFixed(1)+' m';
+    if(tdB) tdB.textContent = (r.bearing>=0?'+':'')+r.bearing.toFixed(0)+'°';
+    if(tdV){
+      var lead = r.dd>0 ? 'H2' : (r.dd<0 ? 'H1' : 'neither — it is dead broadside');
+      var side = r.dd>0 ? 'right (H2) side' : (r.dd<0 ? 'left (H1) side' : 'centre line');
+      tdV.innerHTML = 'The click reaches <b>'+lead+'</b> first by <b>'+Math.abs(r.dt*1000).toFixed(2)+' ms</b>, '+
+        'so the source is <b>'+Math.abs(r.dd).toFixed(1)+' m</b> closer to it — a bearing of <b>'+
+        Math.abs(r.bearing).toFixed(0)+'°</b> off broadside, on the '+side+'. '+
+        'The faded twin across the baseline gives the <b>same TDOA</b>: that is the left/right ambiguity.';
+    }
+  }
+
+  // ---- dragging ----
+  var dragging=false;
+  function place(e){
+    var rect=canvas.getBoundingClientRect();
+    var sx=canvas.width/rect.width, sy=canvas.height/rect.height;
+    var px=(e.clientX-rect.left)*sx, py=(e.clientY-rect.top)*sy;
+    px=Math.max(mx0+6, Math.min(mx0+mapW-6, px));
+    py=Math.max(my0+6, Math.min(my0+mapH-6, py));
+    src.xm=mX(px); src.ym=mY(py);
+    if(Math.abs(src.ym)<3 && Math.abs(Math.abs(src.xm)-B/2)<3) src.ym=3; // avoid sitting on a focus
+    draw();
+  }
+  function inMap(e){
+    var rect=canvas.getBoundingClientRect();
+    var sx=canvas.width/rect.width, sy=canvas.height/rect.height;
+    var px=(e.clientX-rect.left)*sx, py=(e.clientY-rect.top)*sy;
+    return px>=mx0 && px<=mx0+mapW && py>=my0 && py<=my0+mapH;
+  }
+  canvas.addEventListener('pointerdown', function(e){ if(inMap(e)){ dragging=true; canvas.setPointerCapture&&canvas.setPointerCapture(e.pointerId); place(e); } });
+  canvas.addEventListener('pointermove', function(e){ if(dragging){ e.preventDefault(); place(e); } });
+  canvas.addEventListener('pointerup',   function(){ dragging=false; });
+  canvas.addEventListener('pointerleave',function(){ dragging=false; });
+
+  var reset=document.getElementById('tdReset');
+  if(reset) reset.addEventListener('click', function(){ src.xm=DEFAULT.xm; src.ym=DEFAULT.ym; draw(); });
+
+  draw();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B3 · The Serious Build</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-specific: the disc-vs-cylinder canvas toy + a tiny clock table */
+  .toy { background:linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; }
+  .row { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .chip { cursor:pointer; border:1.5px solid var(--rule); background:#fff; border-radius:999px; padding:.32rem .8rem; font-weight:600; color:var(--ink-soft); }
+  .chip.on { border-color:var(--ocean); background:#e7f5f7; color:var(--ocean-deep); }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.92rem; padding:.6rem .8rem; border-radius:8px; margin-top:.8rem; background:#06202e; color:#d8f1f5; line-height:1.5; }
+  .toy .verdict b { color:#ffd479; }
+  table.clock td.t { font-variant-numeric:tabular-nums; font-family:var(--mono); color:var(--coral); font-weight:700; white-space:nowrap; }
+  table.clock td.t.cure { color:var(--kelp); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 3 · Build · B3</p>
+  <h1 class="lesson-title">The Serious Build: Cylinder, Preamp &amp; Potting</h1>
+  <p class="lesson-sub">Combine a sensitive PZT cylinder, your preamp, and acoustically-transparent resin into one
+  sealed unit — the near-research-grade hydrophone you'll actually moor off Mauritius.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~a weekend (build + 24 h cure)</span><span class="sep">•</span>
+    <span>💲 ~$150–300 <a href="../reference/shopping-list.html#proj-c">(Project C)</a></span><span class="sep">•</span>
+    <span>⚗ resin + ventilation required</span><span class="sep">•</span>
+    <span class="tag build">Hands-on build</span>
+  </div>
+
+  <div class="callout note">
+    <div class="callout-label">⤴ Before you start — prerequisites</div>
+    <p>This build assumes you understand the <a href="0014-adding-a-preamp.html">B2 preamp</a> — the cylinder is
+    high-impedance and <em>needs</em> a buffer right at the element. You also need
+    <a href="../reference/shopping-list.html#proj-c">Project C parts</a> on the bench. Two of them are
+    <strong>long-lead</strong> and should already be ordered: the <strong>PZT cylinder</strong> (Steminc/APC, ships
+    overseas) and the <strong>polyurethane potting resin</strong> (Smooth-Cast 65D, hazmat-restricted air freight).
+    If they aren't ordered yet, order now and read on while they ship.</p>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this is the lesson the mission rests on</div>
+    <p>Your B1 disc lets you <em>hear</em> the sea; it can't <em>measure</em> a whale. This unit can. A PZT cylinder
+    in water-density resin records sperm-whale clicks <strong>clean and uncoloured</strong> — flat enough to
+    <a href="0016-calibration.html">calibrate</a>, so a recorded voltage maps back to a real pressure in µPa. That's
+    the difference between "I think I heard a whale" and a number you can defend. Build one well, then
+    <strong>replicate it ×3–4</strong>: matched units are exactly what the
+    <a href="../reference/shopping-list.html#proj-d">localization array</a> needs to fix a whale's position by
+    time-of-arrival.<span class="cite"><a href="#r-trb">7</a></span></p>
+  </div>
+
+  <h2><span class="num">1</span>Three upgrades over your $5 disc</h2>
+  <p>The cheap disc taught you the skills. The serious build changes three things at once — and the
+  <strong>“Gladys” reference design</strong> (Jules Ryckebusch) is the recipe we follow, because a pro field
+  recordist judged it the equal of a hydrophone costing many times more.<span class="cite"><a href="#r-gladys">1</a></span><span class="cite"><a href="#r-trb">7</a></span></p>
+  <table>
+    <thead><tr><th>Upgrade</th><th>From (B1 disc)</th><th>To (this build)</th></tr></thead>
+    <tbody>
+      <tr><td><b>Element</b></td><td>27 mm brass disc — directional, resonant, bass-rolled</td><td><b>PZT cylinder</b> — omnidirectional, flatter, more sensitive</td></tr>
+      <tr><td><b>Preamp</b></td><td>Borrowed Hi-Z input, or a buffer on the dry end</td><td><b>Preamp PCB sealed inside</b>, millimetres from the element</td></tr>
+      <tr><td><b>Sealing</b></td><td>Dipped/painted coat — easy, but deadens sound</td><td><b>Cast in transparent urethane</b> — density ≈ seawater</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="num">2</span>The element: a PZT cylinder, not a disc</h2>
+  <p>Swap the flat disc for a <strong>PZT cylinder</strong> — e.g. the Steminc 25×22×12 mm tube (~$49), which
+  resonates up at ~37 kHz, far above the band you care about.<span class="cite"><a href="#r-steminc">5</a></span>
+  Three wins follow from the shape. It senses <strong>omnidirectionally</strong> in the horizontal plane (a moored
+  unit hears a whale from any bearing). Its larger electrode area gives <strong>higher capacitance</strong>, which
+  lowers the source impedance and makes it easier to buffer with low noise. And with resonance pushed up into the
+  ultrasonic, its usable response is <strong>wide and flat</strong> instead of a single ringing
+  peak.<span class="cite"><a href="#r-gladys">1</a></span> Play with the difference below.</p>
+
+  <div class="toy">
+    <h3>📐 Toy — Disc vs cylinder: directivity &amp; frequency response</h3>
+    <p class="hint">Left: how evenly it hears in the horizontal plane. Right: how flat it is across frequency (the
+    gold band is where sperm-whale click energy lives, ~5–25 kHz). The faint curve is the other element, for
+    comparison. Tap to switch.</p>
+    <canvas id="ecCanvas" width="720" height="320" aria-label="Disc vs cylinder directivity and frequency response"></canvas>
+    <div class="row">
+      <span>Show element:</span>
+      <span class="chip" data-el="disc">27 mm disc (B1)</span>
+      <span class="chip on" data-el="cylinder">PZT cylinder (this build)</span>
+    </div>
+    <div class="verdict" id="ecVerdict">—</div>
+  </div>
+
+  <h2><span class="num">3</span>Why the potting must be “acoustically invisible”</h2>
+  <p>Here's the idea that separates a real instrument from a sealed lump. Sound crosses a boundary cleanly only when
+  the two materials share an <a href="../reference/glossary.html#sensitivity">acoustic impedance</a>
+  <span class="inline-math">Z = ρ·c</span> (density × sound speed). Seawater sits near
+  <strong>1.5 MRayl</strong>. Wrap your element in ordinary hard epoxy — dense and stiff, a very different Z — and
+  the mismatch <strong>reflects and absorbs</strong> sound at the surface, worst at high frequencies. You've built a
+  muffler.<span class="cite"><a href="#r-nuwc">6</a></span></p>
+  <p><strong>Smooth-Cast 65D</strong> is a semi-rigid polyurethane with a specific gravity of
+  <strong>1.05 g/cc</strong> — almost exactly seawater's density.<span class="cite"><a href="#r-65d">3</a></span>
+  Its impedance lands close to water, so sound passes through it as if it were barely there: the resin is
+  <strong>acoustically transparent</strong>.<span class="cite"><a href="#r-krien">4</a></span> The trade is a touch
+  of <em>lower output</em> than a thin-dipped disc (no resonant peak to lean on) in exchange for
+  <strong>more than double the usable frequency response</strong> — flat, honest, calibratable. That is the right
+  trade for a measurement instrument.<span class="cite"><a href="#r-krien">4</a></span></p>
+
+  <div class="callout key">
+    <div class="callout-label">★ One mental model</div>
+    <p>Dipped epoxy = a wall around the element. Water-density urethane = a window. The cylinder still does the
+    sensing; the potting's only job is to keep the water out <em>without the water ever noticing it's
+    there</em>.</p>
+  </div>
+
+  <h2><span class="num">4</span>Build it: cylinder → preamp → mould</h2>
+  <p>Everything electrical happens <strong>before</strong> a drop of resin is mixed. Get it working and quiet in air
+  first; once it's potted, every fault is buried in solid urethane forever.</p>
+
+  <ol class="steps">
+    <li><div class="step-title">Solder the cylinder to the preamp — short and fast</div>
+      <div class="step-detail">Inner electrode → preamp signal input; outer electrode → ground/shield. Keep leads
+      as short as possible (the high-impedance node is an antenna) and the iron quick — overheating depoles the
+      ceramic just like it cooks a disc.</div>
+      <div class="step-tip"><b>Tip:</b> mount the preamp (e.g. the OPA1642 Hi-Z buffer of the Gladys board) right at
+      the element so almost no high-impedance wire is exposed.<span class="cite"><a href="#r-hackster">2</a></span></div></li>
+    <li><div class="step-title">Bench-test in air — the last chance</div>
+      <div class="step-detail">Power the preamp, plug into your recorder, tap and rub the cylinder, listen for hum.
+      This is the <strong>final</strong> moment to fix a cold joint, a swapped lead, or a ground problem.</div>
+      <div class="step-tip"><b>Tip:</b> if it hums now it will hum forever — chase it down before the mould.</div></li>
+    <li><div class="step-title">Mount &amp; suspend in the 3D-printed mould</div>
+      <div class="step-detail">Seat the cylinder + preamp in the printed mould so they hang <em>centred</em>, not
+      touching the walls — you want resin all around. The cable exits through the mould's gland; strain-relieve it
+      there so a tug never reaches the solder.</div>
+      <div class="step-tip"><b>Tip:</b> the Gladys mould is designed to suspend the element and board while you
+      pour around them — print it (or use the kit's) rather than improvising.<span class="cite"><a href="#r-gladys">1</a></span></div></li>
+    <li><div class="step-title">Mould-release everything</div>
+      <div class="step-detail">Coat the inside of the mould with release agent so the cured unit pops out. Double-check
+      the cable seal at the gland — that entry is the #1 leak path on the finished hydrophone.</div>
+      <div class="step-tip"><b>Tip:</b> dry-fit and rehearse the pour with the mould empty. You will not have time to
+      think once the resin is mixing (Section 5).</div></li>
+    <li><div class="step-title">Pot it — then cure fully before water</div>
+      <div class="step-detail">Run the 2.5-minute pour sequence below. Then let it cure: 65D is demould-hard in
+      ~15 minutes, but give it a <strong>full 24 h cure before it ever touches water</strong>. Re-test in air,
+      then leak-test in fresh water before the sea.</div>
+      <div class="step-tip"><b>Tip:</b> uncured urethane and water do not mix — immerse early and you get a soft,
+      blushed, leaky cast. Patience here protects the whole build.</div></li>
+  </ol>
+
+  <h2><span class="num">5</span>The 2.5-minute pour — pre-flight, then go</h2>
+  <p>Smooth-Cast 65D has a <strong>pot life of about 2.5 minutes</strong> and is fully mixed gel-to-solid within
+  ~15.<span class="cite"><a href="#r-65d">3</a></span> That's ~150 seconds of working time — there is no time to
+  fetch, measure or think once it's mixing. So the whole job is won <em>before</em> you crack the resin: stage
+  everything, then move. Tick each item as it's ready; mix only when the list is all green.</p>
+
+  <div class="checklist-widget">
+    <ul class="checklist">
+      <li data-check><span class="ck-name">Element suspended in the released mould</span> <span class="ck-spec">— cylinder + preamp centred, cable through the gland, strain-relieved.</span></li>
+      <li data-check><span class="ck-name">Air-test passed</span> <span class="ck-spec">— it works and is hum-free right now. Last chance confirmed.</span></li>
+      <li data-check><span class="ck-name">Parts A &amp; B pre-measured</span> <span class="ck-spec">— 1A:1B by volume, in separate cups, ready to combine.</span></li>
+      <li data-check><span class="ck-name">Mixing cup + stir stick in hand</span> <span class="ck-spec">— plus a scrap surface to scrape the cup against.</span></li>
+      <li data-check><span class="ck-name">Degas plan primed</span> <span class="ck-spec">— vacuum chamber ready, OR a vibration/tap surface to float bubbles out.</span></li>
+      <li data-check><span class="ck-name">PPE on, bench ventilated</span> <span class="ck-spec">— nitrile gloves, respirator, fume extraction running (Section 5 warning).</span></li>
+      <li data-check><span class="ck-name">Timer + overflow tray set</span> <span class="ck-spec">— you have ~150 s; a tray catches the spill so it never reaches you.</span></li>
+    </ul>
+    <div class="checklist-bar">
+      <span data-checklist-progress></span>
+    </div>
+  </div>
+
+  <p>All green? Now run the clock — the order of operations matters because every second spent is working time
+  spent:</p>
+  <table class="clock">
+    <caption>The pour, against the 2.5-minute pot-life clock. Practise it dry first.</caption>
+    <thead><tr><th class="num">Clock</th><th>Do exactly this</th></tr></thead>
+    <tbody>
+      <tr><td class="t">0:00</td><td><b>Combine A + B and stir</b> — ~20–30 s, scraping cup sides and bottom so no unmixed resin remains.</td></tr>
+      <tr><td class="t">0:30</td><td><b>Pour slowly down the mould wall</b> — never straight onto the element. A thin stream sheds bubbles instead of folding them in.</td></tr>
+      <tr><td class="t">1:00</td><td><b>Degas</b> — pull a vacuum, OR tap/vibrate the mould so trapped air rises and breaks at the surface.</td></tr>
+      <tr><td class="t">1:45</td><td><b>Top off &amp; final tap</b> — bring the level up, settle the surface. The resin is getting thick now.</td></tr>
+      <tr><td class="t">2:30</td><td><b>Hands off</b> — pot life ends, the resin gels. Anything not done is done.</td></tr>
+      <tr><td class="t cure">15:00</td><td><b>Demould-hard</b> — but do <em>not</em> rush it into water.</td></tr>
+      <tr><td class="t cure">24 h</td><td><b>Full cure</b> — only now air-test, leak-test, then deploy.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warning">
+    <div class="callout-label">⚠ Urethane safety — this resin is not the friendly part</div>
+    <ul>
+      <li><strong>Isocyanate vapour.</strong> Polyurethane resins release isocyanates while mixing/curing — respiratory
+      and skin sensitizers that can sensitise you <em>permanently</em>. Mix only with <strong>good ventilation or
+      extraction</strong>, wear a respirator and nitrile gloves, keep skin covered.<span class="cite"><a href="#r-65d">3</a></span></li>
+      <li><strong>Degassing under vacuum</strong> means glassware under pressure differential — use a proper chamber,
+      eye protection, and never put your face over it.</li>
+      <li><strong>Cure before water, always.</strong> Immersing an uncured cast traps blush and softness into the
+      acoustic path — it ruins the build and can leach. Full 24 h cure, then the sea.</li>
+      <li><strong>The connector is not the element.</strong> Only the potted head is waterproof; keep the dry end and
+      its power well clear of the water.</li>
+    </ul>
+  </div>
+
+  <h2><span class="num">6</span>Check yourself</h2>
+
+  <div class="quiz" data-explain-right="Impedance match." data-explain-wrong="Re-read Section 3.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">Why pot the element in Smooth-Cast 65D rather than ordinary hard epoxy?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Density ≈ 1.05 g/cc ≈ seawater means resin and water share nearly the same acoustic impedance, so almost nothing reflects at the boundary — sound passes straight to the cylinder.">Its density matches seawater, so sound enters almost unreflected</button>
+      <button class="opt" data-feedback="65D is white, which can help spotting, but colour isn't the reason — you choose it for its water-like density and acoustic transparency.">Its bright colour reveals any trapped air bubbles clearly</button>
+      <button class="opt" data-feedback="Backwards — 65D's pot life is only ~2.5 minutes, unusually SHORT. You choose it despite that, for the acoustics.">Its considerably longer pot life suits a cautious beginner</button>
+      <button class="opt" data-feedback="65D is only semi-rigid and isn't chosen for crush strength; depth rating comes from the housing and build, not the resin hardness.">Its greater hardness protects the element from crushing pressure</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="Stage everything first." data-explain-wrong="See the pre-flight checklist.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">The resin's pot life is only ~2.5 minutes. What does that force you to do?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Right — with ~150 s of working time there's no time to fetch anything. Pre-measure both parts, suspend the element, ready gloves and degas, THEN mix.">Stage and pre-measure everything before you even mix it</button>
+      <button class="opt" data-feedback="You can't — it gels in ~2.5 min. Pour slowly, yes, but in seconds, not minutes. Speed is the whole game.">Pour very slowly over twenty minutes avoiding all bubbles</button>
+      <button class="opt" data-feedback="Heat speeds urethane cure and shortens pot life further — the exact opposite of what you want.">Gently reheat the mixed resin to extend its life</button>
+      <button class="opt" data-feedback="Never immerse uncured urethane; it must FULLY cure (≈24 h) in air before it touches any water.">Immerse the unit immediately so it cures underwater faster</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="Omnidirectional and flat." data-explain-wrong="Compare the curves in the toy.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">Compared with your 27 mm disc, the PZT cylinder element is…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Yes — the cylinder hears equally in all horizontal directions and stays flat from low frequencies up into ultrasound (resonance ~37 kHz), capturing the whole click.">Omnidirectional and flat, sensitive well past the audio range</button>
+      <button class="opt" data-feedback="That describes the DISC, not the cylinder — the disc is the directional, resonant one with the narrow peak.">Directional and resonant, peaking sharply at one narrow frequency</button>
+      <button class="opt" data-feedback="No — the cylinder is more sensitive with real low-end; it's the disc that throws away the bass.">Quieter and cheaper, offering almost no usable bass response</button>
+      <button class="opt" data-feedback="Opposite — the larger cylinder has HIGHER capacitance than a small disc, which lowers source impedance and eases buffering.">Smaller and lighter, holding far less internal capacitance overall</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now do</h3>
+    <ol>
+      <li><strong>Choose the cylinder:</strong> omnidirectional, higher-capacitance, flat into ultrasound — a measurement element, not a resonant toy.</li>
+      <li><strong>Seal the preamp inside</strong>, millimetres from the element, so the high-impedance node never sees an antenna of wire.</li>
+      <li><strong>Pot in water-density urethane</strong> (65D, SG 1.05) for acoustic transparency — slightly lower output, far flatter response.</li>
+      <li><strong>Beat the 2.5-minute clock:</strong> stage everything, pour down the wall, degas, then full-cure before water.</li>
+      <li><strong>Replicate it ×3–4</strong> — matched units are the building blocks of the localization array.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · build along with this</div>
+      <div class="title"><a href="https://www.instructables.com/The-Gladys-Hydrophone/" target="_blank" rel="noopener">Jules Ryckebusch — “The Gladys Hydrophone” (Instructables)</a></div>
+      <div class="desc">The step-by-step reference build this lesson follows: a PZT cylinder and a high-impedance buffer PCB suspended in a 3D-printed mould and cast in acoustically-transparent Smooth-Cast 65D — with the wiring, the mould, and the pour. Kit (element + board + mould + wire) also available for ~$65.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>Mid-pour panic? Ask me.</b> Send a photo of your suspended element, paste your preamp's input impedance,
+    or tell me what your air-test sounds like and I'll tell you if it's ready to pot. Talk me through your degas
+    setup before you mix — getting the pre-flight right is the whole battle.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#piezo">piezo element</a> ·
+    <a href="../reference/glossary.html#preamp">preamp</a> ·
+    <a href="../reference/glossary.html#sensitivity">sensitivity</a> ·
+    <a href="../reference/glossary.html#calibration">calibration</a>.
+    <b>Shop:</b> <a href="../reference/shopping-list.html#proj-c">Project C — Serious build</a>.
+    <b>Builds toward →</b> B4 (calibration — turn this unit's volts into µPa) and the
+    <a href="../reference/shopping-list.html#proj-d">localization array</a> (replicate ×3–4).
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-gladys">Jules Ryckebusch — <a href="https://www.instructables.com/The-Gladys-Hydrophone/" target="_blank" rel="noopener">The Gladys Hydrophone</a>. PZT cylinder + Hi-Z buffer cast in Smooth-Cast 65D, suspended in a 3D-printed mould. The reference recipe.</li>
+    <li id="r-hackster">Hackster.io — <a href="https://www.hackster.io/news/jules-ryckebusch-s-gladys-is-a-do-it-yourself-hydrophone-that-outperforms-commercial-competition-1017845e1828" target="_blank" rel="noopener">Gladys outperforms commercial competition</a>. OPA1642 high-impedance buffer; resin SG ≈ water; ~$65 kit (board + mould + cylinder + wire).</li>
+    <li id="r-65d">Smooth-On — <a href="https://www.smooth-on.com/products/smooth-cast-65d/" target="_blank" rel="noopener">Smooth-Cast 65D technical data</a>. Specific gravity 1.05 g/cc; pot life 2.5 min; cure 15 min; 1A:1B by volume; semi-rigid (Shore 65D). Urethane — handle with ventilation/PPE.</li>
+    <li id="r-krien">Max Krien — <a href="https://maxkrien.com/diy-hydrophones" target="_blank" rel="noopener">DIY Hydrophones</a>. 65D's density ≈ water (acoustically transparent); slightly lower output but &gt;2× the usable frequency response vs the alternative.</li>
+    <li id="r-steminc">Steminc — <a href="https://www.steminc.com/PZT/en/piezo-cylinder" target="_blank" rel="noopener">Piezo cylinders</a>. SMC25D22H12PLS, 25×22×12 mm, resonance ~37 kHz, ~$49 — the omnidirectional sensing element.</li>
+    <li id="r-nuwc">NUWC — <a href="https://ieeexplore.ieee.org/document/1282434/" target="_blank" rel="noopener">XP-1 acoustically transparent encapsulant (IEEE)</a>. Good potting matches seawater's acoustic impedance (~1.5–1.7 MRayl) so sound passes uncoloured.</li>
+    <li id="r-trb">Thomas Rex Beverly — <a href="https://thomasrexbeverly.com/blogs/field-recording/diy-hydrophones" target="_blank" rel="noopener">DIY Hydrophones reviewed</a>. A field recordist rates the ~$200 Gladys-class DIY build against far pricier commercial units.</li>
+    <li id="r-jli">JLI Electronics — <a href="https://www.jlielectronics.com/diy-microphone-kits/gladys-hydrophone-kit/" target="_blank" rel="noopener">Gladys Hydrophone Kit</a>. Buffer board + mould + piezo cylinder + wire, ~$65 — the no-sourcing shortcut.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0014-adding-a-preamp.html">
+      <div class="dir">← Previous</div>
+      <div class="ttl">B2 · Adding a Preamp</div>
+    </a>
+    <a class="next" href="0016-calibration.html">
+      <div class="dir">Next · B4</div>
+      <div class="ttl">Calibration →</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson B3 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Toy — disc vs cylinder ============================ */
+(function(){
+  var canvas=document.getElementById('ecCanvas'); if(!canvas) return;
+  var ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+  var verdict=document.getElementById('ecVerdict');
+  var current='cylinder';
+
+  // ---- polar (left) geometry
+  var cx=160, cy=168, PR=110;
+  // ---- frequency plot (right) geometry
+  var fxL=330, fxR=700, fyT=46, fyB=288;
+  var fLo=20, fHi=100000, dbLo=-36, dbHi=10;
+
+  function xOf(f){ return fxL + (Math.log10(f)-Math.log10(fLo))/(Math.log10(fHi)-Math.log10(fLo))*(fxR-fxL); }
+  function yOf(db){ return fyT + (dbHi-db)/(dbHi-dbLo)*(fyB-fyT); }
+
+  // relative directivity r(theta), 0..1
+  function dir(el,th){
+    if(el==='cylinder') return 0.97;                       // omnidirectional in plane
+    return 0.30 + 0.70*Math.abs(Math.cos(th));             // disc: broadside-favouring lobes
+  }
+  // relative sensitivity in dB vs log frequency
+  function db(el,f){
+    var lf=Math.log10(f);
+    if(el==='disc'){
+      var hp=20*Math.log10(f/Math.sqrt(f*f+250*250));      // bass roll-off ~250 Hz
+      var pk=11*Math.exp(-Math.pow((lf-Math.log10(5000))/0.17,2)); // resonant peak ~5 kHz
+      var hf=-20*Math.max(0, lf-Math.log10(9000));         // steep roll above ~9 kHz
+      return -6+hp+pk+hf;
+    } else {
+      var hp2=20*Math.log10(f/Math.sqrt(f*f+30*30));        // gentle roll ~30 Hz
+      var pk2=4*Math.exp(-Math.pow((lf-Math.log10(37000))/0.12,2)); // small bump ~37 kHz
+      var hf2=-24*Math.max(0, lf-Math.log10(46000));        // roll above ~46 kHz
+      return -4+hp2+pk2+hf2;
+    }
+  }
+
+  function drawPolar(){
+    // grid rings + crosshair
+    ctx.strokeStyle='rgba(143,185,198,.18)'; ctx.lineWidth=1;
+    [0.5,1].forEach(function(g){ ctx.beginPath(); ctx.arc(cx,cy,PR*g,0,Math.PI*2); ctx.stroke(); });
+    ctx.beginPath(); ctx.moveTo(cx-PR-6,cy); ctx.lineTo(cx+PR+6,cy);
+    ctx.moveTo(cx,cy-PR-6); ctx.lineTo(cx,cy+PR+6); ctx.stroke();
+    ctx.fillStyle='#5b8593'; ctx.font='10px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText('DIRECTIVITY (top-down)', cx, fyT-18);
+
+    function curve(el,col,lw,fill){
+      ctx.beginPath();
+      for(var a=0;a<=360;a+=3){
+        var th=a*Math.PI/180, r=dir(el,th)*PR;
+        var x=cx+r*Math.cos(th), y=cy-r*Math.sin(th);
+        if(a===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.closePath();
+      if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+      ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.stroke();
+    }
+    var other = current==='disc' ? 'cylinder' : 'disc';
+    curve(other,'rgba(143,185,198,.45)',1.2,null);
+    curve(current,'#ffd479',2.4,'rgba(255,212,121,.16)');
+    ctx.fillStyle='#ffd479'; ctx.font='bold 11px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText(current==='cylinder'?'omnidirectional':'directional', cx, cy+PR+24);
+  }
+
+  function drawFreq(){
+    ctx.fillStyle='#5b8593'; ctx.font='10px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText('FREQUENCY RESPONSE', (fxL+fxR)/2, fyT-18);
+
+    // click-energy band (~5-25 kHz)
+    ctx.fillStyle='rgba(255,212,121,.12)';
+    ctx.fillRect(xOf(5000), fyT, xOf(25000)-xOf(5000), fyB-fyT);
+    ctx.fillStyle='#caa24a'; ctx.font='9px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText('click energy', (xOf(5000)+xOf(25000))/2, fyT+11);
+
+    // decade grid + labels
+    ctx.textAlign='center';
+    [100,1000,10000,100000].forEach(function(f){
+      var x=xOf(f); ctx.strokeStyle='rgba(143,185,198,.16)'; ctx.beginPath();
+      ctx.moveTo(x,fyT); ctx.lineTo(x,fyB); ctx.stroke();
+      ctx.fillStyle='#5b8593'; ctx.fillText(f>=1000?(f/1000)+'k':f+'', x, fyB+13);
+    });
+    ctx.fillStyle='#5b8593'; ctx.fillText('Hz', fxR-4, fyB+13);
+
+    function curve(el,col,lw){
+      ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.beginPath(); var first=true;
+      for(var px=fxL; px<=fxR; px++){
+        var frac=(px-fxL)/(fxR-fxL);
+        var f=Math.pow(10, Math.log10(fLo)+frac*(Math.log10(fHi)-Math.log10(fLo)));
+        var d=db(el,f); if(d<dbLo)d=dbLo; if(d>dbHi)d=dbHi;
+        var y=yOf(d);
+        if(first){ctx.moveTo(px,y);first=false;} else ctx.lineTo(px,y);
+      }
+      ctx.stroke();
+    }
+    var other = current==='disc' ? 'cylinder' : 'disc';
+    curve(other,'rgba(143,185,198,.45)',1.4);
+    curve(current,'#ffd479',2.6);
+
+    ctx.fillStyle='#8fb9c6'; ctx.font='10px Inter, system-ui'; ctx.textAlign='left';
+    ctx.fillText('← flatter is better →', fxL, fyB+28);
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#06202e'; ctx.fillRect(0,0,W,H);
+    // divider
+    ctx.strokeStyle='rgba(143,185,198,.18)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(305,fyT-8); ctx.lineTo(305,fyB+8); ctx.stroke();
+    drawPolar(); drawFreq();
+
+    if(current==='cylinder'){
+      verdict.innerHTML='<b>PZT cylinder.</b> Hears equally in every horizontal direction, and stays flat across the whole click band into ultrasound (resonance ~37 kHz). Slightly lower peak output than a tuned disc — but the clicks arrive uncoloured. <b>This is what you deploy.</b>';
+    } else {
+      verdict.innerHTML='<b>27 mm disc.</b> A tall, narrow resonant peak with the bass thrown away below and little above — and it favours one direction. Wonderful for a first listen, <b>wrong for calibratable click capture.</b>';
+    }
+  }
+
+  document.querySelectorAll('.toy .chip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      document.querySelectorAll('.toy .chip').forEach(function(c){ c.classList.remove('on'); });
+      chip.classList.add('on');
+      current=chip.getAttribute('data-el');
+      draw();
+    });
+  });
+
+  draw();
+})();
+</script>
+</body>
+</html>

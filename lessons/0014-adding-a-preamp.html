@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B2 · Adding a Preamp</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-B2-specific: the before/after canvas toy + the signal-chain diagram */
+  .toy { background:linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; }
+  .row { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .chip { cursor:pointer; border:1.5px solid var(--rule); background:#fff; border-radius:999px; padding:.32rem .7rem; font-weight:600; color:var(--ink-soft); }
+  .chip.on { border-color:var(--ocean); background:#e7f5f7; color:var(--ocean-deep); }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.95rem; padding:.6rem .8rem; border-radius:8px; margin-top:.8rem; background:#06202e; color:#d8f1f5; line-height:1.5; }
+  .toy .verdict b { color:#ffd479; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 3 · Build · B2</p>
+  <h1 class="lesson-title">Adding a Preamp</h1>
+  <p class="lesson-sub">Bolt a buffer onto your bare disc and the thin, bass-light sound from B1 fills out for
+  good — and you unlock long cable runs, lower noise, and a balanced output your recorder loves.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~an afternoon</span><span class="sep">•</span>
+    <span>💲 ~$35 ready / ~$30 DIY</span><span class="sep">•</span>
+    <span>🔌 recorder with +48 V phantom</span><span class="sep">•</span>
+    <span class="tag build">Hands-on build</span>
+  </div>
+
+  <div class="callout note">
+    <div class="callout-label">⤴ Before you start — finish B1 first</div>
+    <p>In <a href="0002-your-first-underwater-ear.html">B1</a> you built a bare piezo ear and heard its
+    <em>thin, bass-light</em> sound — and learned why: the disc is a high-impedance ~15&nbsp;nF source. This lesson
+    fixes that permanently. Put that working hydrophone on the bench along with your
+    <a href="../reference/shopping-list.html#proj-b">Project B parts</a>: a ready buffer (or the Alex&nbsp;Rice
+    parts) plus a balanced XLR cable. You'll also need a <strong>recorder with switchable +48&nbsp;V phantom</strong>.</p>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this is the upgrade that matters</div>
+    <p>A bare disc on a short cable into a Hi-Z input is fine for a bucket test. But to detect and
+    <em>localize</em> a whale you must put the sensor in the water on a <strong>long cable</strong>, far from the
+    boat's electrical hash. The preamp is what makes that possible: it gives the piezo the high impedance it craves
+    (so the bass survives), then hands the recorder a low-impedance balanced signal that stays clean down tens of
+    metres of cable. That is the difference between <em>"I think I heard a click"</em> and a recording you can
+    actually detect and localize whales with.</p>
+  </div>
+
+  <h2><span class="num">1</span>What a preamp actually does</h2>
+  <p>Electrically your B1 disc is a tiny voltage source in series with about <strong>15&nbsp;nF</strong> of
+  capacitance.<span class="cite"><a href="#r-mudhar">2</a></span> Hang that off anything but a very high impedance
+  and the capacitance plus the input resistance form a <a href="../reference/glossary.html#sensitivity">high-pass
+  filter</a> that throws the bass away — into a 50&nbsp;kΩ line input the corner sits near 200&nbsp;Hz; into a
+  7&nbsp;kΩ mic input it climbs to ~1&nbsp;kHz.<span class="cite"><a href="#r-mudhar">2</a></span> A
+  <a href="../reference/glossary.html#preamp">preamp</a> solves this from both sides at once:</p>
+  <ul>
+    <li>It presents a <strong>very high input impedance</strong> to the piezo — megohms to gigohms — so the
+    high-pass corner drops far <em>below</em> the audio band and the lows come back.<span class="cite"><a href="#r-mudhar">2</a></span></li>
+    <li>It presents a <strong>low output impedance</strong> to the world — so a long cable and an ordinary recorder
+    input no longer load the signal down, and hum picked up along the run is tiny next to that strong, low-impedance
+    drive.<span class="cite"><a href="#r-poff">1</a></span></li>
+    <li>And it lowers self-noise versus a mismatched bare disc, while a <em>balanced</em> output rejects common-mode
+    hum.<span class="cite"><a href="#r-poff-choose">5</a></span></li>
+  </ul>
+  <p>Toggle the preamp in and out below. Same disc, same recorder — watch the corner fall out of the audio band and
+  the bass simply reappear.</p>
+
+  <div class="toy" id="fcToy">
+    <h3>🎚 Toy — Before / after: what the preamp does to your bass</h3>
+    <p class="hint">A 27&nbsp;mm disc ≈ 15&nbsp;nF. The corner is <span class="inline-math">f<sub>c</sub> = 1 / (2π·R·C)</span>:
+    a low-impedance input pushes f<sub>c</sub> up into the music; the preamp's huge input impedance drags it below
+    hearing. Everything left of the line is being cut.</p>
+    <canvas id="fcCanvas" width="720" height="320" aria-label="Frequency response with and without a preamp"></canvas>
+    <div class="row">
+      <span>Front end:</span>
+      <span class="chip on" data-mode="bare">Bare piezo (no preamp)</span>
+      <span class="chip" data-mode="buf">With preamp / buffer</span>
+    </div>
+    <div class="verdict" id="fcVerdict">—</div>
+  </div>
+
+  <h2><span class="num">2</span>The signal chain — and where +48 V is allowed to go</h2>
+  <p>The buffer lives <strong>right at the element</strong>: high impedance facing the piezo, low impedance facing
+  the cable. Phantom power flows back from the recorder to power it — and the buffer's DC-blocking capacitors make
+  sure that voltage <em>never</em> reaches the bare disc.<span class="cite"><a href="#r-poff">1</a></span></p>
+
+  <div class="toy">
+    <h3>⛓ The block diagram</h3>
+    <p class="hint">Keep the unbuffered, high-impedance run between disc and buffer as short as possible — that's
+    the fragile bit. Everything after the buffer is robust, balanced and long-cable-friendly.</p>
+    <canvas id="chainCanvas" width="760" height="260" aria-label="Signal chain: piezo to buffer to recorder, with the phantom-power path"></canvas>
+  </div>
+
+  <h2><span class="num">3</span>Two roads to a buffered hydrophone</h2>
+  <p>Both end in the same place — a balanced, phantom-powered, low-impedance output. Pick by how much soldering you
+  want.</p>
+  <table>
+    <thead><tr><th>Path</th><th>What it is</th><th>Cost &amp; effort</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>Ready buffer</b><br><small>no-solder shortcut</small></td>
+        <td>A sealed phantom-powered Hi-Z buffer — plug the element in, XLR out. No schematic, no board; the only
+        soldering is the two element leads.</td>
+        <td><b>~$35</b> (<a href="https://www.jlielectronics.com/diy-accessories/p48-hi-z-piezo-buffer/" target="_blank" rel="noopener">JLI&nbsp;P48</a>, phantom, no battery)<span class="cite"><a href="#r-jli">3</a></span> or the
+        <a href="https://www.aquarianaudio.com/pa6.html" target="_blank" rel="noopener">Aquarian&nbsp;PA6</a>.<span class="cite"><a href="#r-aq">4</a></span> Safe and fast.</td>
+      </tr>
+      <tr>
+        <td><b>Alex Rice JFET preamp</b><br><small>the DIY classic</small></td>
+        <td>A small phantom-powered board: a JFET (2N3819 / J201) front end giving ~<b>20&nbsp;dB</b> balanced gain,
+        <b>20&nbsp;Hz–30&nbsp;kHz</b>, with 220&nbsp;pF DC-blocking caps on the inputs and ~80&nbsp;dB common-mode
+        hum rejection.<span class="cite"><a href="#r-poff">1</a></span></td>
+        <td><b>~$25–40</b> in parts + an evening with the iron. Most learning, lowest noise, fully yours.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2><span class="num">4</span>Build it — wire the element to the buffer, out via XLR</h2>
+  <p>The golden rule from B1 still holds: <strong>get it working in air before you waterproof anything.</strong>
+  These steps assume a ready buffer; for the Alex&nbsp;Rice board the wiring is identical, you just build the board
+  first.</p>
+
+  <ol class="steps">
+    <li><div class="step-title">Re-test the bare element first</div>
+      <div class="step-detail">Plug the B1 disc into a Hi-Z input and tap-test it. Confirm it still responds <em>before</em> you add electronics — you want a known-good starting point.</div>
+      <div class="step-tip"><b>Tip:</b> nothing on a hard tap means a dead joint or cooked ceramic — fix that now, not after the preamp is in the way.</div></li>
+    <li><div class="step-title">Place the buffer at the element end</div>
+      <div class="step-detail">Mount the buffer as close to the disc as you can. The short, unbuffered stub between them is the only high-impedance run left — keep it to millimetres.</div>
+      <div class="step-tip"><b>Tip:</b> that stub is the last place hum can still sneak in; everything downstream is low-impedance and tough.<span class="cite"><a href="#r-poff">1</a></span></div></li>
+    <li><div class="step-title">Wire the piezo into the buffer input</div>
+      <div class="step-detail">Same polarity as B1: <b>ceramic centre → signal/hot</b>, <b>brass rim → ground</b>. If you fitted copper-foil shielding, tie that foil to the buffer's ground too.</div>
+      <div class="step-tip"><b>Tip:</b> solder the element fast and low-heat — too long and you depole the ceramic, exactly as in B1.</div></li>
+    <li><div class="step-title">Terminate the output in XLR</div>
+      <div class="step-detail">Buffer/preamp output → XLR: <b>pin&nbsp;1 = ground</b>, <b>pins&nbsp;2 &amp; 3 = the balanced pair</b>. The Alex&nbsp;Rice drives both pins 2 and 3; a 2-wire buffer puts signal on pin&nbsp;2 and ground on pins 1 and&nbsp;3 (follow its docs).</div>
+      <div class="step-tip"><b>Tip:</b> a swapped or open pin&nbsp;1 is the classic cause of "no signal, loud hum" — double-check it.</div></li>
+    <li><div class="step-title">Power it: phantom on, set the input right</div>
+      <div class="step-detail">Engage <b>+48&nbsp;V phantom</b> on that XLR channel and set the channel to <b>mic</b> (not instrument/Hi-Z — the buffer is now doing the impedance job). Raise gain gently.</div>
+      <div class="step-tip"><b>Tip:</b> no phantom = the buffer is unpowered = dead silence. This is the first thing to check if you get nothing.<span class="cite"><a href="#r-poff">1</a></span></div></li>
+    <li><div class="step-title">Bench-test buffered, in air</div>
+      <div class="step-detail">Tap the disc: it should now thump <b>full and bassy</b>, not thin. A/B it against the "bare" sound from the toy above — the difference is the whole point of the lesson.</div>
+      <div class="step-tip"><b>Tip:</b> after a preamp you usually need <em>less</em> recorder gain, not more (see troubleshooting).</div></li>
+    <li><div class="step-title">Run a long cable and listen to the noise floor</div>
+      <div class="step-detail">Swap in tens of metres of XLR and listen on headphones. A buffered, balanced, low-impedance output should stay quiet over a long run where a bare disc would have collapsed into hum.</div>
+      <div class="step-tip"><b>Tip:</b> run the recorder on battery and you remove the last ground-loop path.</div></li>
+    <li><div class="step-title">Waterproof the head only — keep electronics dry</div>
+      <div class="step-detail">Seal the element exactly as in B1. The buffer/preamp body and the XLR are <strong>not</strong> waterproof — keep them above the waterline, especially in seawater.</div>
+      <div class="step-tip"><b>Tip:</b> a drip into a phantom-powered connector is a fast way to kill both the buffer and your recorder's input.</div></li>
+  </ol>
+
+  <h2><span class="num">5</span>The one rule, again</h2>
+  <div class="callout warning">
+    <div class="callout-label">⚠ Phantom feeds the preamp — never the bare piezo</div>
+    <p>This is the safety rule from B1, and now it cuts the other way: now you <em>want</em> phantom on, but only
+    because a buffer is in the chain to absorb it.</p>
+    <ul>
+      <li>A bare, unbalanced piezo on a phantom XLR takes +48&nbsp;V DC asymmetrically and floats at ~<b>25&nbsp;V</b>;
+      the discharge when it touches a grounded object is a speaker- and ear-damaging <em>bang</em>, and the DC can
+      stress the element.<span class="cite"><a href="#r-poff">1</a></span></li>
+      <li>A proper buffer is built to sit between phantom and element: the Alex&nbsp;Rice board feeds the 48&nbsp;V in
+      through 6.81&nbsp;kΩ resistors and blocks DC off the disc with <b>220&nbsp;pF film caps</b> on its inputs, so
+      the ceramic never sees the rail.<span class="cite"><a href="#r-poff">1</a></span></li>
+      <li>So: only ever switch phantom on once a buffer is in the chain. Back on the <a href="0002-your-first-underwater-ear.html">bare B1 disc</a>,
+      keep to a Hi-Z/instrument input and leave phantom <em>off</em>.</li>
+    </ul>
+  </div>
+
+  <h2><span class="num">6</span>When it misbehaves</h2>
+  <p>Tap to expand the symptom you're seeing.</p>
+
+  <details class="panel"><summary>Still humming or buzzing — even with the preamp <span class="sym-tag">hum</span></summary>
+    <div class="panel-body"><b>Likely cause:</b> the short unbuffered stub between disc and buffer is too long; the disc's foil shield isn't tied to the buffer ground; a ground loop through mains; or pin&nbsp;1 isn't actually grounded.<br>
+    <b>Fix:</b> shorten the stub to millimetres; tie the element's copper foil to the buffer ground; run the recorder on <em>battery</em>; and let the balanced XLR do its job — its common-mode rejection is your main hum cure on long runs.</div></details>
+
+  <details class="panel"><summary>No signal at all — meters dead <span class="sym-tag">dead</span></summary>
+    <div class="panel-body"><b>Likely cause:</b> phantom not switched on (the buffer is unpowered); the channel set to instrument/line instead of mic; XLR miswired (pins 2/3 swapped, or pin&nbsp;1 open); or a dead joint at the element.<br>
+    <b>Fix:</b> confirm +48&nbsp;V is on <em>that</em> channel, set it to mic, continuity-check pins 1/2/3, and re-tap-test the bare element first to isolate the fault.</div></details>
+
+  <details class="panel"><summary>Distortion / clipping on loud taps <span class="sym-tag">clip</span></summary>
+    <div class="panel-body"><b>Likely cause:</b> double gain — the buffer already adds ~20&nbsp;dB and the recorder gain is high too, so hot piezo transients overload the input.<br>
+    <b>Fix:</b> drop the recorder gain, engage a pad if you have one, and back off the loud source. After a preamp you almost always need <em>less</em> gain, not more.</div></details>
+
+  <h2><span class="num">7</span>Check yourself</h2>
+  <div class="quiz" data-explain-right="Two impedances at once." data-explain-wrong="Re-read Section 1.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">What does the preamp do that brings the bass back to a bare piezo?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Its very high input impedance drops the high-pass corner below the audio band, so the lows survive.">Presents high impedance, dropping the bass corner</button>
+      <button class="opt" data-feedback="Raw gain just boosts what's already there — it can't recreate bass the input already threw away.">Adds heavy gain, boosting every weak frequency</button>
+      <button class="opt" data-feedback="Backwards. A LOW input impedance is exactly what kills the bass on a bare piezo.">Lowers input impedance, matching the cheap recorder</button>
+      <button class="opt" data-feedback="Hum rejection is a bonus, not the bass fix — the fix is the high input impedance.">Filters mains noise, removing the unwanted humming</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="Protect the element." data-explain-wrong="See the Section 5 warning.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">With the buffer fitted, where is the +48 V phantom allowed to go?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="The buffer is built to take phantom; its DC-blocking caps keep the rail off the bare disc.">Into the preamp, never the bare piezo</button>
+      <button class="opt" data-feedback="That floats the disc at ~25 V and risks a discharge bang — exactly what you avoid.">Into the piezo, never the safe preamp</button>
+      <button class="opt" data-feedback="There is no shared-supply mode — phantom powers the buffer, full stop.">Into both at once, sharing the supply</button>
+      <button class="opt" data-feedback="Phantom powers the active buffer, not the shield — it isn't a drain path.">Into the cable shield, draining the charge</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="No floating disc, no bang." data-explain-wrong="See the Section 5 warning.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">Why do the Alex Rice preamp's 220 pF input capacitors matter for safety?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="They block the phantom DC off the element, so it can't float at ~25 V and discharge with a bang.">They block phantom DC, stopping the discharge bang</button>
+      <button class="opt" data-feedback="They aren't a treble boost — the gain stage handles level, the caps handle DC.">They boost weak treble, sharpening each faint click</button>
+      <button class="opt" data-feedback="Self-noise comes from the JFET, not these DC-blocking caps.">They lower output noise, smoothing the hissy floor</button>
+      <button class="opt" data-feedback="Gain is set by the JFET stage, not by these blocking caps.">They raise input gain, lifting the quiet signal</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now do</h3>
+    <ol>
+      <li>Explain a preamp by its <strong>two impedances</strong>: high to the piezo (bass survives), low to the cable/recorder (clean over long runs).</li>
+      <li>Build it the easy way — a ready buffer (<strong>JLI&nbsp;P48 ~$35</strong>, Aquarian&nbsp;PA6): phantom in, balanced XLR out.</li>
+      <li>Or build the DIY classic — the <strong>Alex&nbsp;Rice JFET preamp</strong> (~20&nbsp;dB balanced, 20&nbsp;Hz–30&nbsp;kHz, DC-blocking caps, strong hum rejection).</li>
+      <li>Wire element → buffer → XLR, power it with phantom, and keep the electronics dry while you waterproof only the head.</li>
+      <li>Hold the rule: phantom feeds the <strong>preamp</strong>, never the bare piezo — buffered + balanced + low-Z is the signal localization needs.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · build along with this</div>
+      <div class="title"><a href="https://zachpoff.com/resources/alex-rice-piezo-preamplifier/" target="_blank" rel="noopener">Zach Poff — “Alex Rice Piezo Preamplifier”</a></div>
+      <div class="desc">The canonical write-up of the phantom-powered JFET preamp: schematic, ~20&nbsp;dB balanced gain over 20&nbsp;Hz–30&nbsp;kHz, the 220&nbsp;pF DC-blocking caps and exactly why they stop the piezo floating at ~25&nbsp;V, and the common-mode hum-rejection maths. You can build straight from it.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>Stuck on the wiring? Ask me.</b> Paste your recorder's phantom/input settings, send a photo of your XLR
+    solder, or tell me what your buffered tap test sounds like versus the bare one — debugging a real preamp is
+    exactly what I'm here for.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#preamp">preamp</a> ·
+    <a href="../reference/glossary.html#piezo">piezo element</a> ·
+    <a href="../reference/glossary.html#sensitivity">sensitivity</a>.
+    <b>Builds toward →</b> B3 (the serious PZT-cylinder build), calibration, and the localization array — every one
+    of which assumes a clean, buffered, balanced signal.
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-poff">Zach Poff — <a href="https://zachpoff.com/resources/alex-rice-piezo-preamplifier/" target="_blank" rel="noopener">Alex Rice Piezo Preamplifier</a>. ~20 dB balanced gain (12 dB single-ended), 20 Hz–30 kHz (−3 dB), 48 V phantom via 6.81 kΩ, 2N3819/J201 JFET, 220 pF DC-blocking caps to stop the ~25 V float and discharge bang, common-mode gain ~−80 dB.</li>
+    <li id="r-mudhar">Richard Mudhar — <a href="https://www.richardmudhar.com/blog/using-piezo-contact-mics-right/" target="_blank" rel="noopener">Using piezo contact mics right</a>. The ~15 nF source; 50 kΩ → 200 Hz and 7 kΩ → 1 kHz high-pass corners; ≈530 kΩ+ needed to keep 20 Hz.</li>
+    <li id="r-jli">JLI Electronics — <a href="https://www.jlielectronics.com/diy-accessories/p48-hi-z-piezo-buffer/" target="_blank" rel="noopener">P48 Hi-Z Piezo Buffer</a>. $35, 48 V phantom-powered (no battery), high-impedance in / low-impedance out for piezo pickups and hydrophones.</li>
+    <li id="r-aq">Aquarian Audio — <a href="https://www.aquarianaudio.com/pa6.html" target="_blank" rel="noopener">PA6 preamp</a>. Ready phantom-powered buffer alternative to the P48.</li>
+    <li id="r-poff-choose">Zach Poff — <a href="https://zachpoff.com/resources/choosing-a-hydrophone-for-field-recording/" target="_blank" rel="noopener">Choosing a Hydrophone</a>. Impedance matching, self-noise vs sensitivity, why an integrated preamp wins.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0002-your-first-underwater-ear.html">
+      <div class="dir">← Previous</div>
+      <div class="ttl">B1 · Your First Underwater Ear</div>
+    </a>
+    <a class="next" href="0015-the-serious-build.html">
+      <div class="dir">Next · B3</div>
+      <div class="ttl">The Serious Build →</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson 14 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Toy — before/after frequency response ============================ */
+(function(){
+  var canvas=document.getElementById('fcCanvas'); if(!canvas) return;
+  var ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+  var padL=52, padR=18, padT=24, padB=40;
+  var fLo=10, fHi=20000, dbLo=-30, dbHi=6;
+  var C=15e-9;
+  var bareR=50000;   // bare disc into a long cable + ordinary line input → fc ≈ 212 Hz
+  var bufR=1e8;      // preamp presents a very high input impedance → fc ≈ 0.1 Hz
+  var mode='bare';
+  var verdict=document.getElementById('fcVerdict');
+  var chips=document.querySelectorAll('#fcToy .chip');
+
+  function xOf(f){ return padL + (Math.log10(f)-Math.log10(fLo))/(Math.log10(fHi)-Math.log10(fLo))*(W-padL-padR); }
+  function yOf(db){ return padT + (dbHi-db)/(dbHi-dbLo)*(H-padT-padB); }
+  function fcOf(R){ return 1/(2*Math.PI*R*C); }
+
+  function curve(R,col,lw){
+    var fc=fcOf(R);
+    ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.beginPath(); var first=true;
+    for(var px=padL; px<=W-padR; px++){
+      var frac=(px-padL)/(W-padL-padR);
+      var f=Math.pow(10, Math.log10(fLo)+frac*(Math.log10(fHi)-Math.log10(fLo)));
+      var r=f/fc, mag=r/Math.sqrt(1+r*r), db=20*Math.log10(mag);
+      if(db<dbLo)db=dbLo;
+      var y=yOf(db);
+      if(first){ctx.moveTo(px,y);first=false;} else ctx.lineTo(px,y);
+    }
+    ctx.stroke();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#06202e'; ctx.fillRect(0,0,W,H);
+    var bareFc=fcOf(bareR);
+
+    // shade the cut region (only meaningful in bare mode)
+    if(mode==='bare'){
+      ctx.fillStyle='rgba(193,73,43,.16)';
+      ctx.fillRect(padL, padT, xOf(bareFc)-padL, H-padT-padB);
+    }
+
+    // grid: decade lines + labels
+    ctx.font='10px Inter, system-ui'; ctx.textAlign='center';
+    [10,100,1000,10000].forEach(function(f){
+      var x=xOf(f); ctx.strokeStyle='rgba(143,185,198,.18)'; ctx.beginPath(); ctx.moveTo(x,padT); ctx.lineTo(x,H-padB); ctx.stroke();
+      ctx.fillStyle='#5b8593'; ctx.fillText(f>=1000?(f/1000)+'k':f+'', x, H-padB+14);
+    });
+    ctx.fillStyle='#5b8593'; ctx.fillText('Hz', W-padR-6, H-padB+14);
+    ctx.textAlign='right';
+    [0,-10,-20].forEach(function(db){
+      var y=yOf(db); ctx.strokeStyle='rgba(143,185,198,.12)'; ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+      ctx.fillStyle='#5b8593'; ctx.fillText(db+' dB', padL-6, y+3);
+    });
+
+    // both curves: inactive faded, active bright
+    if(mode==='bare'){
+      curve(bufR, 'rgba(63,191,99,.28)', 1.6);
+      curve(bareR, '#2a9db0', 2.6);
+    } else {
+      curve(bareR, 'rgba(42,157,176,.26)', 1.6);
+      curve(bufR, '#ffd479', 2.8);
+    }
+
+    // corner line + label for the active curve
+    var aFc = (mode==='bare') ? bareFc : fcOf(bufR);
+    var xc = xOf(Math.max(aFc, fLo));
+    ctx.strokeStyle='#ffd479'; ctx.lineWidth=1.4; ctx.setLineDash([4,3]);
+    ctx.beginPath(); ctx.moveTo(xc,padT); ctx.lineTo(xc,H-padB); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#ffd479'; ctx.textAlign='left'; ctx.font='bold 11px Inter, system-ui';
+    var lab='fc ≈ '+(aFc>=1000 ? (aFc/1000).toFixed(1)+' kHz' : (aFc<1 ? aFc.toFixed(2)+' Hz' : Math.round(aFc)+' Hz'));
+    ctx.fillText(lab, Math.min(xc+6, W-padR-92), padT+14);
+
+    // axis title
+    ctx.fillStyle='#8fb9c6'; ctx.textAlign='center'; ctx.font='11px Inter, system-ui';
+    ctx.fillText('← bass cut          frequency          treble kept →', (padL+W-padR)/2, padT-8);
+
+    // verdict
+    if(verdict){
+      if(mode==='bare'){
+        verdict.innerHTML='Bare piezo down a long cable into an ordinary input (~50 kΩ): a high-pass at <b>~210 Hz</b> throws the bass away. Thin, distant — <b>“I think I heard a click.”</b>';
+      } else {
+        verdict.innerHTML='With the buffer’s very high input impedance the corner falls <b>below 1 Hz</b> — response is <b>flat into the bass</b>, and its low-impedance balanced output drives a long cable cleanly.';
+      }
+    }
+  }
+
+  chips.forEach(function(ch){
+    ch.addEventListener('click', function(){
+      chips.forEach(function(c2){ c2.classList.remove('on'); });
+      ch.classList.add('on');
+      mode=ch.getAttribute('data-mode');
+      draw();
+    });
+  });
+
+  draw();
+})();
+
+/* ============================ Signal-chain block diagram ============================ */
+(function(){
+  var canvas=document.getElementById('chainCanvas'); if(!canvas) return;
+  var ctx=canvas.getContext('2d'), W=canvas.width, H=canvas.height;
+
+  function rr(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,   x+w,y+h, r);
+    ctx.arcTo(x+w,y+h, x,  y+h, r);
+    ctx.arcTo(x,  y+h, x,  y,   r);
+    ctx.arcTo(x,  y,   x+w,y,   r);
+    ctx.closePath();
+  }
+  function box(x,y,w,h,title,sub,hi){
+    rr(x,y,w,h,10);
+    ctx.fillStyle = hi ? 'rgba(255,212,121,.10)' : 'rgba(143,185,198,.07)';
+    ctx.fill();
+    ctx.lineWidth = hi ? 2.4 : 1.5;
+    ctx.strokeStyle = hi ? '#ffd479' : '#2a9db0';
+    ctx.stroke();
+    ctx.textAlign='center';
+    ctx.fillStyle = hi ? '#ffd479' : '#dff1f5';
+    ctx.font='bold 14px Inter, system-ui';
+    ctx.fillText(title, x+w/2, y+h/2-3);
+    ctx.fillStyle='#8fb9c6'; ctx.font='11px Inter, system-ui';
+    ctx.fillText(sub, x+w/2, y+h/2+15);
+  }
+  function arrow(x1,y1,x2,y2,col){
+    ctx.strokeStyle=col; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    var a=Math.atan2(y2-y1,x2-x1);
+    ctx.beginPath(); ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-9*Math.cos(a-0.4), y2-9*Math.sin(a-0.4));
+    ctx.lineTo(x2-9*Math.cos(a+0.4), y2-9*Math.sin(a+0.4));
+    ctx.closePath(); ctx.fillStyle=col; ctx.fill();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H); ctx.fillStyle='#06202e'; ctx.fillRect(0,0,W,H);
+
+    box(20, 120, 150, 80, 'PIEZO', '~15 nF · hi-Z', false);
+    box(260,120, 200, 80, 'BUFFER / PREAMP', 'hi-Z in → lo-Z out', true);
+    box(580,120, 160, 80, 'RECORDER', '+48 V phantom', false);
+
+    // signal flow
+    arrow(170, 160, 258, 160, '#8fb9c6');
+    arrow(460, 160, 578, 160, '#8fb9c6');
+    ctx.fillStyle='#5b8593'; ctx.font='10px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText('weak, fragile', 214, 150);
+    ctx.fillText('balanced XLR · long cable OK', 519, 150);
+
+    // phantom path: recorder top → up → left → down into buffer top
+    ctx.strokeStyle='#c1492b'; ctx.lineWidth=2; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(660,120); ctx.lineTo(660,72); ctx.lineTo(360,72); ctx.lineTo(360,120); ctx.stroke();
+    ctx.setLineDash([]);
+    // arrowhead pointing down into the buffer
+    ctx.beginPath(); ctx.moveTo(360,122); ctx.lineTo(355,112); ctx.lineTo(365,112); ctx.closePath();
+    ctx.fillStyle='#c1492b'; ctx.fill();
+    ctx.fillStyle='#e6896f'; ctx.font='bold 11px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText('+48 V phantom', 510, 64);
+
+    // safety note
+    ctx.fillStyle='#ffd479'; ctx.font='11px Inter, system-ui'; ctx.textAlign='center';
+    ctx.fillText('✓ phantom powers the buffer — its DC-blocking caps keep +48 V off the bare piezo', W/2, 234);
+  }
+
+  draw();
+})();
+</script>
+</body>
+</html>

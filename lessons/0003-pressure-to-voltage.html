@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T2 · Pressure → Voltage</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-3-specific: the two canvas toys */
+  .toy { background:linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; }
+  .row { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .row .btn { cursor:pointer; border:1.5px solid var(--ocean); background:var(--ocean); color:#fff; font-weight:700; padding:.5rem .9rem; border-radius:8px; font-size:.85rem; }
+  .row .btn:hover { background:var(--ocean-deep); border-color:var(--ocean-deep); }
+  .row input[type=range] { flex:1; min-width:160px; accent-color:var(--ocean); }
+  .row output { font-variant-numeric:tabular-nums; color:var(--ocean-deep); font-weight:700; }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.95rem; padding:.6rem .8rem; border-radius:8px; margin-top:.8rem; background:#06202e; color:#d8f1f5; }
+  .toy .verdict b { color:#ffd479; }
+  .nl-detail { font-family:var(--sans); font-size:.88rem; margin-top:.8rem; padding:.85rem 1rem; border-radius:8px; background:var(--paper-2); border:1px solid var(--rule); line-height:1.5; }
+  .nl-detail b { color:var(--abyss); }
+  .nl-bar { height:14px; border-radius:7px; margin:.5rem 0 .3rem; background:linear-gradient(90deg,#1a3a4a,#2a9db0,#ffd479); transition:width .18s; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 1 · Theory · T2</p>
+  <h1 class="lesson-title">Pressure → Voltage: How a Hydrophone Works</h1>
+  <p class="lesson-sub">You built a $5 disc and it made a tiny voltage. Now meet the mechanism that turns a
+  passing sound wave into electricity — the one mental model that makes preamps, sensitivity and calibration
+  make sense.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~10 minutes</span><span class="sep">•</span>
+    <span>🧠 Theory — no build required</span><span class="sep">•</span>
+    <span class="tag ocean">Mission: detect &amp; localize</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson</div>
+    <p>In <a href="0002-your-first-underwater-ear.html">B1</a> you soldered a piezo disc and it twitched the meters.
+    But <em>why</em>? This lesson opens the black box. Once you can picture a sound wave squeezing a ceramic and
+    squirting out charge, three things you'll meet later stop being magic: why the element needs a
+    <a href="../reference/glossary.html#preamp">preamp</a>, what a hydrophone's <em>sensitivity</em> number means,
+    and how recorded volts become real pressure. This physics is exactly why a cheap disc can register a whale's
+    click — and why, for the real mission, you'll later pick a sensitive PZT cylinder and a proper preamp to
+    actually hear a sperm whale.</p>
+  </div>
+
+  <h2><span class="num">1</span>The trick: squeeze a ceramic, get electricity</h2>
+  <p>A hydrophone's sensing core is a <strong>piezoelectric</strong> ceramic — almost always
+  <a href="../reference/glossary.html#piezo">PZT</a> (lead zirconate titanate). Piezoelectric materials produce
+  small electric charges when a pressure change flexes them: the element bends under the pressure of a passing
+  sound wave and, in return, gives off an electrical signal.<span class="cite"><a href="#r-dosits">1</a></span>
+  That is the whole transducer in one sentence — <strong>pressure in, voltage out</strong>.</p>
+
+  <p>Mechanically, PZT is packed with tiny built-in electric dipoles, frozen into alignment when the ceramic was
+  made. Squeeze the disc and you nudge that lattice; the dipoles shift and a net <strong>+ charge piles on one
+  face, − on the other</strong>. Release it and the charge falls back. Drive it with the rapid push-and-pull of a
+  sound wave and the faces swing positive-negative in lockstep with the pressure — a voltage that is a faithful
+  copy of the sound. (This is the <em>direct</em> piezoelectric effect. Run it backwards — apply a voltage to make
+  the ceramic move — and you'd have a <em>projector</em> that emits sound. A hydrophone only listens.)</p>
+
+  <div class="callout key">
+    <div class="callout-label">★ This is a passive transducer — no power required</div>
+    <p>The energy in the output comes from the <strong>sound itself</strong>, not from a battery. A hydrophone
+    listens and converts acoustic energy into electrical energy; it never transmits, and the bare element needs
+    <strong>no power at all</strong> to work.<span class="cite"><a href="#r-dosits">1</a></span> (A
+    <a href="../reference/glossary.html#preamp">preamp</a> needs power — the element does not. Keep those two
+    separate in your head and half the wiring confusion disappears.) That passivity is a gift: drop the disc in the
+    sea, and a 230 dB sperm-whale click does all the work of generating your signal for free.</p>
+  </div>
+
+  <div class="toy">
+    <h3>⚡ Toy 1 — Squeeze the crystal: watch pressure become voltage</h3>
+    <p class="hint">A sound wave drives the ceramic. As it <b>compresses</b> (yellow), + charge gathers on the top
+    face and − on the bottom; as it <b>stretches</b>, the charge flips. The scope on the right is the output
+    voltage — a copy of the pressure. Turn up the sound and the voltage grows <em>in step</em>. (Schematic, but the
+    numbers use a real −180 dB re 1 V/µPa element, like the Aquarian H2a.<span class="cite"><a href="#r-h2a">7</a></span>)</p>
+    <canvas id="pzCanvas" width="720" height="320" aria-label="Animation of the piezoelectric effect: pressure compresses a ceramic and produces a voltage"></canvas>
+    <div class="row">
+      <span>Sound pressure:</span>
+      <input type="range" id="pzAmp" min="0.1" max="3" step="0.1" value="1">
+      <output id="pzAmpOut">±1.0 Pa</output>
+      <button class="btn" id="pzPlay">⏸ Pause</button>
+    </div>
+    <div class="verdict" id="pzReadout">—</div>
+  </div>
+
+  <h2><span class="num">2</span>The catch: it's a feeble source with a built-in capacitor</h2>
+  <p>The output is real, but it is <em>tiny</em> and comes from a very fussy source. Electrically, a piezo disc
+  behaves like a sound-dependent voltage source <strong>in series with about 15 nF of capacitance</strong> — for a
+  standard 27 mm disc, ~15 nF.<span class="cite"><a href="#r-mudhar">2</a></span> That built-in capacitor is the
+  source of the single most common DIY disappointment.</p>
+
+  <p>A capacitor and the recorder's input resistance form a <strong>high-pass filter</strong>. Plug a 15 nF disc
+  into a low-impedance input and the bass is thrown away before it's ever recorded: into a 50 kΩ line input the
+  cut sits around <span class="inline-math">200 Hz</span>; into a ~7 kΩ phone-mic input it climbs to roughly
+  <span class="inline-math">1 kHz</span>.<span class="cite"><a href="#r-mudhar">2</a></span> That's why a bare
+  piezo sounds thin and honky. The fix is to feed it a <strong>high-impedance input</strong> — and to do that
+  well, the element wants a <a href="../reference/glossary.html#preamp">preamp</a> sitting right beside it.</p>
+
+  <div class="callout note">
+    <div class="callout-label">⤴ Forward ref — this is why B2 exists</div>
+    <p>You met the symptom in <a href="0002-your-first-underwater-ear.html">B1</a> ("borrow a Hi-Z input so the bass
+    survives"). Here's the cause: a <strong>15 nF source impedance</strong> that only a high-impedance load can
+    read without strangling the lows. A purpose-built <strong>preamp (B2)</strong> presents that high impedance and
+    buffers the fragile signal down to a cable-friendly level — the difference between "it kind of works" and a
+    measuring instrument. Hold that thought; we build it next phase.</p>
+  </div>
+
+  <h2><span class="num">3</span>Sensitivity: one number for "volts per pressure"</h2>
+  <p>How much voltage does a given hydrophone produce per unit of sound pressure? That single number is its
+  <a href="../reference/glossary.html#sensitivity">receiving sensitivity</a>, written <strong>M</strong> and
+  quoted in <strong>dB re 1 V/µPa</strong> — decibels relative to one volt produced by one
+  micropascal.<span class="cite"><a href="#r-npl">3</a></span><span class="cite"><a href="#r-boat">4</a></span>
+  Two quirks trip up everyone:</p>
+  <ul>
+    <li><strong>It's always negative.</strong> A hydrophone makes a <em>fraction</em> of a volt per µPa, so the
+      conversion factor is a small number and its decibel value comes out below zero.<span class="cite"><a href="#r-boat">4</a></span></li>
+    <li><strong>Less negative = more sensitive.</strong> A higher number like <em>−164 dB</em> means <em>more</em>
+      output than a lower one like <em>−180 dB</em>. So <strong>−164 dB beats −180 dB</strong> — counter-intuitive
+      until it clicks.<span class="cite"><a href="#r-poff">5</a></span></li>
+  </ul>
+  <p>Real hydrophones span a wide range — roughly <strong>−154 dB</strong> (very sensitive) down to about
+  <strong>−204 dB</strong> for a budget mini-element.<span class="cite"><a href="#r-poff">5</a></span> Drag along
+  the line below and watch the same sound make wildly different voltages.</p>
+
+  <div class="toy">
+    <h3>📏 Toy 2 — The sensitivity number line</h3>
+    <p class="hint">Real hydrophones, placed by their published sensitivity. <b>Right = less negative = more
+    sensitive.</b> Tap one to see how many millivolts a fixed 1 Pa sound (120 dB re 1 µPa) squeezes out of it.</p>
+    <canvas id="nlCanvas" width="720" height="230" aria-label="Number line of real hydrophone sensitivities in dB re 1 V per micropascal"></canvas>
+    <div class="nl-detail" id="nlDetail">Tap a hydrophone on the line to see its output voltage for the same sound.</div>
+  </div>
+
+  <h2><span class="num">4</span>Closing the loop: from volts back to pressure</h2>
+  <p>Sensitivity isn't trivia — it's the key that unlocks measurement. Your recorder hands you <em>volts</em>. To
+  recover the real <a href="../reference/glossary.html#decibel">sound-pressure level</a> that hit the element, you
+  undo the chain: take the recorded voltage, subtract the hydrophone's sensitivity M, and subtract any preamp gain
+  G.<span class="cite"><a href="#r-boat">4</a></span></p>
+
+  <div class="formula">
+    SPL <span class="op">=</span> 20·log₁₀(<span class="var">V</span> / V<sub>ref</sub>) <span class="op">−</span> <span class="var">M</span> <span class="op">−</span> <span class="var">G</span>
+    <small>V = recorded voltage · M = receiving sensitivity (dB re 1 V/µPa, negative) · G = system gain (dB).
+    Subtracting a negative M <em>adds</em> level back — exactly the volts the element "lost" turning pressure into signal.</small>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-label">★ Why you can't skip calibration</div>
+    <p>That formula only works if you <em>know</em> M. A cheap disc's M is unknown and ragged, so it can listen but
+    never <strong>measure</strong> — fine for hearing boats, useless for a source level. Pin M down (against a
+    reference) and your volts become absolute pascals. That's the whole job of
+    <a href="../reference/glossary.html#calibration">calibration (B4)</a>, and it's the line between a microphone
+    and a scientific instrument.</p>
+  </div>
+
+  <h2><span class="num">5</span>Check yourself</h2>
+  <p>No peeking — getting these out of your head is what makes them stick.</p>
+
+  <div class="quiz" data-explain-right="Exactly." data-explain-wrong="Re-read Section 1.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">Why do we call a piezoelectric hydrophone a <em>passive</em> transducer?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="The sound supplies the energy: the ceramic makes charge directly from pressure, and the bare element needs no power supply at all.">It makes charge from pressure, no power</button>
+      <button class="opt" data-feedback="That describes an active sonar projector pinging and timing echoes — the opposite of a listening hydrophone.">It pings a pulse and hears echoes</button>
+      <button class="opt" data-feedback="A bare element draws nothing. Only the optional preamp downstream needs power; the transducer itself is passive.">It draws current from an onboard battery</button>
+      <button class="opt" data-feedback="That's the preamp's job, and it's optional. The element generates its tiny voltage with no power of its own.">It boosts faint voltage before the recorder</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="Less negative wins." data-explain-wrong="See Section 3 and Toy 2.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">Two hydrophones read −164 and −180 dB re 1 V/µPa. Which makes more voltage for the same sound?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="−164 dB is less negative, so it converts the same pressure into more volts. Less negative = more sensitive.">The −164 dB unit, since less negative wins</button>
+      <button class="opt" data-feedback="Backwards. −180 dB is the more negative, lower-output unit. Less negative is the more sensitive one.">The −180 dB unit, since more negative wins</button>
+      <button class="opt" data-feedback="The sign matters a great deal — it tells you which way the output runs. −164 dB makes more volts.">Neither differs; the sign of dB is irrelevant</button>
+      <button class="opt" data-feedback="The number is everything: it's the volts-per-pressure conversion. −164 dB beats −180 dB.">Both match; the printed number means nothing here</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="The 15 nF high-pass." data-explain-wrong="See Section 2.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">A piezo acts like a voltage source in series with ~15 nF. Why does that demand a high-impedance preamp?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="The 15 nF source plus a low input resistance forms a high-pass filter that throws away the bass. A high-impedance load pushes that corner below hearing, so the lows survive.">Low impedance forms a high-pass, stripping the bass</button>
+      <button class="opt" data-feedback="Impedance doesn't crack ceramic — heat and force do. The real issue is the high-pass filter robbing the bass.">High impedance overloads the disc, cracking the ceramic</button>
+      <button class="opt" data-feedback="Input impedance carries no phantom power. The actual problem is the capacitor-plus-resistance high-pass cut.">Low impedance adds phantom power, charging the element</button>
+      <button class="opt" data-feedback="A high-impedance load is the cure, not the cause. It rescues the bass that a low impedance would strip.">High impedance doubles the noise, drowning the signal</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now say</h3>
+    <ol>
+      <li>PZT ceramic makes charge when pressure deforms it — <strong>pressure in, voltage out</strong>, the direct piezoelectric effect.</li>
+      <li>It's a <strong>passive</strong> transducer: the sound supplies the energy, the bare element needs no power.</li>
+      <li>Electrically it's a voltage source in series with <strong>~15 nF</strong>, which high-passes the bass into a low-Z input — hence the <strong>preamp (B2)</strong>.</li>
+      <li>Sensitivity <strong>M</strong> (dB re 1 V/µPa) is always negative, and <strong>less negative = more sensitive</strong> (−164 dB beats −180 dB).</li>
+      <li>Recover real pressure with <strong>SPL = 20·log₁₀(V/V<sub>ref</sub>) − M − G</strong> — which is why you must <strong>calibrate (B4)</strong>.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · read this next</div>
+      <div class="title"><a href="https://dosits.org/galleries/technology-gallery/basic-technology/hydrophonereceiver/" target="_blank" rel="noopener">DOSITS — “Hydrophone / Receiver”</a></div>
+      <div class="desc">The clearest plain-language account of what a hydrophone is: a passive piezoelectric element that flexes under a sound wave's pressure and gives off an electrical signal, converting acoustic energy to electrical energy without transmitting anything. ~5-minute read.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>I'm your teacher — ask me anything.</b> Fuzzy on why subtracting a negative M <em>adds</em> level, what
+    "dB re 1 V/µPa" really buys you, or how a charge amp differs from a voltage amp? Just ask in chat. Confused
+    beats stuck.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#piezo">piezo element</a> ·
+    <a href="../reference/glossary.html#sensitivity">sensitivity (M)</a> ·
+    <a href="../reference/glossary.html#preamp">preamp</a> ·
+    <a href="../reference/glossary.html#calibration">calibration</a>.
+    <b>Builds toward →</b> <b>T3</b> (decibels without tears), <b>B2</b> (the preamp that reads a 15 nF source),
+    <b>B4</b> (calibration — making M trustworthy).
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-dosits">DOSITS — <a href="https://dosits.org/galleries/technology-gallery/basic-technology/hydrophonereceiver/" target="_blank" rel="noopener">Hydrophone / Receiver</a>. Passive piezoelectric element flexes under sound pressure and gives off an electrical signal; converts acoustic energy to electrical, transmits nothing.</li>
+    <li id="r-mudhar">Richard Mudhar — <a href="https://www.richardmudhar.com/blog/using-piezo-contact-mics-right/" target="_blank" rel="noopener">Using piezo contact mics right</a>. A piezo is a voltage source in series with ~15 nF; into 50 kΩ that's a ~200 Hz high-pass, into ~7 kΩ a ~1 kHz high-pass — needs a high-impedance input.</li>
+    <li id="r-npl">NPL — <a href="http://resource.npl.co.uk/acoustics/techguides/concepts/sen.html" target="_blank" rel="noopener">Hydrophone sensitivity (technical guide)</a>. The metrology definition and the unit dB re 1 V/µPa.</li>
+    <li id="r-boat">BOAT — <a href="https://boat-fundamentals.readthedocs.io/en/latest/acoustics/RL_01_sensitivity.html" target="_blank" rel="noopener">Hydrophone Receiving Sensitivity</a>. M in dB re 1 V/µPa (negative); SPL = 20·log₁₀(V/V<sub>ref</sub>) − M − G.</li>
+    <li id="r-poff">Zach Poff — <a href="https://zachpoff.com/resources/choosing-a-hydrophone-for-field-recording/" target="_blank" rel="noopener">Choosing a Hydrophone for Field Recording</a>. "A higher number (like −164 dB) indicates greater sensitivity"; real units span ~−154 dB to ~−204 dB; piezos need impedance matching.</li>
+    <li id="r-c57">Cetacean Research — <a href="https://www.cetaceanresearch.com/hydrophones/c57-hydrophone/index.html" target="_blank" rel="noopener">C57 Hydrophone</a>. Transducer sensitivity −187 dB re 1 V/µPa, 0.015–45 kHz.</li>
+    <li id="r-h2a">Aquarian Audio — <a href="https://www.aquarianaudio.com/h2a-hydrophone.html" target="_blank" rel="noopener">H2a Hydrophone</a> (<a href="https://www.nauta-rcs.it/resources/products_manual/H2a_manual.pdf" target="_blank" rel="noopener">manual</a>). Sensitivity −180 dB re 1 V/µPa (±4 dB, 20 Hz–4 kHz).</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0001-the-loudest-animal.html">
+      <div class="dir">← Previous</div>
+      <div class="ttl">← T1 · The Loudest Animal in the Sea</div>
+    </a>
+    <a class="next" href="0004-decibels-without-tears.html">
+      <div class="dir">Next · T3</div>
+      <div class="ttl">Next · T3 · Decibels Without Tears →</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson 3 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Toy 1 — piezoelectric effect: pressure → voltage ============================ */
+(function(){
+  var c = document.getElementById('pzCanvas'); if(!c) return;
+  var ctx = c.getContext('2d'), W = c.width, H = c.height;
+  var ampEl = document.getElementById('pzAmp');
+  var ampOut = document.getElementById('pzAmpOut');
+  var playBtn = document.getElementById('pzPlay');
+  var readout = document.getElementById('pzReadout');
+  var M = -180;                       // dB re 1 V/µPa (Aquarian H2a)
+  var P0 = ampEl ? parseFloat(ampEl.value) : 1.0;   // peak sound pressure, Pa
+  var phase = 0, playing = true, raf = null;
+  var hist = [], HISTN = 150;
+
+  // peak output (mV) for pressure p (Pa): V = 10^(M/20) [V/µPa] * p*1e6 [µPa]; *1000 -> mV
+  function vpeakMv(p){ return Math.pow(10, M/20) * p * 1e6 * 1000; }
+  var SCOPE_MAX = vpeakMv(3.2);       // fixed scope scale (slider maxes at 3)
+
+  // geometry
+  var cx = 232, cy = 168;             // disc centre
+  var DW = 150, T0 = 78;              // disc width, rest thickness
+  var sx0 = 392, sx1 = 700, sy = cy, sH = 96;  // scope box
+
+  function drawCharges(top, n, sign){
+    ctx.font = 'bold 14px Inter, system-ui, sans-serif';
+    ctx.fillStyle = sign>0 ? '#ffd479' : '#7fd0e0';
+    ctx.textAlign = 'center';
+    var glyph = sign>0 ? '+' : '–';
+    for(var i=0;i<n;i++){
+      var gx = cx - DW/2 + 14 + i*((DW-28)/Math.max(n-1,1));
+      ctx.fillText(glyph, gx, top);
+    }
+  }
+
+  function draw(){
+    var s = Math.sin(phase);          // -1..1 instantaneous pressure fraction
+    var pNow = s * P0;                // signed pressure, Pa
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#06202e'; ctx.fillRect(0,0,W,H);
+
+    // labels
+    ctx.font = '12px Inter, system-ui'; ctx.fillStyle = '#8fb9c6'; ctx.textAlign = 'left';
+    ctx.fillText('THE PZT ELEMENT — pressure deforms it', 24, 20);
+    ctx.fillText('OUTPUT VOLTAGE — a copy of the pressure', sx0, 20);
+
+    // incoming sound: pulsing compression bands sliding right
+    for(var b=0;b<4;b++){
+      var bx = 30 + b*22;
+      var a = 0.18 + 0.22*Math.max(0, Math.sin(phase - b*0.5));
+      ctx.fillStyle = 'rgba(143,185,198,'+a.toFixed(3)+')';
+      ctx.fillRect(bx, cy-58, 9, 116);
+    }
+    ctx.fillStyle = '#5b8593'; ctx.font = '10px Inter, system-ui';
+    ctx.fillText('sound →', 30, cy+78);
+
+    // disc thickness shrinks under compression (s>0)
+    var th = T0 * (1 - 0.20*s);
+    var top = cy - th/2, bot = cy + th/2;
+
+    // electrodes (top gold, bottom grey) + ceramic body
+    var bodyCol = s>0 ? 'rgba(255,212,121,0.16)' : 'rgba(127,208,224,0.14)';
+    ctx.fillStyle = bodyCol;
+    ctx.strokeStyle = 'rgba(143,185,198,.5)'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.rect(cx-DW/2, top, DW, th); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ffd479'; ctx.fillRect(cx-DW/2, top-5, DW, 5);     // top electrode
+    ctx.fillStyle = '#9fb4bd'; ctx.fillRect(cx-DW/2, bot, DW, 5);       // bottom electrode
+
+    // separated charge proportional to |s|
+    var n = Math.round(2 + Math.abs(s)*6);
+    var topSign = s>=0 ? 1 : -1;
+    drawCharges(top-10, n, topSign);
+    drawCharges(bot+18, n, -topSign);
+    ctx.fillStyle = '#8fb9c6'; ctx.font = '10px Inter, system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(s>=0 ? 'compressed' : 'stretched', cx, cy+78);
+
+    // leads from electrodes toward the scope
+    ctx.strokeStyle = 'rgba(255,212,121,.55)'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(cx+DW/2, top-2); ctx.lineTo(cx+DW/2+34, top-2); ctx.lineTo(cx+DW/2+34, cy-30); ctx.stroke();
+    ctx.strokeStyle = 'rgba(159,180,189,.55)';
+    ctx.beginPath(); ctx.moveTo(cx+DW/2, bot+2); ctx.lineTo(cx+DW/2+34, bot+2); ctx.lineTo(cx+DW/2+34, cy+30); ctx.stroke();
+
+    // scope box + midline
+    ctx.fillStyle = '#031824'; ctx.fillRect(sx0, sy-sH/2, sx1-sx0, sH);
+    ctx.strokeStyle = 'rgba(143,185,198,.25)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(sx0, sy); ctx.lineTo(sx1, sy); ctx.stroke();
+
+    // history -> trace
+    hist.push(vpeakMv(P0)*s);
+    if(hist.length > HISTN) hist.shift();
+    ctx.strokeStyle = '#2a9db0'; ctx.lineWidth = 2; ctx.beginPath();
+    for(var i=0;i<hist.length;i++){
+      var x = sx0 + (i/(HISTN-1))*(sx1-sx0);
+      var y = sy - (hist[i]/SCOPE_MAX)*(sH/2 - 6);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+
+    // live voltage dot at the leading edge
+    var yNow = sy - (vpeakMv(P0)*s/SCOPE_MAX)*(sH/2 - 6);
+    ctx.fillStyle = '#ffd479'; ctx.beginPath(); ctx.arc(sx1-2, yNow, 3.5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#8fb9c6'; ctx.font = '10px Inter, system-ui'; ctx.textAlign = 'right';
+    ctx.fillText('+'+vpeakMv(P0).toFixed(2)+' mV', sx1, sy-sH/2-4);
+    ctx.fillText('−'+vpeakMv(P0).toFixed(2)+' mV', sx1, sy+sH/2+12);
+  }
+
+  function tick(){ if(playing){ phase += 0.06; } draw(); raf = requestAnimationFrame(tick); }
+
+  function setReadout(){
+    if(!readout) return;
+    readout.innerHTML = 'Sound pressure <b>±'+P0.toFixed(1)+' Pa</b> &nbsp;→&nbsp; output <b>±'+
+      vpeakMv(P0).toFixed(2)+' mV</b> &nbsp;·&nbsp; louder sound, bigger voltage — in step.';
+  }
+
+  if(ampEl){
+    ampEl.addEventListener('input', function(){
+      P0 = parseFloat(ampEl.value);
+      if(ampOut) ampOut.textContent = '±'+P0.toFixed(1)+' Pa';
+      setReadout();
+    });
+  }
+  if(playBtn){
+    playBtn.addEventListener('click', function(){
+      playing = !playing;
+      playBtn.textContent = playing ? '⏸ Pause' : '▶ Play';
+    });
+  }
+  if(ampOut) ampOut.textContent = '±'+P0.toFixed(1)+' Pa';
+  setReadout();
+  tick();
+})();
+
+/* ============================ Toy 2 — sensitivity number line ============================ */
+(function(){
+  var c = document.getElementById('nlCanvas'); if(!c) return;
+  var ctx = c.getContext('2d'), W = c.width, H = c.height;
+  var detail = document.getElementById('nlDetail');
+  var Mmin = -210, Mmax = -150;
+  var padL = 46, padR = 46, axisY = 132;
+  var data = [
+    { name:'Ambient ASF-2', M:-204, tag:'budget mini-element' },
+    { name:'Cetacean Research C57 (element)', M:-187, tag:'research-grade cylinder' },
+    { name:'Aquarian H2a', M:-180, tag:'popular hobbyist hydrophone' },
+    { name:'HTI-92-WB', M:-154, tag:'very sensitive, research-grade' }
+  ];
+  var pts = [], sel = null;
+
+  function xOf(M){ return padL + (M - Mmin)/(Mmax - Mmin)*(W - padL - padR); }
+  // mV out for a fixed 1 Pa (=1e6 µPa) sound: 10^(M/20) * 1e6 * 1000
+  function mvOf(M){ return Math.pow(10, M/20) * 1e6 * 1000; }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H); ctx.fillStyle = '#06202e'; ctx.fillRect(0,0,W,H);
+
+    // axis
+    ctx.strokeStyle = 'rgba(143,185,198,.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(padL, axisY); ctx.lineTo(W-padR, axisY); ctx.stroke();
+
+    // ticks every 10 dB
+    ctx.font = '10px Inter, system-ui'; ctx.textAlign = 'center';
+    for(var m=Mmin; m<=Mmax; m+=10){
+      var x = xOf(m);
+      ctx.strokeStyle = 'rgba(143,185,198,.22)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, axisY-5); ctx.lineTo(x, axisY+5); ctx.stroke();
+      ctx.fillStyle = '#5b8593'; ctx.fillText(m+'', x, axisY+20);
+    }
+    ctx.fillStyle = '#8fb9c6'; ctx.fillText('dB re 1 V/µPa', W/2, axisY+38);
+
+    // end captions
+    ctx.font = 'bold 11px Inter, system-ui';
+    ctx.fillStyle = '#7f97a1'; ctx.textAlign = 'left';
+    ctx.fillText('◀ more negative · less output', padL, 26);
+    ctx.fillStyle = '#ffd479'; ctx.textAlign = 'right';
+    ctx.fillText('less negative · more output ▶', W-padR, 26);
+
+    // points
+    pts = [];
+    data.forEach(function(d){
+      var x = xOf(d.M), on = (sel===d);
+      pts.push({ x:x, y:axisY, d:d });
+      ctx.beginPath(); ctx.arc(x, axisY, on?9:6, 0, Math.PI*2);
+      ctx.fillStyle = on ? '#ffd479' : '#2a9db0'; ctx.fill();
+      if(on){ ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); }
+      // label above, M value below
+      ctx.fillStyle = '#dff1f5'; ctx.font = (on?'bold ':'')+'11px Inter, system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(d.name.replace(' (element)',''), x, axisY-30);
+      ctx.fillStyle = '#8fb9c6'; ctx.font = '10px Inter, system-ui';
+      ctx.fillText(d.M+' dB', x, axisY-16);
+    });
+  }
+
+  function select(d){
+    sel = d;
+    var mv = mvOf(d.M);
+    var pct = Math.max(4, Math.min(100, (d.M - Mmin)/(Mmax - Mmin)*100));
+    if(detail){
+      detail.innerHTML =
+        '<b>'+d.name+'</b> &middot; <span class="muted">'+d.tag+'</span><br>'+
+        'M = <b>'+d.M+' dB re 1 V/µPa</b>. A 1 Pa sound (120 dB re 1 µPa) drives ≈ <b>'+
+          mv.toFixed(mv<1?3:2)+' mV</b> out of this element.'+
+        '<div class="nl-bar" style="width:'+pct.toFixed(0)+'%"></div>'+
+        '<small>Slide right (less negative) and the very same sound makes more volts.</small>';
+    }
+    draw();
+  }
+
+  c.addEventListener('click', function(e){
+    var r = c.getBoundingClientRect();
+    var sxr = c.width/r.width, syr = c.height/r.height;
+    var mx = (e.clientX - r.left)*sxr, my = (e.clientY - r.top)*syr;
+    var best = null, bd = 1e9;
+    pts.forEach(function(p){ var dd = (p.x-mx)*(p.x-mx) + (p.y-my)*(p.y-my); if(dd<bd){ bd=dd; best=p; } });
+    if(best && bd < 40*40) select(best.d);
+  });
+
+  draw();
+})();
+</script>
+</body>
+</html>

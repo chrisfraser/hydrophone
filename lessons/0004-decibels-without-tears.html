@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T3 · Decibels Without Tears</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-4-specific: the dB⇄ratio converter + a dB scale bar */
+  .conv { display:grid; grid-template-columns:1fr auto 1fr; gap:.9rem; align-items:end; }
+  .conv .swap { font-family:var(--sans); color:var(--ocean); font-size:1.4rem; font-weight:700; text-align:center; padding-bottom:.55rem; }
+  @media (max-width:34rem){ .conv { grid-template-columns:1fr; } .conv .swap { display:none; } }
+  .dbbar-wrap { margin-top:1.2rem; }
+  .dbbar-cap { font-family:var(--sans); font-size:.74rem; color:#8fb9c6; margin:0 0 1.3rem; }
+  .dbbar { position:relative; height:28px; border-radius:6px; background:linear-gradient(90deg,#0a3340,#0b6b7a 45%,#2a9db0 78%,#ffd479); }
+  .dbbar .mk { position:absolute; top:-5px; bottom:-5px; width:2px; background:rgba(5,36,53,.65); }
+  .dbbar .mk.you { background:var(--coral); width:3px; box-shadow:0 0 0 1px rgba(255,255,255,.4); }
+  .dbbar .you-lbl { position:absolute; top:-1.25rem; transform:translateX(-50%); font-family:var(--sans); font-size:.66rem; font-weight:700; color:var(--coral); white-space:nowrap; }
+  .dbbar-scale { position:relative; height:2.2rem; margin-top:.35rem; }
+  .dbbar-scale span { position:absolute; transform:translateX(-50%); text-align:center; font-family:var(--sans); font-size:.64rem; line-height:1.25; color:#5b8593; white-space:nowrap; }
+  .dbbar-scale span b { color:#cfe6d3; display:block; font-size:.7rem; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 1 · Theory · T3</p>
+  <h1 class="lesson-title">Decibels Without Tears: the 1 µPa World</h1>
+  <p class="lesson-sub">You keep seeing “230 dB” and “−180 dB re 1 V/µPa” thrown around. One half-hour here and
+  every one of those numbers becomes something you can actually <em>use</em>.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~10 minutes</span><span class="sep">•</span>
+    <span>🧮 A little arithmetic, no calculus</span><span class="sep">•</span>
+    <span class="tag math">Math you'll reuse everywhere</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson</div>
+    <p>Every detection decision you will ever make — <em>can I hear a whale at 5 km?</em> — is decibel arithmetic.
+    The <a href="../reference/glossary.html#sonar-equation">sonar equation</a> you build in <strong>T7</strong> is
+    just adding and subtracting decibels. So the decibel is the <strong>currency</strong> of this whole course, and
+    right now it's a foreign currency. By the end of this page you'll read it as fluently as dollars — and you'll
+    know the one trap (air vs water) that quietly wrecks beginners' numbers.</p>
+  </div>
+
+  <h2><span class="num">1</span>A decibel is a <em>ratio</em>, written on a stretchy ruler</h2>
+  <p>Here is the whole idea in one breath: a decibel doesn't measure a sound, it measures <strong>how many times
+  bigger</strong> one sound's pressure is than a reference. It is a <strong>logarithmic ratio</strong> — a way of
+  squashing enormous spans of numbers onto a short, readable
+  scale.<span class="cite"><a href="#r-dosits">1</a></span></p>
+  <p>Why bother? Because the pressures in the sea are absurd. A faint sound and a sperm-whale click can differ by a
+  factor of a <em>hundred billion</em>. Writing “100,000,000,000 times louder” is hopeless; writing
+  <strong>“+220 dB”</strong> is not. The logarithm turns a chain of zeros into a tidy two- or three-digit number.
+  That's the entire trick — decibels are a <em>compression scheme</em> for loudness.</p>
+
+  <div class="callout note">
+    <div class="callout-label">⌗ “dB” alone means nothing</div>
+    <p>A decibel is always a ratio <em>to something</em>. Underwater, that something is a pressure of
+    <strong>1 micropascal (1 µPa)</strong> — a millionth of a millionth of normal atmospheric pressure, an almost
+    absurdly quiet anchor point.<span class="cite"><a href="#r-boat">2</a></span> When you see a level written in
+    full it carries its reference with it: <strong>“dB re 1 µPa”</strong>. Drop the “re 1 µPa” and the number is
+    just a floating digit with no meaning — like saying “it costs 230” without a currency.</p>
+  </div>
+
+  <h2><span class="num">2</span>The one formula: SPL = 20·log₁₀(p / p<sub>ref</sub>)</h2>
+  <p>To turn a pressure <span class="inline-math">p</span> into a sound pressure level in decibels, you take its
+  ratio to the reference, take the base-10 logarithm, and multiply by 20:<span class="cite"><a href="#r-boat">2</a></span></p>
+
+  <div class="formula">
+    <span class="var">SPL</span> <span class="op">=</span> 20 <span class="op">·</span> log₁₀<span class="op">(</span> <span class="var">p</span> <span class="op">/</span> <span class="var">p<sub>ref</sub></span> <span class="op">)</span>
+    <small>SPL in dB re 1 µPa &nbsp;·&nbsp; p = the sound pressure &nbsp;·&nbsp; p<sub>ref</sub> = 1 µPa underwater</small>
+  </div>
+
+  <p>Two things to notice and never forget. First, the <strong>20</strong> (not 10): sound <em>pressure</em> is
+  what a hydrophone measures, and pressure goes in with a factor of 20. (The factor 10 is for power or intensity —
+  a different quantity. Hydrophones read pressure, so for us it's always 20.) Second, because it's a ratio,
+  <strong>0 dB is not silence</strong> — it's the point where <span class="inline-math">p = p<sub>ref</sub></span>,
+  i.e. the sound pressure exactly equals 1 µPa. Quieter sounds give <em>negative</em> decibels, which is perfectly
+  normal and exactly why hydrophone <a href="../reference/glossary.html#sensitivity">sensitivity</a> is a negative
+  number like −180 dB re 1 V/µPa.<span class="cite"><a href="#r-boat">2</a></span></p>
+
+  <div class="callout key">
+    <div class="callout-label">★ Worked example — a number into dB, and back out</div>
+    <p>Suppose a sound's pressure is <strong>one million times</strong> the reference
+    (<span class="inline-math">p / p<sub>ref</sub> = 10<sup>6</sup></span>). Then
+    SPL = 20·log₁₀(10<sup>6</sup>) = 20·6 = <strong>120 dB re 1 µPa</strong>. Going the other way is just the
+    reverse: a level of 120 dB means a pressure ratio of
+    <span class="inline-math">10<sup>(120/20)</sup> = 10<sup>6</sup></span> — a million times the reference again.
+    The log and the “×20” undo each other. The converter below does exactly this both ways, instantly.</p>
+  </div>
+
+  <h2><span class="num">3</span>Two rules of thumb that replace the calculator</h2>
+  <p>You almost never need the full formula in your head. Two shortcuts cover most of the work, because both come
+  straight out of the logarithm:</p>
+  <ul>
+    <li><strong>+6 dB ≈ ×2 pressure.</strong> Every 6 dB you add is (very nearly) a <em>doubling</em> of sound
+    pressure — because 20·log₁₀(2) = 6.02 dB. Add 6 again, you've doubled again (×4 total, +12 dB).</li>
+    <li><strong>+20 dB = ×10 pressure.</strong> Every 20 dB is exactly a <em>tenfold</em> change, since
+    20·log₁₀(10) = 20 dB. So +40 dB is ×100, +60 dB is ×1000, and so on.</li>
+  </ul>
+  <p>With just these you can sanity-check almost anything. A click that arrives <strong>40 dB</strong> above the
+  noise floor is <strong>100×</strong> the pressure of that noise — comfortably heard. Drop the level by 6 dB
+  (move twice as far in the spherical-spreading near field) and you've <em>halved</em> the pressure. This is the
+  language the whole mission is spoken in.</p>
+
+  <div class="calc">
+    <div class="calc-title">🔁 Interactive — the decibel ⇄ pressure-ratio converter</div>
+    <div class="conv">
+      <div class="control">
+        <label for="dbIn">Level <output>dB re 1 µPa</output></label>
+        <input type="number" id="dbIn" value="230" step="1" inputmode="numeric">
+      </div>
+      <div class="swap" aria-hidden="true">⇄</div>
+      <div class="control">
+        <label for="ratioIn">Pressure ratio <output>× the reference</output></label>
+        <input type="number" id="ratioIn" step="any" inputmode="decimal">
+      </div>
+    </div>
+    <div class="readout">
+      <div id="convMain">—</div>
+      <div id="convRules" style="font-size:.84rem;color:#8fb9c6;margin-top:.55rem;line-height:1.55">—</div>
+    </div>
+
+    <div class="dbbar-wrap">
+      <p class="dbbar-cap">Type a level on the left to slide the <span style="color:#ff8a6b;font-weight:700">▮ red marker</span>
+        along a real dB-re-1-µPa scale. Everything loud lives crammed up at the right — that's the logarithm at work.</p>
+      <div class="dbbar" id="dbbar">
+        <div class="mk" style="left:2%"></div>
+        <div class="mk" style="left:74%"></div>
+        <div class="mk" style="left:90%"></div>
+        <div class="mk" style="left:94%"></div>
+        <div class="mk you" id="youMk" style="left:94%"></div>
+        <div class="you-lbl" id="youLbl" style="left:94%">your value</div>
+      </div>
+      <div class="dbbar-scale">
+        <span style="left:2%"><b>0 dB</b>1 µPa ref</span>
+        <span style="left:74%"><b>~180 dB</b>large ship*</span>
+        <span style="left:90%"><b>~220 dB</b>shrimp snap<span class="cite"><a href="#r-whoi">5</a></span></span>
+        <span style="left:99%"><b>~230 dB</b>whale click<span class="cite"><a href="#r-mohl">4</a></span></span>
+      </div>
+    </div>
+  </div>
+  <p class="muted" style="font-family:var(--sans);font-size:.76rem">*Large-ship figure is an order-of-magnitude
+  illustration; shrimp and whale-click levels are the cited course numbers. All three are source levels,
+  dB re 1 µPa @ 1 m.</p>
+
+  <h2><span class="num">4</span>The trap: in-water dB are <em>not</em> in-air dB</h2>
+  <p>This is the single most expensive mistake a newcomer makes, so read it twice. The reference pressure is part
+  of the unit — and <strong>water and air use different references</strong>. Underwater it's 1 µPa; in air it's
+  <strong>20 µPa</strong>.<span class="cite"><a href="#r-dosits">1</a></span> Those two anchors are
+  <strong>26 dB apart</strong> all by themselves, because 20·log₁₀(20) = 26 dB.<span class="cite"><a href="#r-nrc">3</a></span></p>
+  <p>So a “120 dB” sound in water and a “120 dB” sound in air are <em>not the same loudness</em> — they're measured
+  from different starting lines. (And that 26 dB isn't even the whole story: the two media also carry sound very
+  differently. The honest rule is simpler than the physics.)<span class="cite"><a href="#r-nrc">3</a></span></p>
+
+  <div class="callout warning">
+    <div class="callout-label">⚠ The one rule to memorise</div>
+    <p><strong>Never compare an underwater dB to an in-air dB directly.</strong> When someone says a whale click is
+    “louder than a jet engine,” they're usually comparing a dB-re-1-µPa number to a dB-re-20-µPa number — apples to
+    oranges, off by at least 26 dB before you even get to the physics. In this course
+    <em>everything</em> is dB re 1 µPa unless it explicitly says otherwise. Keep your numbers in the water and you
+    will never be caught out.</p>
+  </div>
+
+  <p>That's also why source level carries its full address: <strong>dB re 1 µPa @ 1 m</strong>. The “@ 1 m” pins
+  <em>where</em> it was measured (back-referred to one metre from the animal), and the “re 1 µPa” pins the
+  underwater reference. A sperm whale's usual click sits near
+  <strong>230 dB re 1 µPa @ 1 m</strong><span class="cite"><a href="#r-mohl">4</a></span> — and now you can read
+  that string completely: a pressure ratio of about 10<sup>11.5</sup> (over a hundred billion) above 1 µPa, at one
+  metre. The loudest animal on Earth, in a unit you now own.</p>
+
+  <h2><span class="num">5</span>Check yourself</h2>
+  <p>No peeking — pulling these out of your own head is what makes them stick.</p>
+
+  <div class="quiz"
+       data-explain-right="Exactly — that's the ×2 rule."
+       data-explain-wrong="Re-check the rules of thumb in §3.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">A received level rises by <strong>+6 dB</strong>. The sound <em>pressure</em> has changed by roughly…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Right: 20·log₁₀(2) = 6 dB, so +6 dB ≈ a doubling of pressure. Add another 6 dB and it doubles again.">About twice as much</button>
+      <button class="opt" data-feedback="That's a drop of 6 dB, not a rise. A +6 dB change roughly doubles the pressure, not halves it.">About half as much</button>
+      <button class="opt" data-feedback="Tenfold is +20 dB, not +6 dB. The +6 dB shortcut is a doubling (×2) of pressure.">About ten times more</button>
+      <button class="opt" data-feedback="6 dB is a clear, audible change — a doubling of pressure (×2), not a negligible one.">About the same level</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="The reference is the catch."
+       data-explain-wrong="Re-read §4 on references.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">Why can't you directly compare a “120 dB” sound in water with a “120 dB” sound in air?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Correct: water references to 1 µPa, air to 20 µPa — 26 dB apart before any physics. Same digits, different rulers.">They use different reference pressures</button>
+      <button class="opt" data-feedback="Density and impedance do differ, but the first-order reason the numbers don't match is the different reference pressure.">Water transmits sound far louder</button>
+      <button class="opt" data-feedback="True that speeds differ, yet the dB mismatch here comes from the reference: 1 µPa in water vs 20 µPa in air.">Sound moves faster through water</button>
+      <button class="opt" data-feedback="A decibel isn't bigger in either medium; it's the reference that differs — 1 µPa versus 20 µPa.">Decibels run larger underwater somehow</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="The ×10 rule, exactly."
+       data-explain-wrong="Apply SPL = 20·log₁₀(ratio).">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">A sound's pressure is <strong>10×</strong> the 1 µPa reference. Its level is therefore about…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Yes: 20·log₁₀(10) = 20 dB. A tenfold pressure ratio is always exactly +20 dB.">About 20 dB</button>
+      <button class="opt" data-feedback="That would be the power-style factor of 10. For pressure it's 20·log₁₀(10) = 20 dB, not 10.">About 10 dB</button>
+      <button class="opt" data-feedback="40 dB is a hundredfold ratio (×100). A tenfold ratio is 20·log₁₀(10) = 20 dB.">About 40 dB</button>
+      <button class="opt" data-feedback="100 dB is a ratio of 10⁵. A tenfold ratio (×10) works out to just 20 dB.">About 100 dB</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now say</h3>
+    <ol>
+      <li>A decibel is a <strong>logarithmic ratio</strong> to a reference — a compression scheme for huge spans of loudness.</li>
+      <li><strong>SPL = 20·log₁₀(p / p<sub>ref</sub>)</strong>, with the <strong>20</strong> because hydrophones read <em>pressure</em>.</li>
+      <li>The underwater reference is <strong>1 µPa</strong>; “0 dB” is that reference, not silence, and negative dB are normal.</li>
+      <li>Rules of thumb: <strong>+6 dB ≈ ×2</strong> pressure, <strong>+20 dB = ×10</strong> pressure.</li>
+      <li>In-air dB use a <strong>20 µPa</strong> reference (26 dB off) — <strong>never compare water and air dB directly</strong>.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · read this next</div>
+      <div class="title"><a href="https://dosits.org/science/advanced-topics/introduction-to-decibels/" target="_blank" rel="noopener">DOSITS — “Introduction to Decibels”</a></div>
+      <div class="desc">The clearest plain-language tour of the decibel: why it's logarithmic, the 1 µPa underwater reference versus 20 µPa in air, and why the two can't be compared. The page this lesson distils. ~8-minute read.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>I'm your teacher — ask me anything.</b> Stuck on why it's ×20 not ×10, want me to walk a specific
+    “whale at X km” conversion with you, or unsure whether a number you found online is in-air or in-water dB?
+    Paste it in chat. Confused beats stuck.
+  </div>
+
+  <div class="crosslinks">
+    <b>Linked:</b> Glossary →
+    <a href="../reference/glossary.html#decibel">decibel</a>,
+    <a href="../reference/glossary.html#source-level">source level</a>,
+    <a href="../reference/glossary.html#sensitivity">sensitivity</a>,
+    <a href="../reference/glossary.html#transmission-loss">transmission loss</a>,
+    <a href="../reference/glossary.html#sonar-equation">sonar equation</a>.
+    Builds toward → <b>T7</b> (the sonar equation — decibels added and subtracted) and the calibration math in the build phase.
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-dosits">DOSITS — <a href="https://dosits.org/science/advanced-topics/introduction-to-decibels/" target="_blank" rel="noopener">Introduction to Decibels</a>. The decibel as a logarithmic ratio; 1 µPa underwater reference vs 20 µPa in air; why the two are not comparable.</li>
+    <li id="r-boat">BOAT Fundamentals — <a href="https://boat-fundamentals.readthedocs.io/en/latest/acoustics/RL_01_sensitivity.html" target="_blank" rel="noopener">Hydrophone Receiving Sensitivity</a>. SPL = 20·log₁₀(p/p<sub>ref</sub>); reference 1 µPa in water; sensitivity in dB re 1 V/µPa (the −180 dB example).</li>
+    <li id="r-nrc">National Research Council — <a href="https://www.ncbi.nlm.nih.gov/books/NBK236684/" target="_blank" rel="noopener">Comparison of Sound-Pressure Reference Levels in Air and Water</a>. “These two references are … 26 dB apart (20 log 20 = 26)”; great care needed comparing air and water levels.</li>
+    <li id="r-mohl">Møhl, Wahlberg, Madsen et al. (2003) — <a href="https://www.marinebioacoustics.com/files/2003/Mohl_et_al_2003a.pdf" target="_blank" rel="noopener">The monopulsed nature of sperm whale clicks</a>. Usual-click on-axis source levels up to ~236 dB re 1 µPa @ 1 m (the recurring ~230 dB example).</li>
+    <li id="r-whoi">WHOI Oceanus — <a href="https://www.whoi.edu/oceanus/feature/snap-chat-eavesdropping-on-snapping-shrimp-communication/" target="_blank" rel="noopener">Eavesdropping on snapping shrimp</a>. A single snap reaches ~220 dB re 1 µPa.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0003-pressure-to-voltage.html">
+      <div class="dir">← T2 · Pressure → Voltage</div>
+      <div class="ttl">Back</div>
+    </a>
+    <a class="next" href="0005-seeing-sound.html">
+      <div class="dir">Next · T4 · Seeing Sound</div>
+      <div class="ttl">Seeing Sound →</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson T3 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ dB ⇄ pressure-ratio converter + scale bar ============================ */
+(function(){
+  var dbIn = document.getElementById('dbIn');
+  var ratioIn = document.getElementById('ratioIn');
+  if(!dbIn || !ratioIn) return;
+  var main = document.getElementById('convMain');
+  var rules = document.getElementById('convRules');
+  var youMk = document.getElementById('youMk');
+  var youLbl = document.getElementById('youLbl');
+
+  var DB_MIN = 0, DB_MAX = 240;            // scale-bar span
+  function pct(db){ return Math.max(2, Math.min(98, 2 + (db/DB_MAX)*96)); }
+
+  // Pretty-print a pressure ratio across a vast dynamic range.
+  function fmtRatio(r){
+    if(!isFinite(r) || r <= 0) return '—';
+    if(r >= 1e4 || r < 1e-3){
+      var e = Math.floor(Math.log10(r));
+      var m = r / Math.pow(10, e);
+      return '≈ ' + (Math.round(m*10)/10) + '×10' + sup(e);
+    }
+    if(r >= 100) return '≈ ' + Math.round(r);
+    return '≈ ' + (Math.round(r*100)/100);
+  }
+  function sup(n){
+    var map = {'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+    return String(n).split('').map(function(c){ return map[c] || c; }).join('');
+  }
+  function fmtDb(db){ return (Math.round(db*10)/10); }
+
+  function render(db, ratio){
+    if(!isFinite(db)){
+      main.textContent = 'Enter a level or a ratio.';
+      rules.textContent = '—';
+      return;
+    }
+    main.innerHTML = '<span class="big">' + fmtDb(db) + '</span> <span class="unit">dB re 1 µPa</span>' +
+      '&nbsp; ⇄ &nbsp; pressure ratio <b style="color:#ffd479">' + fmtRatio(ratio) + '</b> × the reference';
+    var r2 = ratio * 2, r10 = ratio * 10;
+    rules.innerHTML =
+      '<b>+6 dB</b> → ' + fmtDb(db+6) + ' dB (' + fmtRatio(r2) + '×, about double) &nbsp;·&nbsp; ' +
+      '<b>+10 dB</b> → ' + fmtDb(db+10) + ' dB (' + fmtRatio(ratio*3.162) + '×) &nbsp;·&nbsp; ' +
+      '<b>+20 dB</b> → ' + fmtDb(db+20) + ' dB (' + fmtRatio(r10) + '×, exactly ten times)';
+    var p = pct(db);
+    youMk.style.left = p + '%';
+    youLbl.style.left = p + '%';
+    youLbl.textContent = fmtDb(db) + ' dB';
+  }
+
+  function fromDb(){
+    var db = parseFloat(dbIn.value);
+    if(!isFinite(db)){ render(NaN); return; }
+    var ratio = Math.pow(10, db/20);
+    ratioIn.value = ratio >= 1e4 ? ratio.toExponential(2) : (Math.round(ratio*1000)/1000);
+    render(db, ratio);
+  }
+  function fromRatio(){
+    var ratio = parseFloat(ratioIn.value);
+    if(!isFinite(ratio) || ratio <= 0){ render(NaN); return; }
+    var db = 20 * Math.log10(ratio);
+    dbIn.value = Math.round(db*10)/10;
+    render(db, ratio);
+  }
+
+  dbIn.addEventListener('input', fromDb);
+  ratioIn.addEventListener('input', fromRatio);
+  fromDb();   // seed from the default 230 dB
+})();
+</script>
+</body>
+</html>

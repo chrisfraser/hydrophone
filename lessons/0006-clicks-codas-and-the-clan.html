@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T5 · Clicks, Codas &amp; the Clan</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-specific: the coda-rhythm canvas explorer */
+  .toy { background:linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; }
+  .row { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .row .btn { cursor:pointer; border:1.5px solid var(--ocean); background:var(--ocean); color:#fff; font-weight:700; padding:.5rem .9rem; border-radius:8px; font-size:.85rem; }
+  .row .btn:hover { background:var(--ocean-deep); border-color:var(--ocean-deep); }
+  .row .btn.ghost { background:#fff; color:var(--ocean-deep); }
+  .chip { cursor:pointer; border:1.5px solid var(--rule); background:#fff; border-radius:999px; padding:.32rem .7rem; font-weight:600; color:var(--ink-soft); font-family:var(--sans); font-size:.82rem; }
+  .chip.on { border-color:var(--ocean); background:#e7f5f7; color:var(--ocean-deep); }
+  .seg { display:inline-flex; border:1.5px solid var(--rule); border-radius:8px; overflow:hidden; }
+  .seg button { cursor:pointer; border:0; background:#fff; color:var(--ink-soft); font-family:var(--sans); font-weight:700; font-size:.82rem; padding:.45rem .85rem; }
+  .seg button.on { background:var(--ocean); color:#fff; }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.92rem; padding:.7rem .85rem; border-radius:8px; margin-top:.8rem; background:#06202e; color:#d8f1f5; line-height:1.5; }
+  .toy .verdict b { color:#ffd479; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 1 · Theory · T5</p>
+  <h1 class="lesson-title">Clicks, Codas &amp; the Mauritius Clan</h1>
+  <p class="lesson-sub">A sperm whale click is a tiny, pneumatic, echo-stuffed event — and the rhythm of a string
+  of them is a name. Learn to read both, and you can pick <em>your</em> whales out of the ocean.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~14 minutes</span><span class="sep">•</span>
+    <span>🛠 No build — listening theory</span><span class="sep">•</span>
+    <span class="tag ocean">Mission: identify the clan</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson</div>
+    <p>In <a href="0001-the-loudest-animal.html">T1</a> you learned the whales are loud and that they click. That is
+    enough to <em>detect</em> a sperm whale. It is not enough to say <strong>"that's one of ours."</strong> This
+    lesson opens up the click — how it's built, why it has structure inside it — and then the
+    <strong>coda</strong>, the rhythmic click-pattern that carries social identity. By the end you'll know exactly
+    what to listen for to confirm you've found the <strong>resident Mauritius clan</strong>, and you'll be holding
+    the two clues the rest of the course turns into numbers: head size (T9) and position (T10–T11).</p>
+  </div>
+
+  <h2><span class="num">1</span>How a click is actually made</h2>
+  <p>A sperm whale click is not made in a throat. It is made in the animal's <strong>nose</strong> — a nose that
+  fills a third of its body. Pressurised air is forced past a pair of <strong>phonic lips</strong> (the
+  <em>museau de singe</em>, or "monkey lips") at the front of the head; they clap shut and fire a sharp pulse of
+  sound <em>backwards</em> into the great waxy <a href="../reference/glossary.html#ipi">spermaceti organ</a>.<span class="cite"><a href="#r-madsen">2</a></span>
+  Remarkably, the mechanism keeps working even when a deep dive has crushed the available air to less than
+  <strong>2% of its surface volume</strong> — and the same apparatus has a <em>bimodal</em> setting, making clicks
+  tuned either for biosonar or for social calls.<span class="cite"><a href="#r-madsen">2</a></span></p>
+
+  <p>That backward-fired pulse then ricochets. It reflects off an air sac at the back of the head, runs forward
+  through a fatty lens called the <strong>junk</strong>, and is beamed out the front — but a portion bounces again
+  and again between the air sacs, so what leaves the whale is not one pulse but a <strong>decaying train of
+  pulses</strong>, each a round-trip late.<span class="cite"><a href="#r-noaa">1</a></span> This is the origin of
+  the click's hidden internal structure, and it is a gift: the gap between those internal pulses — the
+  <strong>inter-pulse interval</strong> — is set by the <em>length of the head the sound is bouncing in</em>.</p>
+
+  <div class="callout note">
+    <div class="callout-label">⌗ Two intervals — the whole lesson hinges on not confusing them</div>
+    <p>Inside <em>one</em> click sits the <a href="../reference/glossary.html#ipi">inter-pulse interval (IPI)</a> —
+    a few milliseconds, the echo bouncing across the spermaceti organ. It is a <strong>ruler</strong>: longer head →
+    longer IPI → bigger whale, via <span class="inline-math">T = 1.258·IPI + 5.736</span> (length in
+    m).<span class="cite"><a href="#r-growcott">9</a></span> Between <em>whole</em> clicks sits the
+    <a href="../reference/glossary.html#ici">inter-click interval (ICI)</a> — tenths of a second to seconds, the
+    <strong>rhythm</strong>. The IPI sizes the animal (T9); the ICI tells you what the animal is <em>doing</em>, and
+    — strung into a pattern — <em>who it is</em>. Same prefix, opposite jobs. Keep them apart.</p>
+  </div>
+
+  <h2><span class="num">2</span>Four kinds of click, told apart by rhythm</h2>
+  <p>You already met the click-type table in <a href="0001-the-loudest-animal.html">T1</a>. The deeper point is
+  that all four are the <em>same</em> broadband click — what changes is the <a href="../reference/glossary.html#ici">ICI</a>,
+  the rhythm, because rhythm is the whale's way of switching tasks:</p>
+  <ul>
+    <li><strong>Usual clicks</strong> — steady ~0.5–1 s apart: long-range biosonar while hunting. As the whale
+    closes on squid, the two-way echo time shrinks and it clicks <em>faster</em>.<span class="cite"><a href="#r-noaa">1</a></span></li>
+    <li><strong>Creaks / buzzes</strong> — clicks blurring into a 5–100 ms "rrrip": the final lunge at prey. Tagged
+    whales average ~<strong>17 prey-capture buzzes per deep dive</strong>.<span class="cite"><a href="#r-noaa">1</a></span></li>
+    <li><strong>Codas</strong> — short patterned bursts, clicks ~0.1–0.5 s apart: <em>social</em>, not for hunting.
+    These are the subject of the rest of this lesson.</li>
+    <li><strong>Slow clicks</strong> — booming, ~5–8 s apart: made by large roving <strong>males</strong>, the
+    signature of a big lone bull. Off western Mauritius, those visiting males are catalogued
+    too.<span class="cite"><a href="#r-wiki">7</a></span></li>
+  </ul>
+  <p>Line them up by ear and the differences are stark — the explorer below lets you do exactly that. Switch to
+  <b>Click types</b> and watch how a creak is a near-solid smear while a slow click drops a single lonely tick into
+  four whole seconds.</p>
+
+  <h2><span class="num">3</span>Codas — a rhythm that means something</h2>
+  <p>A coda is a brief, deliberate, rhythmic sequence of clicks — typically three to a dozen — exchanged between
+  socialising whales like a call-and-response.<span class="cite"><a href="#r-noaa">1</a></span> Crucially, the
+  message is carried by <strong>timing, not pitch</strong>. Every click is the same broadband snap; what differs is
+  the <em>spacing</em> — and researchers label coda types by that spacing, in notations like
+  <strong>"5R"</strong> (five regular, evenly spaced), <strong>"4+1"</strong> (four quick clicks, a pause, then
+  one), or <strong>"1+1+3"</strong>.</p>
+
+  <p>How much can mere rhythm encode? A 2024 Project CETI analysis argues: a great deal. Studying a single clan's
+  codas, Sharma and colleagues found they decompose into a small set of features —
+  <strong>rhythm</strong> (the click pattern), <strong>tempo</strong> (the overall duration),
+  <strong>rubato</strong> (smooth tempo-stretching across a back-and-forth), and <strong>ornamentation</strong>
+  (an extra click tacked on) — which <em>combine</em> into roughly <strong>150 distinguishable codas</strong>: a
+  "phonetic alphabet" far larger than anyone had catalogued.<span class="cite"><a href="#r-sharma">3</a></span></p>
+
+  <div class="toy">
+    <h3>🥁 Toy — Coda Rhythm Explorer</h3>
+    <p class="hint">Pick a tab, then a pattern. Every tick is the <em>same pitch</em> — only the spacing changes,
+    and that spacing is the whole message. Press play to hear it (synthetic ticks, your speakers — not a real
+    whale). Compare two codas: same clicks, different name.</p>
+    <canvas id="codaCanvas" width="760" height="340" aria-label="Click-tick timelines for coda patterns and click types"></canvas>
+    <div class="row">
+      <span class="seg" id="modeSeg">
+        <button data-mode="coda" class="on">Codas · by rhythm</button>
+        <button data-mode="type">Click types · by ICI</button>
+      </span>
+    </div>
+    <div class="row" id="chipRow"></div>
+    <div class="row">
+      <button class="btn" id="playBtn">▶ Play selected</button>
+      <button class="btn ghost" id="stopBtn">■ Stop</button>
+    </div>
+    <div class="verdict" id="codaVerdict">—</div>
+  </div>
+
+  <div class="callout key">
+    <div class="callout-label">★ Why "same pitch, different rhythm" is the design you'll exploit</div>
+    <p>Because identity lives in <em>timing</em>, you don't need a calibrated, flat-response instrument to read a
+    coda — you need good <strong>time resolution</strong>. Even the cheap piezo disc from
+    <a href="0002-your-first-underwater-ear.html">B1</a> resolves the gaps between clicks just fine. Everything that
+    makes a hydrophone expensive (smooth frequency response, low self-noise) matters for <em>sizing</em> and
+    <em>localizing</em> — but to tell <em>your</em> clan from a stranger, a stopwatch on the clicks is most of the
+    job.</p>
+  </div>
+
+  <h2><span class="num">4</span>Vocal clans — and the one clan you're hunting</h2>
+  <p>Here is the part that turns biology into a mission plan. Sperm whales that share a coda repertoire — the same
+  dialect of rhythms — form a <strong>vocal clan</strong>. Clans are not families and not regions: Rendell &amp;
+  Whitehead showed they can be <strong>sympatric</strong> (overlapping in the same waters) yet stay acoustically
+  distinct, spanning <em>thousands of kilometres</em> and containing <em>thousands of whales</em>, with each unit
+  preferentially associating with its own clan. Their conclusion is striking — <strong>culture, not genes or
+  geography, is the main thing structuring sperm-whale society</strong>.<span class="cite"><a href="#r-rw">4</a></span>
+  A clan's dialect is learned and passed down the matriline, like an accent.</p>
+
+  <p>Off the <strong>western slope of Mauritius</strong> lives a small <em>resident</em> population — fewer than
+  forty animals, about 38 catalogued by photo-ID since 2011.<span class="cite"><a href="#r-mmco">6</a></span> At its
+  core is a stable matrilineal group — <strong>"Irène's group", around 28 whales</strong> — seen year-round, with
+  its own social units and vocal repertoire.<span class="cite"><a href="#r-sarano">5</a></span> In other words: your
+  target isn't "a sperm whale." It's a <strong>known clan with a known dialect, at a known address.</strong> When
+  your hydrophone catches a coda whose rhythm matches their catalogue, that is the moment you can say
+  <em>these are our whales</em> — not a passing stranger.</p>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ How this powers the rest of the course</div>
+    <p>Two threads start here. <strong>(1) Identity:</strong> coda rhythm is how you'll later <em>confirm</em> a
+    detection belongs to the resident clan rather than a transient male or another group.
+    <strong>(2) Structure:</strong> the multi-pulse anatomy you saw in §1 is the raw material for everything
+    quantitative — the IPI sizes the whale in <strong>T9</strong>, and the sharp broadband click is the perfect
+    timing mark for the time-difference-of-arrival localization you build in <strong>T10–T11</strong>. Today you
+    learned what the sound <em>is</em>. Next you make sure you can sample it fast enough to keep it.</p>
+  </div>
+
+  <h2><span class="num">5</span>Check yourself</h2>
+  <p>No peeking — pulling these out of your head is what makes them stick.</p>
+
+  <div class="quiz"
+       data-explain-right="Exactly."
+       data-explain-wrong="Re-read §1 — the two intervals.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">Which interval separates one <em>whole</em> click from the next — the rhythm you read off a coda?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="The ICI is the gap between whole clicks — it sets the rhythm of a coda. The IPI lives inside a single click and sizes the whale.">The inter-click interval, the ICI</button>
+      <button class="opt" data-feedback="That one hides inside a single click (pulses echoing across the head) and gives body length — not the between-click rhythm.">The inter-pulse interval, the IPI</button>
+      <button class="opt" data-feedback="Not a standard term. The between-whole-clicks rhythm is the inter-click interval, the ICI.">The inter-burst interval, the IBI</button>
+      <button class="opt" data-feedback="Not a standard term. The between-whole-clicks rhythm is the inter-click interval, the ICI.">The inter-creak interval, the ICR</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="Timing carries the message."
+       data-explain-wrong="See §3 — what carries the message.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">In the proposed sperm-whale "phonetic alphabet", what mainly distinguishes one coda from another?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Right — rhythm and tempo (plus rubato and ornamentation) combine into ~150 codas. Every click is the same broadband snap; the timing is the message.">Its rhythm and tempo, not pitch</button>
+      <button class="opt" data-feedback="No — the clicks are broadband snaps with no melodic tone to vary. Identity is carried by the timing pattern.">Its volume and timbre, not pitch</button>
+      <button class="opt" data-feedback="No — whales aren't shaping tone or texture here. What changes between codas is the spacing of the clicks.">Its tone and texture, not pitch</button>
+      <button class="opt" data-feedback="No — there is no melody or chord to a click train. The distinguishing feature is the rhythmic timing.">Its melody and chords, not pitch</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz"
+       data-explain-right="That's the identity check."
+       data-explain-wrong="See §4 — what a matching coda buys you.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">A recorded coda matches the resident clan's dialect. For your mission, that mainly…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Yes — clans are defined by shared coda rhythms, so a matching dialect confirms these are the resident animals, not a transient.">confirms these are our whales</button>
+      <button class="opt" data-feedback="No — depth comes from dive behaviour and ray paths, not from the coda's rhythm. The coda is an identity tag.">reveals how deep they dove</button>
+      <button class="opt" data-feedback="No — sound speed comes from temperature, salinity and depth, not from a coda. The match is an identity tag.">measures the water sound speed</button>
+      <button class="opt" data-feedback="No — codas carry social identity, not body length. Head size comes from the inter-pulse interval instead.">gives each whale its length</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now say</h3>
+    <ol>
+      <li>A click is made <strong>pneumatically at the phonic lips</strong>, reflected through the spermaceti organ and junk — emerging as a <strong>multi-pulse</strong> train.</li>
+      <li>The <strong>IPI</strong> (inside a click) is a <strong>ruler</strong> for head/body length; the <strong>ICI</strong> (between clicks) is the <strong>rhythm</strong>.</li>
+      <li>Four click types — usual, creak/buzz, coda, slow — differ by <strong>ICI</strong>, i.e. by task.</li>
+      <li>A <strong>coda</strong> encodes identity in <strong>timing, not pitch</strong>; rhythm + tempo + rubato + ornamentation give a ~150-coda "alphabet".</li>
+      <li>Whales sharing a coda dialect form a <strong>vocal clan</strong>; matching the <strong>Mauritius clan's</strong> dialect is how you confirm <em>your</em> whales.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · read this next</div>
+      <div class="title"><a href="https://www.fisheries.noaa.gov/science-blog/diving-deep-sperm-whale-clicks" target="_blank" rel="noopener">NOAA Fisheries — “Diving Deep into Sperm Whale Clicks”</a></div>
+      <div class="desc">The clearest plain-language tour of usual clicks, creaks/buzzes, codas and clans, and the IPI head-size trick — straight from the people who study them. ~10-minute read.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>I'm your teacher — ask me anything.</b> Want a real coda spectrogram walked through click by click, curious
+    how photo-ID and acoustic-ID get matched up, or unsure why a buzz looks solid on screen? Ask in chat. Confused
+    beats stuck.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#coda">coda</a> ·
+    <a href="../reference/glossary.html#ici">ICI</a> ·
+    <a href="../reference/glossary.html#ipi">IPI</a> ·
+    <a href="../reference/glossary.html#regular-click">regular click</a> ·
+    <a href="../reference/glossary.html#spectrogram">spectrogram</a>.
+    <b>Builds toward →</b> T6 (sampling fast enough to keep a click), T9 (sizing a whale from its IPI),
+    T10–T11 (localizing it from click timing).
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-noaa">NOAA Fisheries — <a href="https://www.fisheries.noaa.gov/science-blog/diving-deep-sperm-whale-clicks" target="_blank" rel="noopener">Diving Deep into Sperm Whale Clicks</a>. Click types, creaks/buzzes (~17 captures/dive), codas &amp; clans, the IPI size method.</li>
+    <li id="r-madsen">Madsen et al. (2002) — <a href="https://journals.biologists.com/jeb/article/205/13/1899/8911/Sperm-whale-sound-production-studied-with" target="_blank" rel="noopener">Sperm whale sound production studied with ultrasound tags</a>. Pneumatic phonic-lips mechanism; works below 2% surface air; bimodal biosonar/communication function.</li>
+    <li id="r-sharma">Sharma et al. (2024) — <a href="https://www.nature.com/articles/s41467-024-47221-8" target="_blank" rel="noopener">Contextual and combinatorial structure in sperm whale vocalisations</a> (Nature Communications). Rhythm, tempo, rubato, ornamentation → ~150 distinguishable codas.</li>
+    <li id="r-rw">Rendell &amp; Whitehead (2003) — <a href="https://research-portal.st-andrews.ac.uk/en/publications/vocal-clans-in-sperm-whales-emphyseter-macrocephalusem" target="_blank" rel="noopener">Vocal clans in sperm whales</a>. Coda dialects define sympatric clans spanning thousands of km; culture &gt; genes/geography.</li>
+    <li id="r-sarano">Sarano et al. — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8074673/" target="_blank" rel="noopener">Social units &amp; vocal clans in Mauritius</a>. Resident ~28-whale matrilineal "Irène's group", seen year-round.</li>
+    <li id="r-mmco">MMCO / Maubydick — <a href="https://www.mmco.mu/cetaceane/" target="_blank" rel="noopener">Cetaceans</a>. Resident population &lt;40 (38 catalogued), studied since 2011.</li>
+    <li id="r-wiki">Wikipedia — <a href="https://en.wikipedia.org/wiki/Sperm_whale" target="_blank" rel="noopener">Sperm whale</a>. Well-cited click-type table (source levels, peak frequencies, ICIs); slow clicks of roving males.</li>
+    <li id="r-mohl">Møhl, Wahlberg, Madsen et al. (2003) — <a href="https://www.marinebioacoustics.com/files/2003/Mohl_et_al_2003a.pdf" target="_blank" rel="noopener">The monopulsed nature of sperm whale clicks</a>. Directional source; on-axis levels up to ~236 dB re 1 µPa @ 1 m.</li>
+    <li id="r-growcott">Growcott et al. (2011) — <a href="https://pubmed.ncbi.nlm.nih.gov/21786922/" target="_blank" rel="noopener">Body length from clicks</a>. Validated T = 1.258·IPI + 5.736 (IPI in ms → length in m).</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0005-seeing-sound.html">
+      <div class="dir">← T4 · Seeing Sound</div>
+      <div class="ttl">Waveforms &amp; spectrograms</div>
+    </a>
+    <a class="next" href="0007-sampling-fast-enough.html">
+      <div class="dir">Next · T6 · Sampling Fast Enough →</div>
+      <div class="ttl">Nyquist &amp; aliasing</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson T5 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Coda Rhythm Explorer ============================ */
+(function(){
+  var canvas = document.getElementById('codaCanvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if(!ctx) return;
+  var W = canvas.width, H = canvas.height, padL = 120, padR = 24, padT = 30, padB = 30;
+
+  /* --- coda library: onset times in seconds (schematic but rhythm-accurate) --- */
+  var CODAS = [
+    {name:'5R',    label:'5 Regular',  t:[0,0.17,0.34,0.51,0.68],
+      desc:'Five evenly spaced clicks — a clean "signature" coda, common as a clan marker.'},
+    {name:'7R',    label:'7 Regular',  t:[0,0.12,0.24,0.36,0.48,0.60,0.72],
+      desc:'Seven even clicks — same idea as 5R but longer; tempo alone changes the name.'},
+    {name:'4+1',   label:'4 + 1',      t:[0,0.10,0.20,0.30,0.74],
+      desc:'Four quick clicks, a deliberate pause, then one — a classic rhythm type.'},
+    {name:'1+1+3', label:'1 + 1 + 3',  t:[0,0.30,0.60,0.71,0.82],
+      desc:'Two spaced clicks, then a fast triplet. Mirror-image of 3 + 1 + 1.'},
+    {name:'3+1+1', label:'3 + 1 + 1',  t:[0,0.11,0.22,0.52,0.82],
+      desc:'A fast triplet, then two spaced clicks — same five clicks as 1 + 1 + 3, reversed.'}
+  ];
+  /* --- click types: steady trains, ICI in seconds --- */
+  var TYPES = [
+    {name:'usual', label:'Usual',  ici:0.70, desc:'Usual / echolocation clicks — ~0.5–1 s apart, long-range biosonar while foraging.'},
+    {name:'coda',  label:'Coda',   ici:0.20, desc:'Coda clicks — ~0.1–0.5 s apart; social, and the building blocks of the rhythms above.'},
+    {name:'creak', label:'Creak',  ici:0.04, desc:'Creak / buzz — 5–100 ms apart, blurring into a "rrrip": the final lunge at prey.'},
+    {name:'slow',  label:'Slow',   ici:6.00, desc:'Slow clicks — 5–8 s apart; so far apart only one tick lands in this 4 s window. Made by big roving males.'}
+  ];
+
+  var mode = 'coda';            // 'coda' | 'type'
+  var sel = 0;                  // selected row index within current mode
+  var actx = null, playing = false, rafId = null, playStart = 0, playTimes = [], playWin = 1;
+
+  function rows(){ return mode==='coda' ? CODAS : TYPES; }
+  function windowSec(){ return mode==='coda' ? 1.05 : 4.0; }
+
+  function timesFor(i){
+    if(mode==='coda') return CODAS[i].t.slice();
+    var ici = TYPES[i].ici, win = windowSec(), out = [], k = 0;
+    while(k*ici <= win && out.length < 120){ out.push(k*ici); k++; }
+    return out;
+  }
+  function xOf(t){ var win = windowSec(); return padL + (t/win)*(W-padL-padR); }
+
+  function draw(playheadT){
+    var R = rows(), win = windowSec();
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#06202e'; ctx.fillRect(0,0,W,H);
+
+    // header
+    ctx.font = '12px Inter, system-ui, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#8fb9c6';
+    ctx.fillText(mode==='coda' ? 'CODA PATTERNS  —  same pitch, different rhythm'
+                               : 'CLICK TYPES  —  one steady rhythm each, set by the ICI', padL, 18);
+
+    var area = H - padT - padB, n = R.length, rowH = area / n;
+
+    for(var i=0;i<n;i++){
+      var yc = padT + rowH*(i+0.5);
+      var on = (i===sel);
+
+      // selected highlight band
+      if(on){
+        ctx.fillStyle = 'rgba(255,212,121,.10)';
+        ctx.fillRect(padL-6, yc-rowH*0.42, W-padL-padR+12, rowH*0.84);
+      }
+      // baseline
+      ctx.strokeStyle = 'rgba(143,185,198,.20)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(padL, yc); ctx.lineTo(W-padR, yc); ctx.stroke();
+
+      // row label
+      ctx.textAlign = 'right'; ctx.font = (on?'bold ':'')+'12px Inter, system-ui';
+      ctx.fillStyle = on ? '#ffd479' : '#bcd6de';
+      ctx.fillText(R[i].label, padL-14, yc+4);
+
+      // ticks
+      var ts = timesFor(i);
+      ts.forEach(function(tc){
+        var x = xOf(tc), lit = on;
+        var litNow = (playheadT!=null && on && playheadT>=tc && playheadT<tc+0.06);
+        ctx.fillStyle = litNow ? '#fff4cf' : (lit ? '#ffd479' : '#2a9db0');
+        var hh = rowH*0.30;
+        ctx.fillRect(x-(lit?1.6:1.1), yc-hh, lit?3.2:2.2, hh*2);
+      });
+    }
+
+    // time axis
+    ctx.textAlign = 'center'; ctx.font = '10px Inter, system-ui'; ctx.fillStyle = '#5b8593';
+    var step = (win<=1.2)?0.2:1.0;
+    for(var s=0; s<=win+1e-6; s+=step){
+      var x = xOf(s);
+      ctx.fillText((win<=1.2? s.toFixed(1) : Math.round(s))+'s', x, H-10);
+    }
+
+    // playhead
+    if(playheadT!=null){
+      var px = xOf(Math.min(playheadT, win));
+      ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(px, padT-8); ctx.lineTo(px, H-padB+4); ctx.stroke();
+    }
+  }
+
+  function setVerdict(){
+    var r = rows()[sel], v = document.getElementById('codaVerdict');
+    if(!v) return;
+    if(mode==='coda'){
+      v.innerHTML = '<b>'+r.label+'</b> — '+r.desc+' &nbsp;Reading the spacing, not the pitch, is how you tell one coda from another.';
+    } else {
+      v.innerHTML = '<b>'+r.label+' click</b> — '+r.desc;
+    }
+  }
+
+  function buildChips(){
+    var box = document.getElementById('chipRow');
+    if(!box) return;
+    box.innerHTML = '';
+    rows().forEach(function(r,i){
+      var c = document.createElement('span');
+      c.className = 'chip' + (i===sel?' on':'');
+      c.textContent = r.label;
+      c.addEventListener('click', function(){
+        sel = i; stop();
+        Array.prototype.forEach.call(box.children, function(ch,j){ ch.classList.toggle('on', j===i); });
+        setVerdict(); draw(null);
+      });
+      box.appendChild(c);
+    });
+  }
+
+  /* --- WebAudio: one bandpassed noise burst per tick, same pitch for all --- */
+  function playTick(t){
+    if(!actx) return;
+    var dur = 0.006, n = Math.ceil(actx.sampleRate*dur);
+    var buf = actx.createBuffer(1, n, actx.sampleRate), d = buf.getChannelData(0);
+    for(var j=0;j<n;j++){ d[j] = (Math.random()*2-1)*Math.exp(-j/(n*0.25)); }
+    var src = actx.createBufferSource(); src.buffer = buf;
+    var bp = actx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=5200; bp.Q.value=0.7;
+    var g = actx.createGain(); g.gain.value=0.8;
+    src.connect(bp); bp.connect(g); g.connect(actx.destination);
+    src.start(t);
+  }
+
+  function animate(){
+    if(!playing) return;
+    var elapsed = (actx ? actx.currentTime - playStart : (performance.now()/1000 - playStart));
+    if(elapsed > playWin + 0.2){ stop(); draw(null); return; }
+    draw(elapsed);
+    rafId = requestAnimationFrame(animate);
+  }
+
+  function play(){
+    stop();
+    try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); }
+    catch(e){ actx = null; }
+    playing = true;
+    playTimes = timesFor(sel);
+    playWin = windowSec();
+    if(actx){
+      var base = actx.currentTime + 0.06; playStart = base;
+      playTimes.forEach(function(tc){ playTick(base+tc); });
+    } else {
+      playStart = performance.now()/1000;   // visual-only fallback
+    }
+    rafId = requestAnimationFrame(animate);
+  }
+  function stop(){ playing=false; if(rafId){ cancelAnimationFrame(rafId); rafId=null; } }
+
+  // mode tabs
+  var seg = document.getElementById('modeSeg');
+  if(seg){
+    Array.prototype.forEach.call(seg.querySelectorAll('button'), function(b){
+      b.addEventListener('click', function(){
+        var m = b.getAttribute('data-mode');
+        if(m===mode) return;
+        mode = m; sel = 0; stop();
+        Array.prototype.forEach.call(seg.querySelectorAll('button'), function(x){ x.classList.toggle('on', x===b); });
+        buildChips(); setVerdict(); draw(null);
+      });
+    });
+  }
+  var pb = document.getElementById('playBtn'); if(pb) pb.addEventListener('click', play);
+  var sb = document.getElementById('stopBtn'); if(sb) sb.addEventListener('click', function(){ stop(); draw(null); });
+
+  buildChips(); setVerdict(); draw(null);
+})();
+</script>
+</body>
+</html>

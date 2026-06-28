@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B4 · Calibration</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-B4-specific: darker calculator readout + worked-arithmetic line */
+  .calc .readout { background:#06202e; }
+  .calc .readout .work { font-size:.84rem; color:#8fb9c6; margin-top:.55rem; word-break:break-word; }
+  .calc .readout .work b { color:#ffd479; font-weight:700; }
+  .calc .control small { color:var(--ink-faint); font-family:var(--sans); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 3 · Build · B4</p>
+  <h1 class="lesson-title">Calibration: Giving Your Hydrophone a Real Number</h1>
+  <p class="lesson-sub">You built a serious instrument in B3. Until you calibrate it, it's only a microphone —
+  it tells you <em>something happened</em>, not <em>how loud</em>. Today you turn recorded volts into real pressure.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~15 minutes</span><span class="sep">•</span>
+    <span>🧮 One equation, one calculator</span><span class="sep">•</span>
+    <span>🔬 Needs the B3 build (or a bought hydrophone)</span><span class="sep">•</span>
+    <span class="tag math">Make it measure</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson</div>
+    <p>Every quantitative claim in this course runs through one number: your hydrophone's
+    <a href="../reference/glossary.html#sensitivity">sensitivity</a>. Source levels ("that click was 225 dB at the
+    source"), the <a href="../reference/glossary.html#sonar-equation">sonar equation</a>, the confidence of a
+    localization fix — all of it assumes you can convert a recorded voltage into an honest pressure in µPa.
+    <strong>Calibration is what earns you that number.</strong> Skip it and every decibel you report is a guess.</p>
+  </div>
+
+  <h2><span class="num">1</span>From "microphone" to instrument</h2>
+  <p>Your B3 build hears beautifully. But a recording is just a stream of voltages, and a voltage on its own means
+  nothing — was that 0.3 V click a faint whale far off, or a loud one through an insensitive element? You can't say
+  until you know <strong>how many volts this exact hydrophone produces per micropascal of pressure</strong>. That
+  conversion factor is its receiving <a href="../reference/glossary.html#sensitivity">sensitivity</a>,
+  <span class="inline-math">M</span>, measured in <strong>dB re 1 V/µPa</strong>.<span class="cite"><a href="#r-npl">2</a></span></p>
+
+  <p>Recall the sign trap from T2: sensitivity is always a <em>negative</em> number, and
+  <strong>less-negative means more sensitive</strong>. A hydrophone at −165 dB re 1 V/µPa puts out far more voltage
+  for the same sound than one at −185 dB.<span class="cite"><a href="#r-npl">2</a></span> The research-grade
+  Cetacean C57, for instance, is rated −187 dB re 1 V/µPa at the element, lifted to about −167 or −154 dB once its
+  +20 or +33 dB preamp is switched in.<span class="cite"><a href="#r-c57">6</a></span> Calibration is simply the
+  act of pinning down that number for <em>your</em> unit — because nominal datasheet figures and the device on your
+  bench are never quite the same.</p>
+
+  <h2><span class="num">2</span>The one equation: volts → pressure</h2>
+  <p>Here is the whole job in a single line. Given a recorded voltage, you recover the sound pressure level that
+  produced it:<span class="cite"><a href="#r-boat">1</a></span></p>
+
+  <div class="formula">
+    SPL <span class="op">=</span> 20·log₁₀( <span class="var">V</span> / V<sub>ref</sub> ) <span class="op">−</span> <span class="var">M</span> <span class="op">−</span> <span class="var">G</span>
+    <small><span class="var">V</span> = measured voltage · V<sub>ref</sub> = 1 V · <span class="var">M</span> = sensitivity (dB re 1 V/µPa, negative) · <span class="var">G</span> = preamp/recorder gain (dB) · result in dB re 1 µPa</small>
+  </div>
+
+  <p>Read it left to right. <span class="inline-math">20·log₁₀(V/V<sub>ref</sub>)</span> expresses your recorded
+  voltage in dB relative to one volt (a "dBV"). You then <strong>subtract the sensitivity</strong> — and because
+  <span class="inline-math">M</span> is negative, subtracting it <em>adds</em> a big positive number, which is what
+  lifts a tiny voltage up to a realistic 150-plus-dB pressure. Finally you <strong>subtract any gain</strong>
+  <span class="inline-math">G</span> you dialled in, because that amplification was added by your electronics, not
+  by the whale.<span class="cite"><a href="#r-boat">1</a></span></p>
+
+  <div class="callout key">
+    <div class="callout-label">★ Work one by hand</div>
+    <p>A click peaks at <strong>V = 0.50 V</strong>. Your hydrophone is <strong>M = −180 dB re 1 V/µPa</strong> and
+    you recorded with <strong>G = 20 dB</strong> of gain. Then
+    <span class="inline-math">20·log₁₀(0.50) = −6.0</span>, so
+    <span class="inline-math">SPL = −6.0 − (−180) − 20 = <strong>154 dB re 1 µPa</strong></span>. That single number
+    is the difference between "I heard a click" and a measurement you can put in a logbook. Now play with it below.</p>
+  </div>
+
+  <div class="calc">
+    <div class="calc-title">🧮 Calibration calculator — turn a recording into real pressure</div>
+    <div class="controls">
+      <div class="control">
+        <label>Recorded signal level <output id="dbvOut">0.50 V · −6 dBV</output></label>
+        <input type="range" id="dbvRange" min="-80" max="6" step="1" value="-6">
+        <small>slider sets the peak voltage V (shown in volts and dBV)</small>
+      </div>
+      <div class="control">
+        <label>Hydrophone sensitivity M <output id="mOut">−180 dB re 1 V/µPa</output></label>
+        <input type="range" id="mRange" min="-200" max="-140" step="1" value="-180">
+        <small>less negative = more sensitive (your calibrated number)</small>
+      </div>
+      <div class="control">
+        <label>Preamp / recorder gain G <output id="gOut">+20 dB</output></label>
+        <input type="range" id="gRange" min="0" max="40" step="1" value="20">
+        <small>the amplification you set when recording</small>
+      </div>
+    </div>
+    <div class="readout">
+      Sound pressure level <span class="big" id="splVal">—</span> <span class="unit">dB re 1 µPa</span>
+      <div class="work" id="splWork">—</div>
+    </div>
+  </div>
+
+  <h2><span class="num">3</span>How calibration actually gets done</h2>
+  <p>There are three ways to attach a real number to a hydrophone. Only one is realistic on a hobbyist budget — but
+  it's worth knowing what the gold standard is, because that's what your reference unit was calibrated against.</p>
+
+  <table>
+    <caption>Calibration methods, hardest-and-best first. The standard for the field is <strong>IEC 60565-1</strong>.<span class="cite"><a href="#r-iec">3</a></span></caption>
+    <thead><tr><th>Method</th><th>What it is</th><th>Who does it</th></tr></thead>
+    <tbody>
+      <tr><td><b>Free-field reciprocity</b><br><small>primary · absolute</small></td><td>Three transducers, spherical-wave maths, <em>no</em> pre-calibrated reference needed. SI-traceable.</td><td>National metrology labs (NPL and peers)</td></tr>
+      <tr><td><b>Comparison</b><br><small>secondary · practical</small></td><td>Put your unit beside a calibrated reference in the <em>same sound field</em>; transfer its known number.</td><td>You, on the bench — and accredited labs</td></tr>
+      <tr><td><b>Pistonphone</b><br><small>absolute · one frequency</small></td><td>A known pressure inside a sealed coupler at a single low frequency — a fast spot-check, not a full curve.</td><td>Quick field/bench verification</td></tr>
+    </tbody>
+  </table>
+
+  <p>Reciprocity is the <strong>primary</strong> method: it derives sensitivity from first principles, which is why
+  it lives in a handful of national labs.<span class="cite"><a href="#r-iec">3</a></span> Everything else is
+  <strong>secondary</strong> — it transfers that lab-grade truth to a working device. Accredited free-field
+  calibration reaches uncertainties well under <strong>1 dB</strong> (often a few tenths), which is the bar a
+  serious measurement chain is held to.<span class="cite"><a href="#r-robinson">4</a></span></p>
+
+  <p>Your route is <strong>comparison calibration</strong>: borrow or buy a calibrated reference hydrophone — an
+  <a href="https://www.aquarianaudio.com/h2a-hydrophone.html" target="_blank" rel="noopener">Aquarian H2a</a> with a
+  cal sheet, or a borrowed lab unit<span class="cite"><a href="#r-aq">7</a></span> — and read both devices in one
+  sound field. The reference tells you the true pressure; your recording tells you the voltage; the ratio gives you
+  <span class="inline-math">M</span>.</p>
+
+  <ol class="steps">
+    <li><div class="step-title">Get a calibrated reference into your hands</div>
+      <div class="step-detail">A hydrophone with a current calibration certificate — its sensitivity is the "known" you'll transfer onto your own build.</div>
+      <div class="step-tip"><b>Tip:</b> a buffered H2a with a cal sheet is the cheapest honest reference most hobbyists can reach.<span class="cite"><a href="#r-aq">7</a></span></div></li>
+    <li><div class="step-title">Put both in the same sound field</div>
+      <div class="step-detail">Suspend the reference and your unit close together in a tank or quiet water, facing a steady tone source. The goal is for both to see the <em>same</em> pressure.</div>
+      <div class="step-tip"><b>Tip:</b> keep the spacing small versus the wavelength so neither sits in a different part of the wave.</div></li>
+    <li><div class="step-title">Record both, then back out the pressure</div>
+      <div class="step-detail">From the reference's known sensitivity and its recorded voltage, compute the true SPL in the tank. That pressure is now your "truth" value.</div>
+      <div class="step-tip"><b>Tip:</b> sweep a few frequencies — a single tone hides resonances your element may have.</div></li>
+    <li><div class="step-title">Solve for your sensitivity M</div>
+      <div class="step-detail">Rearrange the equation: your unit saw the same SPL, so <span class="inline-math">M = 20·log₁₀(V/V<sub>ref</sub>) − SPL − G</span>. Record that number; it <em>is</em> your calibration.</div>
+      <div class="step-tip"><b>Tip:</b> redo it every <b>3–5 years</b> — sensitivity drifts with age, handling and water.<span class="cite"><a href="#r-pam">5</a></span></div></li>
+  </ol>
+
+  <div class="callout warning">
+    <div class="callout-label">⚠ Be honest: your B1 disc can't really be calibrated</div>
+    <p>This lesson is for the <a href="0015-the-serious-build.html">serious build</a>. A bare $5 piezo disc is
+    <a href="../reference/glossary.html#sensitivity">resonant, bass-rolled and wildly variable unit-to-unit</a> —
+    two discs from the same bag don't share a sensitivity, and a sharp resonant peak means a single number can't
+    describe its response anyway. You can characterise its <em>shape</em> for fun, but treating a cheap disc as a
+    calibrated instrument is self-deception. Calibrate the well-built, flat, repeatable instrument — that's the one
+    whose number you can trust.</p>
+  </div>
+
+  <h2><span class="num">4</span>Why this matters for the mission</h2>
+  <p>A calibrated hydrophone is the entire difference between a recording and sperm-whale <em>science</em>. With a
+  real <span class="inline-math">M</span> you can finally do the things this course has been promising:</p>
+  <ul>
+    <li><strong>Report a source level.</strong> Measure the received level, add back the
+    <a href="../reference/glossary.html#transmission-loss">transmission loss</a> over the range, and you can state
+    "that click was ~225 dB re 1 µPa @ 1 m at the source" — a number, not an impression.</li>
+    <li><strong>Trust your detection-range maths.</strong> The
+    <a href="../reference/glossary.html#sonar-equation">passive sonar equation</a> (built in T7) needs a real
+    received level to predict how far you can hear a whale.<span class="cite"><a href="#r-sonar">8</a></span> Feed it
+    a fictional voltage and the answer is fiction.</li>
+    <li><strong>Believe your localization.</strong> A position fix from an array is only as solid as the levels and
+    timings feeding it — uncalibrated elements quietly poison the confidence of every fix.</li>
+  </ul>
+
+  <h2><span class="num">5</span>Check yourself</h2>
+
+  <div class="quiz" data-explain-right="Exactly." data-explain-wrong="Re-read Section 1.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">Sensitivity is given in dB re 1 V/µPa. Which statement is correct?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Right — less-negative (−165 beats −185) means more volts per µPa, i.e. more sensitive.">Less-negative sensitivity means the hydrophone produces more voltage</button>
+      <button class="opt" data-feedback="Reversed — more-negative is the weaker, less sensitive hydrophone.">More-negative sensitivity means the hydrophone produces more voltage</button>
+      <button class="opt" data-feedback="No — greater magnitude means more negative, which is less output, not louder.">Greater-magnitude sensitivity means the hydrophone produces louder voltage</button>
+      <button class="opt" data-feedback="Sensitivity in these units is always negative; positive values don't occur here.">Positive-valued sensitivity means the hydrophone produces stronger voltage</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="Clean arithmetic." data-explain-wrong="Mind every term and its sign.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">Recorded V = 0.5 V, M = −180 dB re 1 V/µPa, gain G = 20 dB. The SPL is about…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Yes — 20·log₁₀(0.5) = −6; then −6 − (−180) − 20 = 154.">154 dB re 1 µPa</button>
+      <button class="opt" data-feedback="That treated V as 1 V — you dropped the −6 dBV signal level term.">160 dB re 1 µPa</button>
+      <button class="opt" data-feedback="That forgot to subtract the 20 dB of preamp gain you added.">174 dB re 1 µPa</button>
+      <button class="opt" data-feedback="That added the gain; the gain term is subtracted, never added.">194 dB re 1 µPa</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="The hobbyist's route." data-explain-wrong="See the methods table.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">Your serious B3 build needs a real number. The practical hobbyist route is…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Right — read your unit and a calibrated reference in one sound field and transfer its number.">comparison against a known calibrated reference hydrophone unit</button>
+      <button class="opt" data-feedback="That's the absolute primary method — but it lives in a few national labs.">free-field reciprocity inside a national metrology lab facility</button>
+      <button class="opt" data-feedback="Cheap-disc datasheets give no usable per-unit number; that's a guess.">trusting whatever sensitivity is printed on cheap datasheets</button>
+      <button class="opt" data-feedback="DIY discs vary wildly unit-to-unit; you cannot assume they match.">assuming every cheap piezo disc measures exactly identically</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now do</h3>
+    <ol>
+      <li>Explain why an uncalibrated hydrophone is a <strong>microphone</strong>, not a measuring instrument.</li>
+      <li>Convert a recording to real pressure with <strong>SPL = 20·log₁₀(V/V<sub>ref</sub>) − M − G</strong>, signs and all.</li>
+      <li>Read <strong>sensitivity</strong> correctly — less-negative is more sensitive (dB re 1 V/µPa).</li>
+      <li>Name the methods: <strong>reciprocity</strong> (primary/absolute), <strong>comparison</strong> (your route), pistonphone (spot-check); recalibrate every <strong>3–5 years</strong>.</li>
+      <li>Say why calibration underwrites <strong>source levels, the sonar equation, and localization confidence</strong>.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · read this next</div>
+      <div class="title"><a href="https://boat-fundamentals.readthedocs.io/en/latest/acoustics/RL_01_sensitivity.html" target="_blank" rel="noopener">BOAT — Hydrophone Receiving Sensitivity</a></div>
+      <div class="desc">Derives the exact equation you used today — recorded volts → SPL via SPL = 20·log₁₀(V/V_ref) − M − G — and explains each term, including why gain is subtracted. The cleanest one-page reference for processing your own recordings.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>I'm your teacher — ask me anything.</b> Stuck on a sign in the equation, unsure whether your bought
+    hydrophone's cal sheet is still valid, or want to plan a bathtub comparison-calibration? Paste your numbers and
+    we'll work the SPL together.
+  </div>
+
+  <div class="crosslinks">
+    <b>Glossary:</b>
+    <a href="../reference/glossary.html#calibration">calibration</a> ·
+    <a href="../reference/glossary.html#sensitivity">sensitivity</a> ·
+    <a href="../reference/glossary.html#decibel">decibel (re 1 µPa)</a> ·
+    <a href="../reference/glossary.html#source-level">source level</a> ·
+    <a href="../reference/glossary.html#sonar-equation">sonar equation</a>.
+    <b>Builds on →</b> T2 (pressure → voltage), B3 (the serious build).
+    <b>Feeds →</b> T7 (sonar equation) and Phase 4 (the array &amp; localization).
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-boat">BOAT Fundamentals — <a href="https://boat-fundamentals.readthedocs.io/en/latest/acoustics/RL_01_sensitivity.html" target="_blank" rel="noopener">Hydrophone Receiving Sensitivity</a>. The equation SPL = 20·log₁₀(V/V_ref) − M − G and each term's meaning.</li>
+    <li id="r-npl">NPL — <a href="http://resource.npl.co.uk/acoustics/techguides/concepts/sen.html" target="_blank" rel="noopener">Hydrophone Sensitivity (technical guide)</a>. UK metrology institute's definition; units of dB re 1 V/µPa.</li>
+    <li id="r-iec">IEC — <a href="https://webstore.iec.ch/en/publication/32074" target="_blank" rel="noopener">IEC 60565-1:2020, Calibration of hydrophones (free-field)</a>. Absolute three-transducer reciprocity (primary) vs comparison against a reference (secondary).</li>
+    <li id="r-robinson">Robinson et al. (IMEKO/CTBTO) — <a href="https://conferences.ctbto.org/event/30/contributions/6231/subcontributions/4/attachments/3326/6762/SE01-03_Robinson.pdf" target="_blank" rel="noopener">Underwater acoustic primary standards &amp; traceability</a>. Accredited free-field calibration uncertainties well under 1 dB.</li>
+    <li id="r-pam">Van Parijs et al. 2021 (NOAA/BOEM) — <a href="https://www.frontiersin.org/journals/marine-science/articles/10.3389/fmars.2021.760840/full" target="_blank" rel="noopener">Minimum PAM Recommendations</a>. Hydrophones should be calibrated every 3–5 years.</li>
+    <li id="r-c57">Cetacean Research — <a href="https://www.cetaceanresearch.com/hydrophones/c57-hydrophone/index.html" target="_blank" rel="noopener">C57 Hydrophone</a>. Research-grade reference: −187 dB re 1 V/µPa element, +20/+33 dB preamp options.</li>
+    <li id="r-aq">Aquarian Audio — <a href="https://www.aquarianaudio.com/h2a-hydrophone.html" target="_blank" rel="noopener">H2a Hydrophone</a>. Affordable buffered unit usable as a calibrated comparison reference.</li>
+    <li id="r-sonar">DOSITS — <a href="https://dosits.org/science/advanced-topics/sonar-equation/sonar-equation-example-passive-sonar/" target="_blank" rel="noopener">Passive Sonar Equation (worked)</a>. Why a real received level is needed for detection-range maths.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0015-the-serious-build.html">
+      <div class="dir">← B3 · The Serious Build</div>
+      <div class="ttl">Back to the serious build</div>
+    </a>
+    <a class="next" href="../index.html#phase-4">
+      <div class="dir">Next · Phase 4 · Build the Array</div>
+      <div class="ttl">Build the Array →</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson B4 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ Calibration calculator: SPL = 20log10(V/Vref) − M − G ============================ */
+(function(){
+  var dbvR = document.getElementById('dbvRange');
+  var mR   = document.getElementById('mRange');
+  var gR   = document.getElementById('gRange');
+  if(!dbvR || !mR || !gR) return;
+  var dbvOut = document.getElementById('dbvOut');
+  var mOut   = document.getElementById('mOut');
+  var gOut   = document.getElementById('gOut');
+  var splVal = document.getElementById('splVal');
+  var splWork= document.getElementById('splWork');
+
+  function fmtV(v){
+    if(v >= 1) return v.toFixed(2) + ' V';
+    if(v >= 0.001) return (v*1000).toFixed(v >= 0.01 ? 0 : 1) + ' mV';
+    return (v*1e6).toFixed(0) + ' µV';
+  }
+
+  function update(){
+    var dbv = parseFloat(dbvR.value);   // recorded level in dBV  (= 20·log10(V/Vref))
+    var M   = parseFloat(mR.value);     // sensitivity, dB re 1 V/µPa
+    var G   = parseFloat(gR.value);     // gain, dB
+    if(!isFinite(dbv) || !isFinite(M) || !isFinite(G)){
+      splVal.textContent = '—'; splWork.textContent = '—'; return;
+    }
+    var V = Math.pow(10, dbv/20);       // Vref = 1 V
+    var spl = dbv - M - G;              // 20log10(V/Vref) − M − G
+
+    dbvOut.textContent = fmtV(V) + ' · ' + (dbv > 0 ? '+' : '') + dbv.toFixed(0) + ' dBV';
+    mOut.textContent   = M.toFixed(0) + ' dB re 1 V/µPa';
+    gOut.textContent   = (G >= 0 ? '+' : '') + G.toFixed(0) + ' dB';
+
+    if(!isFinite(spl)){ splVal.textContent = '—'; splWork.textContent = '—'; return; }
+    splVal.textContent = spl.toFixed(0);
+    splWork.innerHTML =
+      '20·log₁₀(' + fmtV(V) + ') − (' + M.toFixed(0) + ') − ' + G.toFixed(0) +
+      ' = <b>' + spl.toFixed(0) + ' dB re 1 µPa</b>';
+  }
+
+  dbvR.addEventListener('input', update);
+  mR.addEventListener('input', update);
+  gR.addEventListener('input', update);
+  update();
+})();
+</script>
+</body>
+</html>

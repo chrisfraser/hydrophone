@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T9 · Sizing a Whale from One Click</title>
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/widgets.js"></script>
+<style>
+  /* Lesson-T9-specific: the "measure the whale" canvas toy */
+  .toy { background: linear-gradient(180deg,#fff,#f7fbfc); border:1px solid var(--rule); border-top:4px solid var(--surface); border-radius:var(--radius); padding:1.1rem 1.15rem 1.25rem; margin:1.8rem 0; box-shadow:var(--shadow); }
+  .toy h3 { margin:.1rem 0 .2rem; color:var(--ocean-deep); font-size:.98rem; }
+  .toy .hint { font-family:var(--sans); font-size:.82rem; color:var(--ink-faint); margin:0 0 .9rem; }
+  canvas { width:100%; display:block; border-radius:8px; background:#06202e; touch-action:none; cursor:grab; }
+  .row { display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; font-family:var(--sans); font-size:.85rem; margin-top:.8rem; }
+  .row .btn { cursor:pointer; border:1.5px solid var(--ocean); background:var(--ocean); color:#fff; font-weight:700; padding:.5rem .9rem; border-radius:8px; font-size:.85rem; }
+  .row .btn:hover { background:var(--ocean-deep); border-color:var(--ocean-deep); }
+  .chip { cursor:pointer; border:1.5px solid var(--rule); background:#fff; border-radius:999px; padding:.32rem .7rem; font-weight:600; color:var(--ink-soft); }
+  .chip.on { border-color:var(--ocean); background:#e7f5f7; color:var(--ocean-deep); }
+  .toy .verdict { font-family:var(--sans); font-weight:600; font-size:.95rem; padding:.7rem .85rem; border-radius:8px; margin-top:.8rem; background:#06202e; color:#d8f1f5; line-height:1.5; }
+  .toy .verdict b { color:#ffd479; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap-wide">
+    <a class="brand" href="../index.html"><span class="dot">◖</span> Hydrophone</a>
+    <nav>
+      <a href="../index.html">Lessons</a>
+      <a href="../reference/glossary.html">Glossary</a>
+      <a href="../reference/shopping-list.html">Shop</a>
+      <a href="https://github.com/chrisfraser/hydrophone">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <p class="kicker">Phase 1 · Theory · T9</p>
+  <h1 class="lesson-title">Sizing a Whale from One Click</h1>
+  <p class="lesson-sub">Before you ever build an array, a single hydrophone and a single click can tell you how big
+  the animal is — and whether you're hearing a giant male or one of Irène's females.</p>
+  <div class="lesson-meta">
+    <span>⏱ ~10 minutes</span><span class="sep">•</span>
+    <span>🎯 One sensor, one click, one number</span><span class="sep">•</span>
+    <span class="tag math">A little algebra</span>
+  </div>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ Why this lesson</div>
+    <p>Localizing a whale is hard — it takes a <a href="0011-time-difference-of-arrival.html">whole array</a> and the
+    maths of Phase 2. But <strong>measuring a whale is easy</strong>, and you can do it with the very first hydrophone
+    you drop off the western slope. Back in <a href="../index.html">T5</a> you learned that a sperm whale's click
+    isn't one bang but a <em>train of internal pulses</em>. This lesson turns that quirk into a ruler: read the gap
+    between two pulses, plug it into one line of algebra, and out comes the animal's body length. Real science from a
+    single sensor — your first genuine measurement of a wild whale.</p>
+  </div>
+
+  <h2><span class="num">1</span>The win: one click is a tape measure</h2>
+  <p>Here is the surprising part. The spacing of those internal pulses — the
+  <a href="../reference/glossary.html#ipi">inter-pulse interval (IPI)</a> — is <strong>stable across all of a
+  whale's clicks</strong> and barely changes over years. It is set by the whale's anatomy, not its mood. So you do
+  not need a long recording, a clean train, or several sensors: <strong>one click on one hydrophone is
+  enough</strong> to pin a length to within roughly a metre.<span class="cite"><a href="#r-rhin">2</a></span><span class="cite"><a href="#r-growcott">1</a></span></p>
+  <p>That makes sizing the perfect first taste of the mission. While the array-building of Phase 3 is still on the
+  bench, you can already point a cheap disc at the slope, catch a few clicks, and answer a real biological question:
+  <em>how big is this whale?</em></p>
+
+  <h2><span class="num">2</span>Two intervals — and the trap everyone falls into</h2>
+  <p>A sperm whale's voice hides <em>two</em> different gaps, and confusing them is the classic beginner mistake.
+  One is between whole clicks; the other is between pulses inside a single click. They sound similar and they are
+  not — only one tells you the whale's size.<span class="cite"><a href="#r-noaa">5</a></span></p>
+  <table>
+    <caption>The two intervals. Same word, totally different jobs — keep them straight.</caption>
+    <thead><tr><th>Interval</th><th>Where it lives</th><th>What it measures</th><th class="num">Typical scale</th></tr></thead>
+    <tbody>
+      <tr><td><b><a href="../reference/glossary.html#ici">ICI</a></b> — inter-click</td><td><em>Between</em> whole clicks</td><td>Rhythm / click type (T1, T8)</td><td class="num">0.5–2 s</td></tr>
+      <tr><td><b><a href="../reference/glossary.html#ipi">IPI</a></b> — inter-pulse</td><td><em>Inside</em> one click</td><td><strong>Body length</strong> (this lesson)</td><td class="num">2–9 ms</td></tr>
+    </tbody>
+  </table>
+  <div class="callout note">
+    <div class="callout-label">⌗ Say it once and remember it forever</div>
+    <p>The <strong>ICI</strong> is the gap you hear as the whale's <em>tick … tick … tick</em> — about a second apart,
+    and it tells you the click <em>type</em>, not the size. The <strong>IPI</strong> is a thousand times finer — a
+    few milliseconds — and is buried <em>inside</em> a single tick. <strong>ICI is rhythm. IPI is the ruler.</strong>
+    Mix them up and you'll "measure" a 1000-metre whale.</p>
+  </div>
+
+  <h2><span class="num">3</span>Where the inter-pulse interval comes from</h2>
+  <p>A sperm whale's enormous forehead is mostly the <strong>spermaceti organ</strong> — a tube of waxy oil running
+  the length of the head. The whale makes its click at the <em>front</em> of the head (the phonic lips, or
+  <em>museau&nbsp;de&nbsp;singe</em>). Most of that sound shoots forward into the sea, but a portion travels
+  <em>backward</em> through the organ, bounces off an air sac near the skull, and races forward again — escaping as a
+  slightly later, slightly quieter <strong>second pulse</strong>. Some of <em>that</em> reflects once more, giving a
+  third pulse, and so on.<span class="cite"><a href="#r-madsen">3</a></span><span class="cite"><a href="#r-noaa">5</a></span></p>
+  <p>So a single click leaves the head as a decaying train of pulses — call them p<sub>0</sub>, p<sub>1</sub>,
+  p<sub>2</sub> — each separated by the time it takes sound to make one round trip across the organ. That round-trip
+  time <em>is</em> the IPI. And here is the whole trick in one sentence:</p>
+  <div class="callout key">
+    <div class="callout-label">★ The physical idea</div>
+    <p>A <strong>bigger head</strong> means a <strong>longer round trip</strong> for the echo, which means a
+    <strong>longer IPI</strong>. Since head length tracks total body length, the IPI is a direct, built-in tape
+    measure for the whole animal.<span class="cite"><a href="#r-madsen">3</a></span></p>
+  </div>
+
+  <h2><span class="num">4</span>The ruler: turning milliseconds into metres</h2>
+  <p>Researchers calibrated this by recording whales whose true lengths were measured independently by
+  stereo-photogrammetry, then fitting a line. The validated result — the one this course uses — is beautifully
+  simple:<span class="cite"><a href="#r-growcott">1</a></span></p>
+
+  <div class="formula">
+    <span class="var">T</span> <span class="op">=</span> 1.258 <span class="op">·</span> <span class="var">IPI</span> <span class="op">+</span> 5.736
+    <small>T = total body length in <b>metres</b> · IPI in <b>milliseconds</b> · fitted to photogrammetric lengths, r² = 0.77 (Growcott et&nbsp;al. 2011)</small>
+  </div>
+
+  <p>It holds up because the IPI is so steady: within one whale, repeat measurements vary by less than 1%
+  (mean&nbsp;CV&nbsp;≈&nbsp;0.63%), which is why a lone click is trustworthy.<span class="cite"><a href="#r-growcott">1</a></span><span class="cite"><a href="#r-rhin">2</a></span>
+  Drop a few numbers in and the scale becomes intuitive:</p>
+  <table>
+    <caption>A few IPIs run through <span class="inline-math">T = 1.258·IPI + 5.736</span>.</caption>
+    <thead><tr><th class="num">IPI</th><th class="num">Length T</th><th>Roughly…</th></tr></thead>
+    <tbody>
+      <tr><td class="num">3 ms</td><td class="num">9.5 m</td><td>juvenile / small female</td></tr>
+      <tr><td class="num">5 ms</td><td class="num">12.0 m</td><td>large female / young male</td></tr>
+      <tr><td class="num">7 ms</td><td class="num">14.5 m</td><td>sub-adult to adult male</td></tr>
+      <tr><td class="num">8 ms</td><td class="num">15.8 m</td><td>big mature male</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="num">5</span>Measure the whale yourself</h2>
+  <p>Below is one click, drawn as pressure-against-time, with its internal pulses visible. <strong>Drag the two
+  gold markers onto two successive pulses</strong> to read the IPI; the algebra above then draws the whale to scale
+  beside a 1.8&nbsp;m diver. Load a worked example, or hit <em>Mystery whale</em> and measure a blind one.</p>
+
+  <div class="toy" id="whaleToy">
+    <h3>🐋 Drag the markers onto two successive pulses</h3>
+    <p class="hint">Each little burst is one pulse (p<sub>0</sub>, p<sub>1</sub>, p<sub>2</sub>…). Put marker
+    <b>A</b> on one pulse and <b>B</b> on the <em>next</em> one — the gold gap between them is the IPI, in
+    milliseconds. The whale below is drawn at the length that IPI implies.</p>
+    <canvas id="whaleCanvas" width="720" height="430" aria-label="A single sperm-whale click with internal pulses and two draggable markers; below, a whale silhouette drawn to scale next to a 1.8-metre diver"></canvas>
+    <div class="row">
+      <span>Load an example:</span>
+      <span class="chip" data-ipi="3">IPI 3 ms</span>
+      <span class="chip on" data-ipi="5">IPI 5 ms</span>
+      <span class="chip" data-ipi="8">IPI 8 ms</span>
+      <button class="btn" id="newWhale">🎲 Mystery whale</button>
+    </div>
+    <div class="verdict" id="whaleVerdict">—</div>
+  </div>
+
+  <h2><span class="num">6</span>The honest caveats</h2>
+  <p>The toy is clean; the sea is not. Three things keep a real measurement honest:</p>
+  <ul>
+    <li><strong>On-axis vs off-axis.</strong> Pointed straight at you, the click is so dominated by its first big
+    pulse that the later ones can be hard to see — the click looks almost "monopulsed". The pulse train is usually
+    <em>clearest off to the side</em>, so the best IPIs often come from clicks the whale was <em>not</em> aiming at
+    you.<span class="cite"><a href="#r-mohl">7</a></span></li>
+    <li><strong>Measure the right pulses.</strong> A stray surface echo or the leakage pulse p<sub>0</sub> can pose as
+    a "pulse" and corrupt the spacing. The reliable interval is between the clean internal reflections
+    (p<sub>1</sub>→p<sub>2</sub>); good practice is to confirm it with several clicks, since the IPI should barely
+    move.<span class="cite"><a href="#r-growcott">1</a></span><span class="cite"><a href="#r-rhin">2</a></span></li>
+    <li><strong>It's a regression, not a tape.</strong> Expect roughly ±1 m, and treat the answer as "which size
+    class" rather than a centimetre-perfect figure.<span class="cite"><a href="#r-growcott">1</a></span></li>
+  </ul>
+
+  <div class="callout mission">
+    <div class="callout-label">◎ What this buys you off Mauritius</div>
+    <p>The resident animals split sharply by size: adult <strong>females average ~11 m</strong> (an IPI near 4 ms),
+    while a roving <strong>mature male reaches ~16 m</strong> (an IPI near 8 ms) — males run up to one-and-a-half
+    times a female's length.<span class="cite"><a href="#r-maur">4</a></span> So a single IPI off the slope already
+    tells you whether you've found a giant visiting male or one of the females of
+    <strong>Irène's group</strong>.<span class="cite"><a href="#r-sarano">6</a></span> A genuine result, from one
+    sensor, before you solder a single connector of the array.</p>
+  </div>
+
+  <h2><span class="num">7</span>Check yourself</h2>
+  <p>No peeking — pull these out of your head.</p>
+
+  <div class="quiz" data-explain-right="Exactly." data-explain-wrong="Look back at §2.">
+    <div class="q-kicker">Question 1 of 3</div>
+    <div class="q-text">Which interval, measured <em>inside</em> a single click, scales with the whale's body length?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Yes — the inter-pulse interval lives inside one click and scales with head, so body, length.">The inter-pulse interval</button>
+      <button class="opt" data-feedback="That's the rhythm between whole clicks (ICI) — it sets click type, not size.">The inter-click interval</button>
+      <button class="opt" data-feedback="Not the sizing clue; a coda is a social pattern of clicks, gauged by ICI not pulses.">The inter-coda interval</button>
+      <button class="opt" data-feedback="Not a sizing term; a creak is a fast click train. Size comes from pulses within one click.">The inter-creak interval</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="Bigger head, longer echo path." data-explain-wrong="Re-read §3.">
+    <div class="q-kicker">Question 2 of 3</div>
+    <div class="q-text">A longer inter-pulse interval tells you the whale most likely has…</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Right — a longer path across a bigger spermaceti organ means a longer inter-pulse gap.">a bigger head, longer body</button>
+      <button class="opt" data-feedback="Backwards — a longer IPI means a longer reflection path, so a bigger head and body.">a smaller head, shorter body</button>
+      <button class="opt" data-feedback="No — IPI is about head size and the internal echo path, not the click's pitch.">a faster click, higher pitch</button>
+      <button class="opt" data-feedback="No — that describes rhythm and loudness; IPI tracks the size of the head.">a slower rhythm, quieter call</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="quiz" data-explain-right="One sensor is enough." data-explain-wrong="See §1.">
+    <div class="q-kicker">Question 3 of 3</div>
+    <div class="q-text">How many hydrophones do you need to estimate a whale's length from its click?</div>
+    <div class="q-options">
+      <button class="opt" data-correct data-feedback="Exactly — one click on one hydrophone gives an IPI, and the IPI gives a length.">Only one single hydrophone</button>
+      <button class="opt" data-feedback="That's for a 3-D position fix; sizing by IPI needs just a single hydrophone.">At least four hydrophones</button>
+      <button class="opt" data-feedback="Spacing helps localization, not sizing; one sensor reads the IPI fine.">A spread of hydrophones</button>
+      <button class="opt" data-feedback="More sensors locate the whale; to size it, a single hydrophone is enough.">Three or more hydrophones</button>
+    </div>
+    <div class="q-feedback"></div>
+  </div>
+
+  <div class="recap">
+    <h3>What you can now do</h3>
+    <ol>
+      <li>Tell the <strong>IPI</strong> (pulses <em>inside</em> a click → size) apart from the <strong>ICI</strong> (gap <em>between</em> clicks → rhythm).</li>
+      <li>Explain the IPI as the <strong>round-trip echo time across the spermaceti organ</strong> — bigger head, longer IPI.</li>
+      <li>Convert a measured IPI to length with <span class="inline-math">T = 1.258·IPI + 5.736</span> (ms → m).</li>
+      <li>Trust a <strong>single click on a single hydrophone</strong>, because the IPI is stable to under ~1%.</li>
+      <li>Off Mauritius, read an IPI as <strong>female (~4 ms) vs mature male (~8 ms)</strong> — before building any array.</li>
+    </ol>
+  </div>
+
+  <div class="sourcebox">
+    <div class="icon">📖</div>
+    <div>
+      <div class="label">Primary source · read this next</div>
+      <div class="title"><a href="https://pubmed.ncbi.nlm.nih.gov/21786922/" target="_blank" rel="noopener">Growcott, Miller, Sirguey, Slooten &amp; Dawson (2011) — “Measuring body length of male sperm whales from their clicks”</a></div>
+      <div class="desc">The paper that validated <b>T = 1.258·IPI + 5.736</b> against photogrammetric lengths (r² = 0.77) and showed the IPI is consistent to under 1% within an individual — the exact justification for sizing a whale from one click. Chosen over the NOAA blog because it gives the calibrated equation and its error, which the calculator depends on.</div>
+    </div>
+  </div>
+
+  <div class="ask-teacher">
+    💬 <b>I'm your teacher — ask me anything.</b> Want to know how to actually spot the pulses in a real recording,
+    why an on-axis click hides them, or how the cepstrum automates the IPI read-out? Just ask in chat. Confused beats
+    stuck.
+  </div>
+
+  <div class="crosslinks">
+    <b>Linked:</b> Glossary →
+    <a href="../reference/glossary.html#ipi">IPI</a>,
+    <a href="../reference/glossary.html#ici">ICI</a>,
+    <a href="../reference/glossary.html#regular-click">usual click</a>,
+    <a href="../reference/glossary.html#spectrogram">spectrogram</a>.
+    Builds on → <b>T5</b> (clicks have internal pulses); leads to → <b>T10</b> (time difference of arrival), where
+    several sensors finally <em>locate</em> the whale you just sized.
+  </div>
+
+  <h2 id="refs"><span class="num">§</span>References</h2>
+  <ol style="font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);line-height:1.5">
+    <li id="r-growcott">Growcott, Miller, Sirguey, Slooten &amp; Dawson (2011) — <a href="https://pubmed.ncbi.nlm.nih.gov/21786922/" target="_blank" rel="noopener">Measuring body length of male sperm whales from their clicks</a>. <em>JASA</em>. Validated <b>T = 1.258·IPI + 5.736</b> (IPI ms → length m), r² = 0.77, within-whale IPI CV ≈ 0.63%, n = 33 photogrammetrically measured animals.</li>
+    <li id="r-rhin">Rhinelander &amp; Dawson (2004) — <a href="https://www.researchgate.net/publication/8602554_Measuring_sperm_whales_from_their_clicks_Stability_of_interpulse_intervals_and_validation_that_they_indicate_whale_length" target="_blank" rel="noopener">Measuring sperm whales from their clicks: stability of inter-pulse intervals and validation that they indicate whale length</a>. <em>JASA</em>. IPI is stable across a whale's clicks and reliably indicates length — the basis for single-click sizing.</li>
+    <li id="r-madsen">Madsen, Wahlberg &amp; Møhl (2002) — <a href="https://journals.biologists.com/jeb/article/205/13/1899/8911/Sperm-whale-sound-production-studied-with" target="_blank" rel="noopener">Sperm whale sound production studied with ultrasound time/depth-recording tags</a>. <em>J. Exp. Biol.</em> Click is generated at the front of the head; multi-pulse structure arises from reflections within the spermaceti organ.</li>
+    <li id="r-maur">Ferrari, Trinh, Sarano et&nbsp;al. (2024) — <a href="https://www.nature.com/articles/s41598-024-51194-5" target="_blank" rel="noopener">Age and interpulse interval relation from newborn to adult sperm whale off Mauritius</a>. <em>Sci. Reports</em> 14:18474. Mauritius residents: females ~11 m / 15 t, males ~16 m / 45 t (males up to ~1.5× female length); IPIs from newborn to ~38 yr.</li>
+    <li id="r-noaa">NOAA Fisheries — <a href="https://www.fisheries.noaa.gov/science-blog/diving-deep-sperm-whale-clicks" target="_blank" rel="noopener">Diving Deep into Sperm Whale Clicks</a>. Plain-language tour of clicks, the multi-pulse structure, and the IPI body-length method.</li>
+    <li id="r-sarano">Sarano et&nbsp;al. — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8074673/" target="_blank" rel="noopener">Kin relationships in a social unit of sperm whales (Mauritius)</a>. The resident ~28-whale matrilineal "Irène's group", present year-round.</li>
+    <li id="r-mohl">Møhl, Wahlberg, Madsen, Heerfordt &amp; Lund (2003) — <a href="https://www.marinebioacoustics.com/files/2003/Mohl_et_al_2003a.pdf" target="_blank" rel="noopener">The monopulsed nature of sperm whale clicks</a>. <em>JASA</em>. On-axis the click is dominated by one pulse; the multi-pulse train is clearest off-axis — guides where to read the IPI.</li>
+  </ol>
+
+  <nav class="lesson-nav">
+    <a href="0009-detecting-clicks.html">
+      <div class="dir">← T8 · Detecting Clicks</div>
+      <div class="ttl">Finding the clicks first</div>
+    </a>
+    <a class="next" href="0011-time-difference-of-arrival.html">
+      <div class="dir">Next · T10 · Time Difference of Arrival →</div>
+      <div class="ttl">From sizing to locating →</div>
+    </a>
+  </nav>
+
+  <p class="pagefoot">Lesson T9 of the Hydrophone course ·
+  <a href="../index.html">all lessons</a> ·
+  <a href="https://github.com/chrisfraser/hydrophone">source on GitHub</a></p>
+</main>
+
+<script>
+/* ============================ T9 — "Measure the whale" canvas toy ============================ */
+(function(){
+  var canvas = document.getElementById('whaleCanvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  if(!ctx) return;
+  var verdict = document.getElementById('whaleVerdict');
+
+  var W = canvas.width, H = canvas.height;
+  var padL = 46, padR = 18, innerW = W - padL - padR;
+  var WIN = 34;                       // ms window
+  var pxPerM = innerW / 21;           // ~21 m of whale fits across
+
+  // panels
+  var wfTop = 34, wfBot = 188, wMid = (wfTop+wfBot)/2;
+  var bracketY = 200, axisY = 216;
+  var whTop = 238, whBot = 416, whMid = (whTop+whBot)/2;
+
+  var trueIPI = 5.0, p0 = 5.0;        // simulated whale
+  var markerA = 5.0, markerB = 10.0;  // ms
+  var dragging = null;
+
+  function xOf(ms){ return padL + (ms/WIN)*innerW; }
+  function msOf(x){ return (x-padL)/innerW*WIN; }
+  function lengthOf(ipi){ return 1.258*ipi + 5.736; }
+
+  function pulses(){
+    var arr = [], k = 0, t;
+    while((t = p0 + k*trueIPI) < WIN-1.5 && k < 7){ arr.push({t:t, a:Math.pow(0.62,k)}); k++; }
+    return arr;
+  }
+  function classify(L){
+    if(L < 12) return {txt:'female / juvenile sized', col:'#7fdcc0'};
+    if(L < 14) return {txt:'large female or young male', col:'#ffd479'};
+    return {txt:'big mature male', col:'#ff9d6e'};
+  }
+
+  function drawPulse(t, a){
+    ctx.strokeStyle = '#2a9db0'; ctx.lineWidth = 1.7;
+    ctx.beginPath();
+    var span = 2.2;                   // ms width of the burst
+    for(var i=0;i<=26;i++){
+      var ph = i/26;
+      var env = Math.exp(-ph*5);
+      var amp = Math.sin(ph*Math.PI*6)*env*a*58;
+      var xx = xOf(t + ph*span), yy = wMid - amp;
+      if(i===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy);
+    }
+    ctx.stroke();
+  }
+
+  function drawWhale(x0, yMid, L, color){
+    var h = Math.max(L*0.16, 12);
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x0, yMid + h*0.35);
+    ctx.lineTo(x0, yMid - h*0.5);                                            // blunt squared head
+    ctx.bezierCurveTo(x0+L*0.35, yMid-h*0.85, x0+L*0.72, yMid-h*0.55, x0+L*0.95, yMid-h*0.18);
+    ctx.lineTo(x0+L, yMid-h*0.12);
+    ctx.lineTo(x0+L+L*0.07, yMid-h*0.78);                                    // upper fluke
+    ctx.lineTo(x0+L*0.965, yMid+h*0.02);                                     // fluke notch
+    ctx.lineTo(x0+L+L*0.07, yMid+h*0.80);                                    // lower fluke
+    ctx.lineTo(x0+L, yMid+h*0.12);
+    ctx.bezierCurveTo(x0+L*0.72, yMid+h*0.55, x0+L*0.35, yMid+h*0.62, x0, yMid+h*0.35);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#06202e';                                              // eye
+    ctx.beginPath(); ctx.arc(x0+L*0.21, yMid-h*0.04, Math.max(h*0.05,1.6), 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(6,32,46,.4)'; ctx.lineWidth = 1;                 // jaw hint
+    ctx.beginPath(); ctx.moveTo(x0, yMid+h*0.18); ctx.lineTo(x0+L*0.27, yMid+h*0.30); ctx.stroke();
+  }
+
+  function drawDiver(x, yMid){
+    var hh = 1.8*pxPerM, top = yMid - hh/2, bot = yMid + hh/2, r = hh*0.10;
+    ctx.strokeStyle = '#cfe6ea'; ctx.fillStyle = '#cfe6ea'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(x, top+r, r, 0, Math.PI*2); ctx.fill();         // head
+    ctx.beginPath(); ctx.moveTo(x, top+2*r); ctx.lineTo(x, top+hh*0.62); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-hh*0.15, top+hh*0.40); ctx.lineTo(x+hh*0.15, top+hh*0.40); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, top+hh*0.62); ctx.lineTo(x-hh*0.12, bot);
+    ctx.moveTo(x, top+hh*0.62); ctx.lineTo(x+hh*0.12, bot); ctx.stroke();
+    ctx.fillStyle = '#8fb9c6'; ctx.font = '9px Inter, system-ui, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('diver 1.8 m', x, bot+11);
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#06202e'; ctx.fillRect(0,0,W,H);
+    var ipi = Math.abs(markerB-markerA), L = lengthOf(ipi), cls = classify(L);
+
+    // headers
+    ctx.font = '12px Inter, system-ui, sans-serif'; ctx.fillStyle = '#8fb9c6'; ctx.textAlign = 'left';
+    ctx.fillText('ONE CLICK — internal pulses (pressure vs time)', padL, 20);
+    ctx.fillText('THE WHALE — drawn to the length this IPI implies', padL, whTop-8);
+
+    // grid (5 ms) behind waveform
+    ctx.font = '10px Inter, system-ui, sans-serif'; ctx.textAlign = 'center';
+    for(var ms=0; ms<=WIN-2; ms+=5){
+      var gx = xOf(ms);
+      ctx.strokeStyle = 'rgba(143,185,198,.12)'; ctx.beginPath(); ctx.moveTo(gx,wfTop); ctx.lineTo(gx,wfBot); ctx.stroke();
+      ctx.fillStyle = '#5b8593'; ctx.fillText(ms+' ms', gx, axisY+2);
+    }
+    // midline
+    ctx.strokeStyle = 'rgba(143,185,198,.22)'; ctx.beginPath(); ctx.moveTo(padL,wMid); ctx.lineTo(W-padR,wMid); ctx.stroke();
+
+    // pulses + labels
+    var ps = pulses();
+    ps.forEach(function(p,i){
+      drawPulse(p.t, p.a);
+      ctx.fillStyle = '#5b8593'; ctx.font = '10px Inter, system-ui, sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText('p'+i, xOf(p.t)+1, wfTop+11);
+    });
+
+    // markers
+    [{t:markerA,lab:'A'},{t:markerB,lab:'B'}].forEach(function(m){
+      var x = xOf(m.t);
+      ctx.strokeStyle = '#ffd479'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x,wfTop-2); ctx.lineTo(x,wfBot+2); ctx.stroke();
+      ctx.fillStyle = '#ffd479'; ctx.beginPath(); ctx.arc(x, wfTop-2, 7.5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#06202e'; ctx.font = 'bold 10px Inter, system-ui, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(m.lab, x, wfTop+1.5);
+    });
+
+    // IPI bracket
+    var xa = xOf(Math.min(markerA,markerB)), xb = xOf(Math.max(markerA,markerB));
+    ctx.strokeStyle = '#ffd479'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(xa,bracketY); ctx.lineTo(xb,bracketY);
+    ctx.moveTo(xa,bracketY-4); ctx.lineTo(xa,bracketY+4);
+    ctx.moveTo(xb,bracketY-4); ctx.lineTo(xb,bracketY+4); ctx.stroke();
+    ctx.fillStyle = '#ffd479'; ctx.font = 'bold 11px Inter, system-ui, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('IPI = '+ipi.toFixed(2)+' ms', (xa+xb)/2, bracketY-5);
+
+    // whale + diver
+    drawDiver(padL+28, whMid);
+    var x0 = padL + 92;
+    var drawLen = Math.min(L*pxPerM, innerW-150);
+    drawWhale(x0, whMid, drawLen, cls.col);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ffd479'; ctx.font = 'bold 14px Inter, system-ui, sans-serif';
+    ctx.fillText('≈ '+L.toFixed(1)+' m', x0, whTop+16);
+    ctx.fillStyle = cls.col; ctx.font = '12px Inter, system-ui, sans-serif';
+    ctx.fillText(cls.txt, x0+78, whTop+16);
+  }
+
+  function updateVerdict(){
+    var ipi = Math.abs(markerB-markerA), L = lengthOf(ipi), cls = classify(L);
+    var note = '';
+    if(ipi < 1.2) note = ' — your markers are almost on the same pulse; spread them to two <em>successive</em> pulses.';
+    else if(ipi > 9.5) note = ' — that is wider than any real sperm-whale IPI; you have probably skipped a pulse.';
+    verdict.innerHTML = 'Measured <b>IPI = '+ipi.toFixed(2)+' ms</b> &rarr; estimated length <b>&approx; '+L.toFixed(1)+' m</b> ('+cls.txt+')'+note+'.';
+  }
+
+  function render(){ draw(); updateVerdict(); }
+
+  // ---- dragging
+  function localPx(e){
+    var r = canvas.getBoundingClientRect();
+    return { x:(e.clientX-r.left)*(canvas.width/r.width), y:(e.clientY-r.top)*(canvas.height/r.height) };
+  }
+  function pick(e){
+    var p = localPx(e);
+    var da = Math.abs(p.x-xOf(markerA)), db = Math.abs(p.x-xOf(markerB));
+    if(Math.min(da,db) > 24) return null;
+    return da<=db ? 'A' : 'B';
+  }
+  function moveTo(e){
+    var p = localPx(e);
+    var t = Math.max(0, Math.min(WIN-0.2, msOf(p.x)));
+    if(dragging==='A') markerA = t; else markerB = t;
+    render();
+  }
+  canvas.addEventListener('pointerdown', function(e){
+    dragging = pick(e);
+    if(dragging){ e.preventDefault(); canvas.style.cursor='grabbing'; moveTo(e); }
+  });
+  canvas.addEventListener('pointermove', function(e){ if(dragging) moveTo(e); });
+  window.addEventListener('pointerup', function(){ dragging=null; canvas.style.cursor='grab'; });
+
+  // ---- example chips
+  var chips = Array.prototype.slice.call(document.querySelectorAll('#whaleToy .chip'));
+  chips.forEach(function(chip){
+    chip.addEventListener('click', function(){
+      chips.forEach(function(c){ c.classList.remove('on'); });
+      chip.classList.add('on');
+      trueIPI = parseFloat(chip.getAttribute('data-ipi'));
+      p0 = 5.0; markerA = p0; markerB = p0 + trueIPI;
+      render();
+    });
+  });
+
+  // ---- mystery whale
+  var btn = document.getElementById('newWhale');
+  if(btn) btn.addEventListener('click', function(){
+    chips.forEach(function(c){ c.classList.remove('on'); });
+    trueIPI = Math.round((3.2 + Math.random()*5.4)*100)/100;   // 3.2–8.6 ms
+    p0 = 5.0; markerA = p0; markerB = p0 + trueIPI;
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
